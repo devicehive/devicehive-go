@@ -1,23 +1,22 @@
 package dh
 
 import (
-	"github.com/gorilla/websocket"
 	"math/rand"
 	"time"
-	"strconv"
+	"github.com/devicehive/devicehive-go/dh/transport"
 )
 
-type dhClient struct {
-	conn *websocket.Conn
+func init() {
+	rand.Seed(time.Now().Unix())
 }
 
-func (c *dhClient) Authenticate(token string) (result bool, err error) {
-	rand.Seed(time.Now().Unix())
-	reqId := strconv.Itoa(rand.Int())
+type Client struct {
+	tsp transport.Transporter
+}
 
-	err = c.conn.WriteJSON(map[string]string{
+func (c *Client) Authenticate(token string) (result bool, err error) {
+	res, err := c.tsp.Request(map[string]interface{}{
 		"action": "authenticate",
-		"requestId": reqId,
 		"token": token,
 	})
 
@@ -25,18 +24,15 @@ func (c *dhClient) Authenticate(token string) (result bool, err error) {
 		return false, err
 	}
 
-	res := make(map[string]interface{})
-	for {
-		err = c.conn.ReadJSON(&res)
+	return res["status"].(string) == "success", nil
+}
 
-		if err != nil {
-			return false, err
-		}
+func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken string, err error) {
+	res, err := c.tsp.Request(map[string]interface{}{
+		"action": "token",
+		"login": login,
+		"password": pass,
+	})
 
-		if res["requestId"] == reqId {
-			break
-		}
-	}
-
-	return res["status"] == "success", nil
+	return res["accessToken"].(string), res["refreshToken"].(string), nil
 }
