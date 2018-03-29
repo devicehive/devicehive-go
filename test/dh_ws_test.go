@@ -95,7 +95,7 @@ func TestInvalidResponse(t *testing.T) {
 	is.Equal(err.Error(), "invalid service response")
 }
 
-func TestToken(t *testing.T) {
+func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
 
 	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
