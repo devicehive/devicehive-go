@@ -1,12 +1,12 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
-	"os"
-	"github.com/gorilla/websocket"
 	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"os"
+	"testing"
 )
 
 const serverAddr = "localhost:7357"

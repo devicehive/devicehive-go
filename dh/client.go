@@ -1,9 +1,9 @@
 package dh
 
 import (
+	"github.com/devicehive/devicehive-go/dh/transport"
 	"math/rand"
 	"time"
-	"github.com/devicehive/devicehive-go/dh/transport"
 )
 
 func init() {
@@ -17,7 +17,7 @@ type Client struct {
 func (c *Client) Authenticate(token string) (result bool, err error) {
 	res, err := c.tsp.Request(map[string]interface{}{
 		"action": "authenticate",
-		"token": token,
+		"token":  token,
 	})
 
 	if err != nil {
@@ -29,8 +29,8 @@ func (c *Client) Authenticate(token string) (result bool, err error) {
 
 func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken string, err error) {
 	res, err := c.tsp.Request(map[string]interface{}{
-		"action": "token",
-		"login": login,
+		"action":   "token",
+		"login":    login,
 		"password": pass,
 	})
 
@@ -43,7 +43,7 @@ func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken str
 
 func (c *Client) TokenRefresh(refreshToken string) (accessToken string, err error) {
 	res, err := c.tsp.Request(map[string]interface{}{
-		"action": "token/refresh",
+		"action":       "token/refresh",
 		"refreshToken": refreshToken,
 	})
 
