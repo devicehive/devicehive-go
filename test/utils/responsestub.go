@@ -30,3 +30,13 @@ func (s *responseStub) TokenRefresh(reqId, accessToken string) map[string]string
 		"accessToken": accessToken,
 	}
 }
+
+func (s *responseStub) Unauthorized(action, reqId string) map[string]interface{} {
+	return map[string]interface{}{
+		"action": action,
+		"requestId": reqId,
+		"status": "error",
+		"code": 401,
+		"error": "Unauthorized",
+	}
+}

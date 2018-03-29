@@ -6,6 +6,7 @@ import (
 	"github.com/devicehive/devicehive-go/dh"
 	"os"
 	"flag"
+	"time"
 )
 
 const serverAddr = "playground-dev.devicehive.com/api/websocket"
@@ -44,10 +45,22 @@ func TestAuthenticate(t *testing.T) {
 	is.True(res)
 }
 
-func TestToken(t *testing.T) {
+func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
 
 	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
+
+	is.NoErr(err)
+
+	is.True(accTok != "")
+	is.True(refTok != "")
+}
+
+func TestTokenByPayload(t *testing.T) {
+	is := is.New(t)
+
+	expiration := time.Now().UTC().Add(1000)
+	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, expiration)
 
 	is.NoErr(err)
 

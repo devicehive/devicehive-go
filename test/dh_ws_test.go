@@ -7,6 +7,7 @@ import (
 	"github.com/matryer/is"
 	"os"
 	"testing"
+	"time"
 )
 
 const serverAddr = "localhost:7357"
@@ -32,8 +33,6 @@ func TestAuthenticate(t *testing.T) {
 		}
 
 		is.Equal(req["action"], "authenticate")
-		is.True(req["requestId"] != "")
-		is.Equal(req["token"], "someTestToken")
 
 		err = conn.WriteJSON(resStub.Authenticate(req["requestId"]))
 
@@ -95,6 +94,34 @@ func TestInvalidResponse(t *testing.T) {
 	is.Equal(err.Error(), "invalid service response")
 }
 
+func TestRequestId(t *testing.T) {
+	is := is.New(t)
+	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
+		req := make(map[string]interface{})
+		conn.ReadJSON(&req)
+
+		switch req["requestId"].(type) {
+		case string:
+			is.True(req["requestId"] != "")
+		default:
+			t.Error("requestId is not a string")
+			is.Fail()
+		}
+
+		conn.WriteMessage(websocket.TextMessage, []byte("dummy response"))
+	})
+	defer srv.Close()
+
+	client, err := dh.Connect(wsServerAddr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// @TODO Maybe other methods should be placed here as well
+	client.TokenRefresh("refresh token")
+}
+
 func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
 
@@ -107,9 +134,6 @@ func TestTokenByCreds(t *testing.T) {
 		}
 
 		is.Equal(req["action"], "token")
-		is.True(req["requestId"] != "")
-		is.Equal(req["login"], "dhadmin")
-		is.Equal(req["password"], "dhadmin_#911")
 
 		err = conn.WriteJSON(resStub.Token(req["requestId"], "accTok", "refTok"))
 
@@ -132,6 +156,75 @@ func TestTokenByCreds(t *testing.T) {
 	is.Equal(refreshToken, "refTok")
 }
 
+func TestTokenByPayload(t *testing.T) {
+	is := is.New(t)
+
+	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
+		req := make(map[string]interface{})
+		err := conn.ReadJSON(&req)
+
+		if err != nil {
+			panic(err)
+		}
+
+		is.Equal(req["action"], "token/create")
+
+		err = conn.WriteJSON(resStub.Token(req["requestId"].(string), "accTok", "refTok"))
+
+		if err != nil {
+			panic(err)
+		}
+	})
+	defer srv.Close()
+
+	client, err := dh.Connect(wsServerAddr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	userId := 123
+	actions := []string{ "ManageToken", "ManageNetworks" }
+	networkIds := []string{ "n1", "n2" }
+	deviceTypeIds := []string{ "d1", "d2" }
+	expiration := time.Now().UTC()
+	accessToken, refreshToken, err := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, expiration)
+
+	is.NoErr(err)
+	is.Equal(accessToken, "accTok")
+	is.Equal(refreshToken, "refTok")
+}
+
+func TestErrorResponseTokenByPayload(t *testing.T) {
+	is := is.New(t)
+
+	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
+		req := make(map[string]interface{})
+		err := conn.ReadJSON(&req)
+
+		if err != nil {
+			panic(err)
+		}
+
+		err = conn.WriteJSON(resStub.Unauthorized(req["action"].(string), req["requestId"].(string)))
+
+		if err != nil {
+			panic(err)
+		}
+	})
+	defer srv.Close()
+
+	client, err := dh.Connect(wsServerAddr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, err = client.TokenByPayload(1, nil, nil, nil, time.Now())
+
+	is.Equal(err.Error(), "401 unauthorized")
+}
+
 func TestTokenRefresh(t *testing.T) {
 	is := is.New(t)
 
@@ -144,8 +237,6 @@ func TestTokenRefresh(t *testing.T) {
 		}
 
 		is.Equal(req["action"], "token/refresh")
-		is.True(req["requestId"] != "")
-		is.Equal(req["refreshToken"], "test refresh token")
 
 		err = conn.WriteJSON(resStub.TokenRefresh(req["requestId"], "accTok"))
 
