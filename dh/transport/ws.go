@@ -2,6 +2,8 @@ package transport
 
 import (
 	"github.com/gorilla/websocket"
+	"encoding/json"
+	"fmt"
 )
 
 func newWS(conn *websocket.Conn) *ws {
@@ -28,27 +30,43 @@ func (t *ws) Request(data devicehiveData) (res devicehiveData, err error) {
 		return nil, err
 	}
 
-	t.requests.add(reqId, make(chan devicehiveData))
+	resChan, errChan := t.requests.create(reqId)
 
-	res = <- t.requests[reqId]
-
-	return res, nil
+	select {
+	case res := <- resChan:
+		return res, nil
+	case err := <- errChan:
+		return nil, err
+	}
 }
 
 func (t *ws) handleResponses() {
 	for {
 		res := make(devicehiveData)
-		err := t.conn.ReadJSON(&res)
+		mt, msg, err := t.conn.ReadMessage()
 
-		// @TODO ReadJSON error handling
+		if mt == websocket.CloseMessage || mt == -1 {
+			t.requests.forEach(func(resChan *response) {
+				resChan.err <- fmt.Errorf("connection closed")
+				resChan.close()
+			})
+			return
+		}
+
+		err = json.Unmarshal(msg, &res)
+
 		if err != nil {
-			panic(err)
+			t.requests.forEach(func(resChan *response) {
+				resChan.err <- fmt.Errorf("invalid service response")
+				resChan.close()
+			})
+			return
 		}
 
 		reqId := res["requestId"].(string)
 		if resChan, ok := t.requests.get(reqId); ok {
-			resChan <- res
-			close(resChan)
+			resChan.data <- res
+			resChan.close()
 			t.requests.delete(reqId)
 		}
 	}

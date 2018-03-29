@@ -1,10 +1,12 @@
 package transport
 
-import "sync"
+import (
+	"sync"
+)
 
 var mu = sync.Mutex{}
 
-type requestMap map[string]chan devicehiveData
+type requestMap map[string]*response
 
 func (m requestMap) delete(key string) {
 	mu.Lock()
@@ -13,17 +15,43 @@ func (m requestMap) delete(key string) {
 	delete(m, key)
 }
 
-func (m requestMap) add(key string, val chan devicehiveData) {
+func (m requestMap) create(key string) (dataChan chan devicehiveData, errChan chan error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	m[key] = val
+	data, err := make(chan devicehiveData), make(chan error)
+
+	m[key] = &response{
+		data: data,
+		err: err,
+	}
+
+	return data, err
 }
 
-func (m requestMap) get(key string) (responseChan chan devicehiveData, ok bool) {
+func (m requestMap) get(key string) (response *response, ok bool) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	resChan, ok := m[key]
-	return resChan, ok
+	res, ok := m[key]
+	return res, ok
+}
+
+func (m requestMap) forEach(f func(res *response)) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	for _, res := range m {
+		f(res)
+	}
+}
+
+type response struct {
+	data chan devicehiveData
+	err chan error
+}
+
+func (r *response) close() {
+	close(r.data)
+	close(r.err)
 }

@@ -34,5 +34,22 @@ func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken str
 		"password": pass,
 	})
 
+	if err != nil {
+		return "", "", err
+	}
+
 	return res["accessToken"].(string), res["refreshToken"].(string), nil
+}
+
+func (c *Client) TokenRefresh(refreshToken string) (accessToken string, err error) {
+	res, err := c.tsp.Request(map[string]interface{}{
+		"action": "token/refresh",
+		"refreshToken": refreshToken,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return res["accessToken"].(string), nil
 }
