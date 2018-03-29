@@ -20,8 +20,6 @@ func TestWSServer(addr string, wsHandler func(c *websocket.Conn) ) *httptest.Ser
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := upgrade(w, r)
-		defer c.Close()
-
 		wsHandler(c)
 	})
 	srv := httptest.NewUnstartedServer(h)

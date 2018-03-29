@@ -41,11 +41,15 @@ func TestAuthenticate(t *testing.T) {
 		is.True(req["requestId"] != "")
 		is.Equal(req["token"], "someTestToken")
 
-		conn.WriteJSON(map[string]string{
+		err = conn.WriteJSON(map[string]string{
 			"action": req["action"],
 			"requestId": req["requestId"],
 			"status": "success",
 		})
+
+		if err != nil {
+			panic(err)
+		}
 	})
 	defer srv.Close()
 
@@ -79,6 +83,10 @@ func TestToken(t *testing.T) {
 			"accessToken": "access token",
 			"refreshToken": "refresh token",
 		})
+
+		if err != nil {
+			panic(err)
+		}
 	})
 	defer srv.Close()
 

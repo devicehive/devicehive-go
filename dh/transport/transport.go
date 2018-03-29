@@ -1,13 +1,15 @@
 package transport
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+	"strconv"
+	"time"
+	"math/rand"
+)
 
 type Transporter interface {
-	Request(data request) (res response, err error)
+	Request(data devicehiveData) (res devicehiveData, err error)
 }
-
-type response map[string]interface{}
-type request map[string]interface{}
 
 func Create(url string) (transport Transporter, err error) {
 	// @TODO HTTP transport
@@ -18,4 +20,20 @@ func Create(url string) (transport Transporter, err error) {
 	}
 
 	return newWS(conn), nil
+}
+
+type devicehiveData map[string]interface{}
+
+func (d devicehiveData) requestId() string {
+	reqId, ok := d["requestId"].(string)
+
+	if !ok {
+		r := strconv.FormatUint(rand.Uint64(), 10)
+		ts := strconv.FormatInt(time.Now().Unix(), 10)
+		reqId = r + ts
+
+		d["requestId"] = reqId
+	}
+
+	return reqId
 }
