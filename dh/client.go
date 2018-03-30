@@ -37,17 +37,30 @@ func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken str
 	})
 }
 
-func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds []string, expiration time.Time) (accessToken, refreshToken string, err error) {
-	return c.tokenRequest(map[string]interface{}{
+func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds []string, expiration *time.Time) (accessToken, refreshToken string, err error) {
+	payload := map[string]interface{}{
+		"userId": userId,
+	}
+
+	if actions != nil {
+		payload["actions"] = actions
+	}
+	if networkIds != nil {
+		payload["networkIds"] = networkIds
+	}
+	if deviceTypeIds != nil {
+		payload["deviceTypeIds"] = deviceTypeIds
+	}
+	if expiration != nil {
+		payload["expiration"] = expiration.UTC().Format(time.RFC3339)
+	}
+
+	data := map[string]interface{}{
 		"action": "token/create",
-		"payload": map[string]interface{}{
-			"userId": userId,
-			"actions": actions,
-			"networkIds": networkIds,
-			"deviceTypeIds": deviceTypeIds,
-			"expiration": expiration.String(),
-		},
-	})
+		"payload": payload,
+	}
+
+	return c.tokenRequest(data)
 }
 
 func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refreshToken string, err error) {

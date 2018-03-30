@@ -57,10 +57,22 @@ func TestTokenByCreds(t *testing.T) {
 }
 
 func TestTokenByPayload(t *testing.T) {
+	if *tok == "" {
+		t.Skip("Access token is not specified, skipping TestTokenByPayload")
+	}
+
 	is := is.New(t)
 
-	expiration := time.Now().UTC().Add(1000)
-	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, expiration)
+	res, err := client.Authenticate(*tok)
+
+	is.NoErr(err)
+
+	if !res {
+		t.Skip("Invalid access token, skipping TestTokenByPayload")
+	}
+
+	expiration := time.Now().Add(1 * time.Second)
+	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, &expiration)
 
 	is.NoErr(err)
 

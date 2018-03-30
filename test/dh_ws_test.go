@@ -187,8 +187,8 @@ func TestTokenByPayload(t *testing.T) {
 	actions := []string{ "ManageToken", "ManageNetworks" }
 	networkIds := []string{ "n1", "n2" }
 	deviceTypeIds := []string{ "d1", "d2" }
-	expiration := time.Now().UTC()
-	accessToken, refreshToken, err := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, expiration)
+	expiration := time.Now()
+	accessToken, refreshToken, err := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 
 	is.NoErr(err)
 	is.Equal(accessToken, "accTok")
@@ -220,7 +220,7 @@ func TestErrorResponseTokenByPayload(t *testing.T) {
 		panic(err)
 	}
 
-	_, _, err = client.TokenByPayload(1, nil, nil, nil, time.Now())
+	_, _, err = client.TokenByPayload(1, nil, nil, nil, nil)
 
 	is.Equal(err.Error(), "401 unauthorized")
 }
