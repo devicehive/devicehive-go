@@ -17,7 +17,7 @@ func (c *Client) Authenticate(token string) (result bool, err error) {
 		"token":  token,
 	})
 
-	if err != nil {
+	if err = c.handleResponseError(res, err); err != nil {
 		return false, err
 	}
 
@@ -61,14 +61,8 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refreshToken string, err error) {
 	res, err := c.tsp.Request(data)
 
-	if err != nil {
+	if err = c.handleResponseError(res, err); err != nil {
 		return "", "", err
-	}
-
-	if res["status"] == "error" {
-		errMsg := strings.ToLower(res["error"].(string))
-		errCode := int(res["code"].(float64))
-		return "", "", fmt.Errorf("%d %s", errCode, errMsg)
 	}
 
 	return res["accessToken"].(string), res["refreshToken"].(string), nil
@@ -80,9 +74,23 @@ func (c *Client) TokenRefresh(refreshToken string) (accessToken string, err erro
 		"refreshToken": refreshToken,
 	})
 
-	if err != nil {
+	if err = c.handleResponseError(res, err); err != nil {
 		return "", err
 	}
 
 	return res["accessToken"].(string), nil
+}
+
+func (c *Client) handleResponseError(response map[string]interface{}, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if response["status"] == "error" {
+		errMsg := strings.ToLower(response["error"].(string))
+		errCode := int(response["code"].(float64))
+		return fmt.Errorf("%d %s", errCode, errMsg)
+	}
+
+	return nil
 }
