@@ -1,14 +1,15 @@
 package transport
 
 import (
-	"time"
-	"strconv"
 	"math/rand"
+	"strconv"
+	"time"
 )
 
 type devicehiveData map[string]interface{}
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+
 func (d devicehiveData) requestId() string {
 	reqId, ok := d["requestId"].(string)
 

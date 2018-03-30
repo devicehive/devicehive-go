@@ -184,9 +184,9 @@ func TestTokenByPayload(t *testing.T) {
 	}
 
 	userId := 123
-	actions := []string{ "ManageToken", "ManageNetworks" }
-	networkIds := []string{ "n1", "n2" }
-	deviceTypeIds := []string{ "d1", "d2" }
+	actions := []string{"ManageToken", "ManageNetworks"}
+	networkIds := []string{"n1", "n2"}
+	deviceTypeIds := []string{"d1", "d2"}
 	expiration := time.Now()
 	accessToken, refreshToken, err := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 

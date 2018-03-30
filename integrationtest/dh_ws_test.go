@@ -1,11 +1,11 @@
 package dh_integrationtest
 
 import (
-	"testing"
-	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/dh"
-	"os"
 	"flag"
+	"github.com/devicehive/devicehive-go/dh"
+	"github.com/matryer/is"
+	"os"
+	"testing"
 	"time"
 )
 

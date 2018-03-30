@@ -1,10 +1,10 @@
 package dh
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport"
-	"time"
 	"fmt"
+	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
+	"time"
 )
 
 type Client struct {
@@ -51,7 +51,7 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 	}
 
 	data := map[string]interface{}{
-		"action": "token/create",
+		"action":  "token/create",
 		"payload": payload,
 	}
 

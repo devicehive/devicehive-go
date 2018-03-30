@@ -1,14 +1,14 @@
 package transport
 
 import (
-	"github.com/gorilla/websocket"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 )
 
 func newWS(conn *websocket.Conn) *ws {
 	tsp := &ws{
-		conn: conn,
+		conn:     conn,
 		requests: make(requestMap),
 	}
 
@@ -18,7 +18,7 @@ func newWS(conn *websocket.Conn) *ws {
 }
 
 type ws struct {
-	conn *websocket.Conn
+	conn     *websocket.Conn
 	requests requestMap
 }
 
@@ -33,9 +33,9 @@ func (t *ws) Request(data devicehiveData) (res devicehiveData, err error) {
 	resChan, errChan := t.requests.create(reqId)
 
 	select {
-	case res := <- resChan:
+	case res := <-resChan:
 		return res, nil
-	case err := <- errChan:
+	case err := <-errChan:
 		return nil, err
 	}
 }

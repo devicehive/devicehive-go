@@ -23,7 +23,7 @@ func (m requestMap) create(key string) (dataChan chan devicehiveData, errChan ch
 
 	m[key] = &response{
 		data: data,
-		err: err,
+		err:  err,
 	}
 
 	return data, err
@@ -48,7 +48,7 @@ func (m requestMap) forEach(f func(res *response)) {
 
 type response struct {
 	data chan devicehiveData
-	err chan error
+	err  chan error
 }
 
 func (r *response) close() {
