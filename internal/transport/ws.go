@@ -45,29 +45,36 @@ func (t *ws) handleResponses() {
 		res := make(devicehiveData)
 		mt, msg, err := t.conn.ReadMessage()
 
-		if mt == websocket.CloseMessage || mt == -1 {
-			t.requests.forEach(func(resChan *response) {
-				resChan.err <- fmt.Errorf("connection closed")
-				resChan.close()
-			})
+		connClosed := mt == websocket.CloseMessage || mt == -1
+		if connClosed {
+			t.closePendingWithErr("connection closed", err)
 			return
 		}
 
 		err = json.Unmarshal(msg, &res)
 
 		if err != nil {
-			t.requests.forEach(func(resChan *response) {
-				resChan.err <- fmt.Errorf("invalid service response")
-				resChan.close()
-			})
+			t.closePendingWithErr("invalid service response", err)
 			return
 		}
 
-		reqId := res["requestId"].(string)
-		if resChan, ok := t.requests.get(reqId); ok {
-			resChan.data <- res
-			resChan.close()
-			t.requests.delete(reqId)
-		}
+		t.respond(res)
 	}
 }
+
+func (t *ws) closePendingWithErr(errMsg string, err error) {
+	t.requests.forEach(func(resChan *response) {
+		resChan.err <- fmt.Errorf("%s, error: %v", errMsg, err)
+		resChan.close()
+	})
+}
+
+func (t *ws) respond(res devicehiveData) {
+	reqId := res.requestId()
+	if resChan, ok := t.requests.get(reqId); ok {
+		resChan.data <- res
+		resChan.close()
+		t.requests.delete(reqId)
+	}
+}
+

@@ -71,7 +71,7 @@ func TestConnectionClose(t *testing.T) {
 
 	_, err = client.Authenticate("test")
 
-	is.Equal(err.Error(), "connection closed")
+	is.Equal(err.Error(), "connection closed, error: websocket: close 1006 (abnormal closure): unexpected EOF")
 }
 
 func TestInvalidResponse(t *testing.T) {
@@ -91,7 +91,7 @@ func TestInvalidResponse(t *testing.T) {
 
 	_, err = client.Authenticate("test")
 
-	is.Equal(err.Error(), "invalid service response")
+	is.Equal(err.Error(), "invalid service response, error: invalid character 'i' looking for beginning of value")
 }
 
 func TestRequestId(t *testing.T) {
