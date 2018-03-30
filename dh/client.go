@@ -2,15 +2,10 @@ package dh
 
 import (
 	"github.com/devicehive/devicehive-go/dh/transport"
-	"math/rand"
 	"time"
 	"fmt"
 	"strings"
 )
-
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 type Client struct {
 	tsp transport.Transporter
