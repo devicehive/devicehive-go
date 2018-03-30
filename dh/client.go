@@ -1,7 +1,7 @@
 package dh
 
 import (
-	"github.com/devicehive/devicehive-go/dh/transport"
+	"github.com/devicehive/devicehive-go/internal/transport"
 	"time"
 	"fmt"
 	"strings"
