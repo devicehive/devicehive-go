@@ -1,15 +1,15 @@
 package dh
 
 import (
-	"github.com/gorilla/websocket"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-func Connect(url string) (*dhClient, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+func Connect(url string) (*Client, error) {
+	tsp, err := transport.Create(url)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &dhClient{conn: conn}, nil
+	return &Client{tsp: tsp}, nil
 }
