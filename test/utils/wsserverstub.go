@@ -11,7 +11,7 @@ type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map
 
 type WSTestServer struct {
 	handler wsReqHandler
-	srv *httptest.Server
+	srv     *httptest.Server
 }
 
 func (wss *WSTestServer) Start(addr string) {
@@ -38,7 +38,7 @@ func (wss *WSTestServer) Start(addr string) {
 
 		res := wss.handler(req, c)
 
-		if res != nil  {
+		if res != nil {
 			err = c.WriteJSON(res)
 
 			if err != nil {

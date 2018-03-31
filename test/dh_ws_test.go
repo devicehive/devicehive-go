@@ -80,33 +80,6 @@ func TestInvalidResponse(t *testing.T) {
 	is.Equal(dhErr.Name(), dh.InvalidResponseErr)
 }
 
-func TestRequestId(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		switch reqData["requestId"].(type) {
-		case string:
-			is.True(reqData["requestId"] != "")
-		default:
-			t.Error("requestId is not a string")
-			is.Fail()
-		}
-
-		c.WriteMessage(websocket.TextMessage, []byte("dummy response"))
-
-		return nil
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// @TODO Maybe other methods should be placed here as well
-	client.TokenRefresh("refresh token")
-}
-
 func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
 
