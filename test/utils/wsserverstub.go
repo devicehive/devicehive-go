@@ -7,22 +7,39 @@ import (
 	"net/http/httptest"
 )
 
-func TestWSServer(addr string, wsHandler func(c *websocket.Conn)) *httptest.Server {
+type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{}
+
+func TestWSServer(addr string, handler wsReqHandler) *httptest.Server {
 	l, err := net.Listen("tcp", addr)
 
 	if err != nil {
 		panic(err)
 	}
 
-	if wsHandler == nil {
-		wsHandler = defaultWSHandler
+	if handler == nil {
+		handler = defaultWSHandler
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := upgrade(w, r)
 		defer c.Close()
 
-		wsHandler(c)
+		req := make(map[string]interface{})
+		err := c.ReadJSON(&req)
+
+		if err != nil {
+			panic(err)
+		}
+
+		res := handler(req, c)
+
+		if res != nil  {
+			err = c.WriteJSON(res)
+
+			if err != nil {
+				panic(err)
+			}
+		}
 	})
 	srv := httptest.NewUnstartedServer(h)
 	srv.Listener = l
@@ -31,22 +48,8 @@ func TestWSServer(addr string, wsHandler func(c *websocket.Conn)) *httptest.Serv
 	return srv
 }
 
-func defaultWSHandler(c *websocket.Conn) {
-	for {
-		_, msg, err := c.ReadMessage()
-
-		if err != nil {
-			panic(err)
-			return
-		}
-
-		err = c.WriteMessage(0, msg)
-
-		if err != nil {
-			panic(err)
-			return
-		}
-	}
+func defaultWSHandler(req map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
+	return req
 }
 
 var wsUpgrader = websocket.Upgrader{}
