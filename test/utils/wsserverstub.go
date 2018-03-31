@@ -9,15 +9,20 @@ import (
 
 type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{}
 
-func TestWSServer(addr string, handler wsReqHandler) *httptest.Server {
+type WSTestServer struct {
+	handler wsReqHandler
+	srv *httptest.Server
+}
+
+func (wss *WSTestServer) Start(addr string) {
 	l, err := net.Listen("tcp", addr)
 
 	if err != nil {
 		panic(err)
 	}
 
-	if handler == nil {
-		handler = defaultWSHandler
+	if wss.handler == nil {
+		wss.handler = defaultWSHandler
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +36,7 @@ func TestWSServer(addr string, handler wsReqHandler) *httptest.Server {
 			panic(err)
 		}
 
-		res := handler(req, c)
+		res := wss.handler(req, c)
 
 		if res != nil  {
 			err = c.WriteJSON(res)
@@ -45,7 +50,15 @@ func TestWSServer(addr string, handler wsReqHandler) *httptest.Server {
 	srv.Listener = l
 	srv.Start()
 
-	return srv
+	wss.srv = srv
+}
+
+func (wss *WSTestServer) Close() {
+	wss.srv.Close()
+}
+
+func (wss *WSTestServer) SetHandler(h wsReqHandler) {
+	wss.handler = h
 }
 
 func defaultWSHandler(req map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
