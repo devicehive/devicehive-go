@@ -220,9 +220,10 @@ func TestErrorResponseTokenByPayload(t *testing.T) {
 		panic(err)
 	}
 
-	_, _, err = client.TokenByPayload(1, nil, nil, nil, nil)
+	_, _, dhErr := client.TokenByPayload(1, nil, nil, nil, nil)
 
-	is.Equal(err.Error(), "401 unauthorized")
+	is.Equal(dhErr.Name(), dh.ServiceErr)
+	is.Equal(dhErr.Error(), "401 unauthorized")
 }
 
 func TestTokenRefresh(t *testing.T) {

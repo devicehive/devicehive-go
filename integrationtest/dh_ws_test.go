@@ -56,18 +56,16 @@ func TestTokenByCreds(t *testing.T) {
 }
 
 func TestTokenByPayload(t *testing.T) {
-	if *tok == "" {
-		t.Skip("Access token is not specified, skipping TestTokenByPayload")
-	}
-
 	is := is.New(t)
 
-	res, err := client.Authenticate(*tok)
+	accTok, _, err := client.TokenByCreds(*dhLogin, *dhPass)
+
+	res, err := client.Authenticate(accTok)
 
 	is.True(err == nil)
 
 	if !res {
-		t.Skip("Invalid access token, skipping TestTokenByPayload")
+		t.Skip("Invalid access token by credentials, skipping TestTokenByPayload")
 	}
 
 	expiration := time.Now().Add(1 * time.Second)
@@ -76,4 +74,21 @@ func TestTokenByPayload(t *testing.T) {
 	is.True(err == nil)
 	is.True(accTok != "")
 	is.True(refTok != "")
+}
+
+func TestTokenRefresh(t *testing.T) {
+	is := is.New(t)
+
+	client, err := dh.Connect(wsServerAddr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	_, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
+
+	accessToken, dhErr := client.TokenRefresh(refTok)
+
+	is.True(dhErr == nil)
+	is.True(accessToken != "")
 }
