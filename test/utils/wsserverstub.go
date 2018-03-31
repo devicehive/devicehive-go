@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"net/http/httptest"
+	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
-	"github.com/gorilla/websocket"
+	"net/http/httptest"
 )
 
-func TestWSServer(addr string, wsHandler func(c *websocket.Conn) ) *httptest.Server {
+func TestWSServer(addr string, wsHandler func(c *websocket.Conn)) *httptest.Server {
 	l, err := net.Listen("tcp", addr)
 
 	if err != nil {

@@ -76,4 +76,3 @@ func (t *ws) respond(res devicehiveData) {
 		t.requests.delete(reqId)
 	}
 }
-
