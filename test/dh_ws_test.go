@@ -48,9 +48,9 @@ func TestAuthenticate(t *testing.T) {
 		panic(err)
 	}
 
-	res, err := client.Authenticate("someTestToken")
+	res, dhErr := client.Authenticate("someTestToken")
 
-	is.NoErr(err)
+	is.True(dhErr == nil)
 	is.True(res)
 }
 
@@ -69,9 +69,9 @@ func TestConnectionClose(t *testing.T) {
 		panic(err)
 	}
 
-	_, err = client.Authenticate("test")
+	_, dhErr := client.Authenticate("test")
 
-	is.Equal(err.Error(), "connection closed, error: websocket: close 1006 (abnormal closure): unexpected EOF")
+	is.Equal(dhErr.Name(), dh.ConnClosedErr)
 }
 
 func TestInvalidResponse(t *testing.T) {
@@ -89,9 +89,9 @@ func TestInvalidResponse(t *testing.T) {
 		panic(err)
 	}
 
-	_, err = client.Authenticate("test")
+	_, dhErr := client.Authenticate("test")
 
-	is.Equal(err.Error(), "invalid service response, error: invalid character 'i' looking for beginning of value")
+	is.Equal(dhErr.Name(), dh.InvalidResponseErr)
 }
 
 func TestRequestId(t *testing.T) {
@@ -149,9 +149,9 @@ func TestTokenByCreds(t *testing.T) {
 		panic(err)
 	}
 
-	accessToken, refreshToken, err := client.TokenByCreds("dhadmin", "dhadmin_#911")
+	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
 
-	is.NoErr(err)
+	is.True(dhErr == nil)
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -188,9 +188,9 @@ func TestTokenByPayload(t *testing.T) {
 	networkIds := []string{"n1", "n2"}
 	deviceTypeIds := []string{"d1", "d2"}
 	expiration := time.Now()
-	accessToken, refreshToken, err := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
+	accessToken, refreshToken, dhErr := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 
-	is.NoErr(err)
+	is.True(dhErr == nil)
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -252,8 +252,8 @@ func TestTokenRefresh(t *testing.T) {
 		panic(err)
 	}
 
-	accessToken, err := client.TokenRefresh("test refresh token")
+	accessToken, dhErr := client.TokenRefresh("test refresh token")
 
-	is.NoErr(err)
+	is.True(dhErr == nil)
 	is.Equal(accessToken, "accTok")
 }

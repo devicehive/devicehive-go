@@ -2,7 +2,6 @@ package transport
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 )
 
@@ -22,12 +21,12 @@ type ws struct {
 	requests requestMap
 }
 
-func (t *ws) Request(data devicehiveData) (res devicehiveData, err error) {
+func (t *ws) Request(data devicehiveData) (res devicehiveData, err *Error) {
 	reqId := data.requestId()
-	err = t.conn.WriteJSON(data)
+	wErr := t.conn.WriteJSON(data)
 
-	if err != nil {
-		return nil, err
+	if wErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: wErr.Error()}
 	}
 
 	resChan, errChan := t.requests.create(reqId)
@@ -47,14 +46,14 @@ func (t *ws) handleResponses() {
 
 		connClosed := mt == websocket.CloseMessage || mt == -1
 		if connClosed {
-			t.closePendingWithErr("connection closed", err)
+			t.closePendingWithErr(ConnClosedErr, err)
 			return
 		}
 
 		err = json.Unmarshal(msg, &res)
 
 		if err != nil {
-			t.closePendingWithErr("invalid service response", err)
+			t.closePendingWithErr(InvalidResponseErr, err)
 			return
 		}
 
@@ -64,7 +63,7 @@ func (t *ws) handleResponses() {
 
 func (t *ws) closePendingWithErr(errMsg string, err error) {
 	t.requests.forEach(func(resChan *response) {
-		resChan.err <- fmt.Errorf("%s, error: %v", errMsg, err)
+		resChan.err <- &Error{name: errMsg, reason: err.Error()}
 		resChan.close()
 	})
 }

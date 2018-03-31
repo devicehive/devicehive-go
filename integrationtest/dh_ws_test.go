@@ -41,7 +41,7 @@ func TestAuthenticate(t *testing.T) {
 
 	res, err := client.Authenticate(*tok)
 
-	is.NoErr(err)
+	is.True(err == nil)
 	is.True(res)
 }
 
@@ -50,8 +50,7 @@ func TestTokenByCreds(t *testing.T) {
 
 	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
 
-	is.NoErr(err)
-
+	is.True(err == nil)
 	is.True(accTok != "")
 	is.True(refTok != "")
 }
@@ -65,7 +64,7 @@ func TestTokenByPayload(t *testing.T) {
 
 	res, err := client.Authenticate(*tok)
 
-	is.NoErr(err)
+	is.True(err == nil)
 
 	if !res {
 		t.Skip("Invalid access token, skipping TestTokenByPayload")
@@ -74,8 +73,7 @@ func TestTokenByPayload(t *testing.T) {
 	expiration := time.Now().Add(1 * time.Second)
 	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, &expiration)
 
-	is.NoErr(err)
-
+	is.True(err == nil)
 	is.True(accTok != "")
 	is.True(refTok != "")
 }

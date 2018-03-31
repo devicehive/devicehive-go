@@ -15,11 +15,11 @@ func (m requestMap) delete(key string) {
 	delete(m, key)
 }
 
-func (m requestMap) create(key string) (dataChan chan devicehiveData, errChan chan error) {
+func (m requestMap) create(key string) (dataChan chan devicehiveData, errChan chan *Error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	data, err := make(chan devicehiveData), make(chan error)
+	data, err := make(chan devicehiveData), make(chan *Error)
 
 	m[key] = &response{
 		data: data,
@@ -48,7 +48,7 @@ func (m requestMap) forEach(f func(res *response)) {
 
 type response struct {
 	data chan devicehiveData
-	err  chan error
+	err  chan *Error
 }
 
 func (r *response) close() {

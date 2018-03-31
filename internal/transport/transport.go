@@ -5,7 +5,7 @@ import (
 )
 
 type Transporter interface {
-	Request(data devicehiveData) (res devicehiveData, err error)
+	Request(data devicehiveData) (res devicehiveData, err *Error)
 }
 
 func Create(url string) (transport Transporter, err error) {
