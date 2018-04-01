@@ -1,49 +1,11 @@
-package dh_integrationtest
+package dh_ws_test
 
 import (
-	"flag"
-	"github.com/devicehive/devicehive-go/dh"
-	"github.com/matryer/is"
-	"os"
 	"testing"
+	"github.com/matryer/is"
 	"time"
+	"github.com/devicehive/devicehive-go/dh"
 )
-
-const serverAddr = "playground-dev.devicehive.com/api/websocket"
-const wsServerAddr = "ws://" + serverAddr
-
-var tok = flag.String("accessToken", "", "Your JWT access token")
-var dhLogin = flag.String("dhLogin", "dhadmin", "Your username")
-var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")
-
-var client *dh.Client
-
-func TestMain(m *testing.M) {
-	var err error
-	client, err = dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	flag.Parse()
-
-	res := m.Run()
-	os.Exit(res)
-}
-
-func TestAuthenticate(t *testing.T) {
-	if *tok == "" {
-		t.Skip("Access token is not specified, skipping TestAuthenticate")
-	}
-
-	is := is.New(t)
-
-	res, err := client.Authenticate(*tok)
-
-	is.True(err == nil)
-	is.True(res)
-}
 
 func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
