@@ -13,10 +13,12 @@ import (
 const serverAddr = "localhost:7357"
 const wsServerAddr = "ws://" + serverAddr
 
-var client *dh.Client
-var resStub = utils.ResponseStub
+var wsTestSrv = &utils.WSTestServer{}
 
 func TestMain(m *testing.M) {
+	wsTestSrv.Start(serverAddr)
+	defer wsTestSrv.Close()
+
 	res := m.Run()
 	os.Exit(res)
 }
@@ -24,23 +26,10 @@ func TestMain(m *testing.M) {
 func TestAuthenticate(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]string)
-		err := conn.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		is.Equal(req["action"], "authenticate")
-
-		err = conn.WriteJSON(resStub.Authenticate(req["requestId"]))
-
-		if err != nil {
-			panic(err)
-		}
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		is.Equal(reqData["action"], "authenticate")
+		return utils.ResponseStub.Authenticate(reqData["requestId"].(string))
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -57,11 +46,9 @@ func TestAuthenticate(t *testing.T) {
 func TestConnectionClose(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		conn.ReadMessage()
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		panic(nil)
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -77,11 +64,10 @@ func TestConnectionClose(t *testing.T) {
 func TestInvalidResponse(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		conn.ReadMessage()
-		conn.WriteMessage(websocket.TextMessage, []byte("invalid response"))
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
+		return nil
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -94,54 +80,13 @@ func TestInvalidResponse(t *testing.T) {
 	is.Equal(dhErr.Name(), dh.InvalidResponseErr)
 }
 
-func TestRequestId(t *testing.T) {
-	is := is.New(t)
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]interface{})
-		conn.ReadJSON(&req)
-
-		switch req["requestId"].(type) {
-		case string:
-			is.True(req["requestId"] != "")
-		default:
-			t.Error("requestId is not a string")
-			is.Fail()
-		}
-
-		conn.WriteMessage(websocket.TextMessage, []byte("dummy response"))
-	})
-	defer srv.Close()
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// @TODO Maybe other methods should be placed here as well
-	client.TokenRefresh("refresh token")
-}
-
 func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]string)
-		err := conn.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		is.Equal(req["action"], "token")
-
-		err = conn.WriteJSON(resStub.Token(req["requestId"], "accTok", "refTok"))
-
-		if err != nil {
-			panic(err)
-		}
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		is.Equal(reqData["action"], "token")
+		return utils.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -159,23 +104,10 @@ func TestTokenByCreds(t *testing.T) {
 func TestTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]interface{})
-		err := conn.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		is.Equal(req["action"], "token/create")
-
-		err = conn.WriteJSON(resStub.Token(req["requestId"].(string), "accTok", "refTok"))
-
-		if err != nil {
-			panic(err)
-		}
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		is.Equal(reqData["action"], "token/create")
+		return utils.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -198,21 +130,9 @@ func TestTokenByPayload(t *testing.T) {
 func TestErrorResponseTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]interface{})
-		err := conn.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		err = conn.WriteJSON(resStub.Unauthorized(req["action"].(string), req["requestId"].(string)))
-
-		if err != nil {
-			panic(err)
-		}
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		return utils.ResponseStub.Unauthorized(reqData["action"].(string), reqData["requestId"].(string))
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -229,23 +149,10 @@ func TestErrorResponseTokenByPayload(t *testing.T) {
 func TestTokenRefresh(t *testing.T) {
 	is := is.New(t)
 
-	srv := utils.TestWSServer(serverAddr, func(conn *websocket.Conn) {
-		req := make(map[string]string)
-		err := conn.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		is.Equal(req["action"], "token/refresh")
-
-		err = conn.WriteJSON(resStub.TokenRefresh(req["requestId"], "accTok"))
-
-		if err != nil {
-			panic(err)
-		}
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		is.Equal(reqData["action"], "token/refresh")
+		return utils.ResponseStub.TokenRefresh(reqData["requestId"].(string), "accTok")
 	})
-	defer srv.Close()
 
 	client, err := dh.Connect(wsServerAddr)
 
