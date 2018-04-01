@@ -25,7 +25,7 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 		payload["deviceTypeIds"] = deviceTypeIds
 	}
 	if expiration != nil {
-		payload["expiration"] = expiration.UTC().Format(time.RFC3339)
+		payload["expiration"] = expiration.UTC().Format(timestampLayout)
 	}
 
 	data := map[string]interface{}{

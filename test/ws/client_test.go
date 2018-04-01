@@ -24,7 +24,8 @@ func TestAuthenticate(t *testing.T) {
 
 	res, dhErr := client.Authenticate("someTestToken")
 
-	is.True(dhErr == nil)
+	logDHErr(t, dhErr)
+
 	is.True(res)
 }
 

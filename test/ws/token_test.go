@@ -25,7 +25,8 @@ func TestTokenByCreds(t *testing.T) {
 
 	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
 
-	is.True(dhErr == nil)
+	logDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -51,7 +52,8 @@ func TestTokenByPayload(t *testing.T) {
 	expiration := time.Now()
 	accessToken, refreshToken, dhErr := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 
-	is.True(dhErr == nil)
+	logDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -91,6 +93,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	accessToken, dhErr := client.TokenRefresh("test refresh token")
 
-	is.True(dhErr == nil)
+	logDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 }

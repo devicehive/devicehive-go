@@ -4,7 +4,6 @@ import (
 	"testing"
 	"github.com/matryer/is"
 	"time"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestTokenByCreds(t *testing.T) {
@@ -12,7 +11,10 @@ func TestTokenByCreds(t *testing.T) {
 
 	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
 
-	is.True(err == nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
+
 	is.True(accTok != "")
 	is.True(refTok != "")
 }
@@ -24,7 +26,9 @@ func TestTokenByPayload(t *testing.T) {
 
 	res, err := client.Authenticate(accTok)
 
-	is.True(err == nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
 	if !res {
 		t.Skip("Invalid access token by credentials, skipping TestTokenByPayload")
@@ -41,16 +45,18 @@ func TestTokenByPayload(t *testing.T) {
 func TestTokenRefresh(t *testing.T) {
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
 	_, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
 
-	accessToken, dhErr := client.TokenRefresh(refTok)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		t.Skip("Cannot obtain refresh token by credentials, skipping TestTokenRefresh")
+	}
 
-	is.True(dhErr == nil)
+	accessToken, err := client.TokenRefresh(refTok)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
+
 	is.True(accessToken != "")
 }
