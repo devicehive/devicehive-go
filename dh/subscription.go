@@ -22,7 +22,7 @@ func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *E
 		"type":   subsType,
 	})
 
-	if err = c.handleResponseError(res, tspErr); err != nil {
+	if err = c.handleResponse(res, tspErr); err != nil {
 		return nil, err
 	}
 

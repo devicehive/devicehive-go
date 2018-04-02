@@ -46,10 +46,10 @@ func TestClusterInfo(t *testing.T) {
 		panic(err)
 	}
 
-	bootstrapServers, zookeeperConnect, dhErr := client.ClusterInfo()
+	clusterInfo, dhErr := client.ClusterInfo()
 
 	testutils.LogDHErr(t, dhErr)
 
-	is.True(bootstrapServers != "")
-	is.True(zookeeperConnect != "")
+	is.True(clusterInfo.BootstrapServers != "")
+	is.True(clusterInfo.ZookeeperConnect != "")
 }
