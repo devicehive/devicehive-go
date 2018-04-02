@@ -57,10 +57,10 @@ func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *E
 }
 
 func normalizeLists(rawSub map[string]interface{}) (map[string][]string, *Error) {
-	keys := []string{"networkIds", "deviceTypeIds", "names"}
+	listKeys := []string{"networkIds", "deviceTypeIds", "names"}
 	strSlices := make(map[string][]string)
 
-	for _, k := range keys {
+	for _, k := range listKeys {
 		if rawSub[k] == nil {
 			strSlices[k] = nil
 			continue
