@@ -5,9 +5,9 @@ import (
 )
 
 type ServerInfo struct {
-	APIVersion string
+	APIVersion      string
 	ServerTimestamp time.Time
-	RestServerURL string
+	RestServerURL   string
 }
 
 func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
@@ -28,9 +28,9 @@ func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
 	}
 
 	return &ServerInfo{
-		APIVersion: rawInfo["apiVersion"].(string),
+		APIVersion:      rawInfo["apiVersion"].(string),
 		ServerTimestamp: ts,
-		RestServerURL: rawInfo["restServerUrl"].(string),
+		RestServerURL:   rawInfo["restServerUrl"].(string),
 	}, nil
 }
 

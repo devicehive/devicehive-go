@@ -47,9 +47,9 @@ func (s *responseStub) ServerInfo(reqId string) map[string]interface{} {
 		"requestId": reqId,
 		"status":    "success",
 		"info": map[string]interface{}{
-			"apiVersion": "4.0.0",
+			"apiVersion":      "4.0.0",
 			"serverTimestamp": "2006-01-02T15:04:05.000",
-			"restServerUrl": "https://dh.com/rest/api",
+			"restServerUrl":   "https://dh.com/rest/api",
 		},
 	}
 }

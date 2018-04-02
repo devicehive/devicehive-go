@@ -1,8 +1,8 @@
 package dh_ws_test
 
 import (
-	"testing"
 	"github.com/matryer/is"
+	"testing"
 	"time"
 )
 

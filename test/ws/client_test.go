@@ -1,11 +1,11 @@
 package dh_ws_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/test/utils"
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/devicehive/devicehive-go/test/utils"
 	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"testing"
 )
 
 func TestAuthenticate(t *testing.T) {

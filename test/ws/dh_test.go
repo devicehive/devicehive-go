@@ -1,10 +1,10 @@
 package dh_ws_test
 
 import (
+	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/utils"
 	"os"
 	"testing"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 const serverAddr = "localhost:7357"

@@ -1,12 +1,12 @@
 package dh_ws_test
 
 import (
-	"github.com/devicehive/devicehive-go/test/utils"
 	"github.com/devicehive/devicehive-go/dh"
-	"testing"
-	"github.com/matryer/is"
-	"time"
+	"github.com/devicehive/devicehive-go/test/utils"
 	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"testing"
+	"time"
 )
 
 func TestTokenByCreds(t *testing.T) {
