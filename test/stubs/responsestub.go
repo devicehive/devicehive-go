@@ -1,4 +1,4 @@
-package utils
+package stubs
 
 var ResponseStub = &responseStub{}
 

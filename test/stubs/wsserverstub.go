@@ -1,4 +1,4 @@
-package utils
+package stubs
 
 import (
 	"github.com/gorilla/websocket"

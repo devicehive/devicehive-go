@@ -2,7 +2,7 @@ package dh_ws_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
-	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
@@ -13,7 +13,7 @@ func TestSubscriptionList(t *testing.T) {
 	is := is.New(t)
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		return utils.ResponseStub.SubscriptionList(reqData["requestId"].(string), reqData["type"].(string))
+		return stubs.ResponseStub.SubscriptionList(reqData["requestId"].(string), reqData["type"].(string))
 	})
 
 	client, err := dh.Connect(wsServerAddr)

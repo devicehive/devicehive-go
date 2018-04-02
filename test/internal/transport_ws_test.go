@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 func TestRequestId(t *testing.T) {
 	is := is.New(t)
-	wsTestSrv := &utils.WSTestServer{}
+	wsTestSrv := &stubs.WSTestServer{}
 
 	wsTestSrv.Start("localhost:7357")
 	defer wsTestSrv.Close()

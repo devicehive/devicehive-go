@@ -2,7 +2,7 @@ package dh_ws_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
-	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
@@ -15,7 +15,7 @@ func TestTokenByCreds(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.Equal(reqData["action"], "token")
-		return utils.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
+		return stubs.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
 	})
 
 	client, err := dh.Connect(wsServerAddr)
@@ -37,7 +37,7 @@ func TestTokenByPayload(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.Equal(reqData["action"], "token/create")
-		return utils.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
+		return stubs.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
 	})
 
 	client, err := dh.Connect(wsServerAddr)
@@ -63,7 +63,7 @@ func TestErrorResponseTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		return utils.ResponseStub.Unauthorized(reqData["action"].(string), reqData["requestId"].(string))
+		return stubs.ResponseStub.Unauthorized(reqData["action"].(string), reqData["requestId"].(string))
 	})
 
 	client, err := dh.Connect(wsServerAddr)
@@ -83,7 +83,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.Equal(reqData["action"], "token/refresh")
-		return utils.ResponseStub.TokenRefresh(reqData["requestId"].(string), "accTok")
+		return stubs.ResponseStub.TokenRefresh(reqData["requestId"].(string), "accTok")
 	})
 
 	client, err := dh.Connect(wsServerAddr)
