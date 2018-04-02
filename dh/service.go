@@ -4,6 +4,12 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
+const (
+	Notification    = "notification"
+	Command         = "command"
+	timestampLayout = "2006-01-02T15:04:05.000"
+)
+
 func Connect(url string) (*Client, error) {
 	tsp, err := transport.Create(url)
 

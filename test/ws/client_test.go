@@ -2,7 +2,7 @@ package dh_ws_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
-	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
@@ -14,7 +14,7 @@ func TestAuthenticate(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.Equal(reqData["action"], "authenticate")
-		return utils.ResponseStub.Authenticate(reqData["requestId"].(string))
+		return stubs.ResponseStub.Authenticate(reqData["requestId"].(string))
 	})
 
 	client, err := dh.Connect(wsServerAddr)

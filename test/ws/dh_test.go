@@ -1,7 +1,7 @@
 package dh_ws_test
 
 import (
-	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"os"
 	"testing"
 )
@@ -9,7 +9,7 @@ import (
 const serverAddr = "localhost:7357"
 const wsServerAddr = "ws://" + serverAddr
 
-var wsTestSrv = &utils.WSTestServer{}
+var wsTestSrv = &stubs.WSTestServer{}
 
 func TestMain(m *testing.M) {
 	wsTestSrv.Start(serverAddr)
