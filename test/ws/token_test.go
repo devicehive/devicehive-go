@@ -1,84 +1,14 @@
-package dh_test
+package dh_ws_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
-	"os"
 	"testing"
 	"time"
 )
-
-const serverAddr = "localhost:7357"
-const wsServerAddr = "ws://" + serverAddr
-
-var wsTestSrv = &utils.WSTestServer{}
-
-func TestMain(m *testing.M) {
-	wsTestSrv.Start(serverAddr)
-	defer wsTestSrv.Close()
-
-	res := m.Run()
-	os.Exit(res)
-}
-
-func TestAuthenticate(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"], "authenticate")
-		return utils.ResponseStub.Authenticate(reqData["requestId"].(string))
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	res, dhErr := client.Authenticate("someTestToken")
-
-	is.True(dhErr == nil)
-	is.True(res)
-}
-
-func TestConnectionClose(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		panic(nil)
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, dhErr := client.Authenticate("test")
-
-	is.Equal(dhErr.Name(), dh.ConnClosedErr)
-}
-
-func TestInvalidResponse(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
-		return nil
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, dhErr := client.Authenticate("test")
-
-	is.Equal(dhErr.Name(), dh.InvalidResponseErr)
-}
 
 func TestTokenByCreds(t *testing.T) {
 	is := is.New(t)
@@ -96,7 +26,8 @@ func TestTokenByCreds(t *testing.T) {
 
 	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
 
-	is.True(dhErr == nil)
+	testutils.LogDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -122,7 +53,8 @@ func TestTokenByPayload(t *testing.T) {
 	expiration := time.Now()
 	accessToken, refreshToken, dhErr := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 
-	is.True(dhErr == nil)
+	testutils.LogDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
 }
@@ -162,6 +94,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	accessToken, dhErr := client.TokenRefresh("test refresh token")
 
-	is.True(dhErr == nil)
+	testutils.LogDHErr(t, dhErr)
+
 	is.Equal(accessToken, "accTok")
 }
