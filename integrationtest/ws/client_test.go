@@ -15,7 +15,9 @@ func TestAuthenticate(t *testing.T) {
 
 	res, err := client.Authenticate(*tok)
 
-	testutils.LogDHErr(t, err)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
 	is.True(res)
 }

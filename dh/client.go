@@ -30,10 +30,12 @@ func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *
 		return nil, newTransportErr(tspErr)
 	}
 
+	res = &response{}
 	parseErr := json.Unmarshal(resBytes, res)
 
 	if parseErr != nil {
-		return nil, &Error{name: InvalidResponseErr, reason: "response is not valid JSON"}
+		fmt.Println(parseErr)
+		return nil, newJSONErr()
 	}
 
 	if res.Status == "error" {

@@ -11,7 +11,9 @@ func TestServerInfo(t *testing.T) {
 
 	info, err := client.ServerInfo()
 
-	testutils.LogDHErr(t, err)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
 	is.True(info != nil)
 	is.True(info.APIVersion != "")
@@ -21,10 +23,12 @@ func TestServerInfo(t *testing.T) {
 func TestClusterInfo(t *testing.T) {
 	is := is.New(t)
 
-	bootstrapServers, zookeeperConnect, err := client.ClusterInfo()
+	info, err := client.ClusterInfo()
 
-	testutils.LogDHErr(t, err)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
-	is.True(bootstrapServers != "")
-	is.True(zookeeperConnect != "")
+	is.True(info.BootstrapServers != "")
+	is.True(info.ZookeeperConnect != "")
 }

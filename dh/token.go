@@ -1,6 +1,14 @@
 package dh
 
-import "time"
+import (
+	"time"
+	"encoding/json"
+)
+
+type token struct {
+	Access string `json:"accessToken"`
+	Refresh string `json:"refreshToken"`
+}
 
 func (c *Client) TokenByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
 	return c.tokenRequest(map[string]interface{}{
@@ -37,24 +45,38 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 }
 
 func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	res, tspErr := c.tsp.Request(data)
+	resBytes, tspErr := c.tsp.Request(data)
 
-	if err = c.handleResponse(res, tspErr); err != nil {
+	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
 		return "", "", err
 	}
 
-	return res["accessToken"].(string), res["refreshToken"].(string), nil
+	tok := &token{}
+	parseErr := json.Unmarshal(resBytes, tok)
+
+	if parseErr != nil {
+		return "", "", newJSONErr()
+	}
+
+	return tok.Access, tok.Refresh, nil
 }
 
 func (c *Client) TokenRefresh(refreshToken string) (accessToken string, err *Error) {
-	res, tspErr := c.tsp.Request(map[string]interface{}{
+	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
 		"action":       "token/refresh",
 		"refreshToken": refreshToken,
 	})
 
-	if err = c.handleResponse(res, tspErr); err != nil {
+	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
 		return "", err
 	}
 
-	return res["accessToken"].(string), nil
+	tok := &token{}
+	parseErr := json.Unmarshal(resBytes, tok)
+
+	if parseErr != nil {
+		return "", newJSONErr()
+	}
+
+	return tok.Access, nil
 }

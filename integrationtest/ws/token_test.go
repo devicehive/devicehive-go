@@ -12,7 +12,9 @@ func TestTokenByCreds(t *testing.T) {
 
 	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
 
-	testutils.LogDHErr(t, err)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
 	is.True(accTok != "")
 	is.True(refTok != "")
@@ -25,7 +27,9 @@ func TestTokenByPayload(t *testing.T) {
 
 	res, err := client.Authenticate(accTok)
 
-	testutils.LogDHErr(t, err)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+	}
 
 	if !res {
 		t.Skip("Invalid access token by credentials, skipping TestTokenByPayload")
