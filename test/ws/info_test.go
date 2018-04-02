@@ -3,6 +3,7 @@ package dh_ws_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
@@ -24,7 +25,7 @@ func TestServerInfo(t *testing.T) {
 
 	res, dhErr := client.ServerInfo()
 
-	logDHErr(t, dhErr)
+	testutils.LogDHErr(t, dhErr)
 
 	is.True(res.APIVersion != "")
 	is.True(res.ServerTimestamp.Unix() != 0)
@@ -47,7 +48,7 @@ func TestClusterInfo(t *testing.T) {
 
 	bootstrapServers, zookeeperConnect, dhErr := client.ClusterInfo()
 
-	logDHErr(t, dhErr)
+	testutils.LogDHErr(t, dhErr)
 
 	is.True(bootstrapServers != "")
 	is.True(zookeeperConnect != "")

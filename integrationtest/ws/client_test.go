@@ -1,6 +1,7 @@
 package dh_ws_test
 
 import (
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/matryer/is"
 	"testing"
 )
@@ -14,9 +15,7 @@ func TestAuthenticate(t *testing.T) {
 
 	res, err := client.Authenticate(*tok)
 
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
+	testutils.LogDHErr(t, err)
 
 	is.True(res)
 }

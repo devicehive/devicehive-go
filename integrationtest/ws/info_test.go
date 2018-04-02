@@ -1,6 +1,7 @@
 package dh_ws_test
 
 import (
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/matryer/is"
 	"testing"
 )
@@ -10,9 +11,7 @@ func TestServerInfo(t *testing.T) {
 
 	info, err := client.ServerInfo()
 
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
+	testutils.LogDHErr(t, err)
 
 	is.True(info != nil)
 	is.True(info.APIVersion != "")
@@ -24,9 +23,7 @@ func TestClusterInfo(t *testing.T) {
 
 	bootstrapServers, zookeeperConnect, err := client.ClusterInfo()
 
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
+	testutils.LogDHErr(t, err)
 
 	is.True(bootstrapServers != "")
 	is.True(zookeeperConnect != "")

@@ -3,6 +3,7 @@ package dh_ws_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/utils"
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
@@ -24,7 +25,7 @@ func TestAuthenticate(t *testing.T) {
 
 	res, dhErr := client.Authenticate("someTestToken")
 
-	logDHErr(t, dhErr)
+	testutils.LogDHErr(t, dhErr)
 
 	is.True(res)
 }

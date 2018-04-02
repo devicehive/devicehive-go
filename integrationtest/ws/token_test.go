@@ -1,6 +1,7 @@
 package dh_ws_test
 
 import (
+	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/matryer/is"
 	"testing"
 	"time"
@@ -11,9 +12,7 @@ func TestTokenByCreds(t *testing.T) {
 
 	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
 
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
+	testutils.LogDHErr(t, err)
 
 	is.True(accTok != "")
 	is.True(refTok != "")
@@ -26,9 +25,7 @@ func TestTokenByPayload(t *testing.T) {
 
 	res, err := client.Authenticate(accTok)
 
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
+	testutils.LogDHErr(t, err)
 
 	if !res {
 		t.Skip("Invalid access token by credentials, skipping TestTokenByPayload")
