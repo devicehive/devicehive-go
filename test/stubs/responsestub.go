@@ -48,7 +48,7 @@ func (s *responseStub) ServerInfo(reqId string) map[string]interface{} {
 		"status":    "success",
 		"info": map[string]interface{}{
 			"apiVersion":      "4.0.0",
-			"serverTimestamp": "2006-01-02T15:04:05.000",
+			"serverTimestamp": "2018-04-03T05:57:59.379",
 			"restServerUrl":   "https://dh.com/rest/api",
 		},
 	}
@@ -75,7 +75,7 @@ func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]inter
 			"networkIds":     []string{"n1", "n2"},
 			"deviceTypeIds":  []string{"dt1", "dt2"},
 			"names":          []string{"n1", "n2"},
-			"timestamp":      "2006-01-02T15:04:05.000",
+			"timestamp":      "2018-04-03T05:57:59.379",
 		},
 		{
 			"subscriptionId": 2,
@@ -84,7 +84,7 @@ func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]inter
 			"networkIds":     nil,
 			"deviceTypeIds":  nil,
 			"names":          nil,
-			"timestamp":      "2006-01-02T15:04:05.000",
+			"timestamp":      "2018-04-03T05:57:59.379",
 		},
 	}
 

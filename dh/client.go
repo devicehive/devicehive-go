@@ -34,7 +34,6 @@ func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *
 	parseErr := json.Unmarshal(resBytes, res)
 
 	if parseErr != nil {
-		fmt.Println(parseErr)
 		return nil, newJSONErr()
 	}
 

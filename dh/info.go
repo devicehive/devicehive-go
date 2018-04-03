@@ -1,7 +1,6 @@
 package dh
 
 import (
-	"time"
 	"encoding/json"
 )
 
@@ -11,7 +10,7 @@ type serverInfo struct {
 
 type ServerInfo struct {
 	APIVersion      string `json:"apiVersion"`
-	ServerTimestamp time.Time `json:"serverTimestamp"`
+	ServerTimestamp dhTime `json:"serverTimestamp"`
 	RestServerURL   string `json:"restServerUrl"`
 }
 
@@ -40,12 +39,6 @@ func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
-
-	//ts, tserr := time.Parse(timestampLayout, rawInfo["serverTimestamp"].(string))
-	//
-	//if tserr != nil {
-	//	return nil, &Error{name: InvalidResponseErr, reason: tserr.Error()}
-	//}
 
 	return srvInfo.Value, nil
 }

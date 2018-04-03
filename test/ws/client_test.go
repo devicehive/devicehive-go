@@ -49,7 +49,7 @@ func TestConnectionClose(t *testing.T) {
 	is.Equal(dhErr.Name(), dh.ConnClosedErr)
 }
 
-func TestInvalidResponse(t *testing.T) {
+func TestTimeoutIfInvalidResponse(t *testing.T) {
 	is := is.New(t)
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
@@ -65,5 +65,5 @@ func TestInvalidResponse(t *testing.T) {
 
 	_, dhErr := client.Authenticate("test")
 
-	is.Equal(dhErr.Name(), dh.InvalidResponseErr)
+	is.Equal(dhErr.Name(), dh.ConnClosedErr)
 }
