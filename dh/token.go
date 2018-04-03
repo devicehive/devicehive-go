@@ -1,12 +1,12 @@
 package dh
 
 import (
-	"time"
 	"encoding/json"
+	"time"
 )
 
 type token struct {
-	Access string `json:"accessToken"`
+	Access  string `json:"accessToken"`
 	Refresh string `json:"refreshToken"`
 }
 

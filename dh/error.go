@@ -10,11 +10,11 @@ const (
 )
 
 func newJSONErr() *Error {
-	return &Error{ name: InvalidResponseErr, reason: "data is not valid JSON string" }
+	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string"}
 }
 
 func newTransportErr(err *transport.Error) *Error {
-	return &Error{ name: err.Name(), reason: err.Error() }
+	return &Error{name: err.Name(), reason: err.Error()}
 }
 
 type Error struct {

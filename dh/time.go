@@ -1,8 +1,8 @@
 package dh
 
 import (
-	"time"
 	"strings"
+	"time"
 )
 
 type dhTime struct {

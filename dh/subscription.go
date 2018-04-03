@@ -9,13 +9,13 @@ type subscriptions struct {
 }
 
 type Subscription struct {
-	Id            int64 `json:"subscriptionId"`
-	Type          string `json:"type"`
-	DeviceId      string `json:"deviceId"`
+	Id            int64    `json:"subscriptionId"`
+	Type          string   `json:"type"`
+	DeviceId      string   `json:"deviceId"`
 	NetworkIds    []string `json:"networkIds"`
 	DeviceTypeIds []string `json:"deviceTypeIds"`
 	Names         []string `json:"names"`
-	Timestamp     dhTime `json:"timestamp"`
+	Timestamp     dhTime   `json:"timestamp"`
 }
 
 func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *Error) {
@@ -28,7 +28,7 @@ func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *E
 		return nil, err
 	}
 
-	subs := &subscriptions{ List: list }
+	subs := &subscriptions{List: list}
 	parseErr := json.Unmarshal(resBytes, subs)
 
 	if parseErr != nil {

@@ -1,10 +1,10 @@
 package dh
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
-	"encoding/json"
 )
 
 type Client struct {
