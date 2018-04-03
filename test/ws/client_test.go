@@ -49,21 +49,5 @@ func TestConnectionClose(t *testing.T) {
 	is.Equal(dhErr.Name(), dh.ConnClosedErr)
 }
 
-func TestTimeoutIfInvalidResponse(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
-		return nil
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, dhErr := client.Authenticate("test")
-
-	is.Equal(dhErr.Name(), dh.ConnClosedErr)
-}
+// @TODO add test for timeout
+// @TODO add test for invalid response (response is not JSON)
