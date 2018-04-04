@@ -30,7 +30,6 @@ func (wss *WSTestServer) Start(addr string) {
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := upgrade(w, r)
-		defer c.Close()
 
 		req := make(map[string]interface{})
 		err := c.ReadJSON(&req)
