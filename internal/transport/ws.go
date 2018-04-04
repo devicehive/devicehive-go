@@ -28,7 +28,7 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 	wErr := t.conn.WriteJSON(data)
 
 	if timeout == 0 {
-		timeout = Timeout
+		timeout = DefaultTimeout
 	}
 
 	if wErr != nil {
