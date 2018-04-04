@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
 func newWS(conn *websocket.Conn) *ws {
@@ -22,9 +23,13 @@ type ws struct {
 	requests requestMap
 }
 
-func (t *ws) Request(data devicehiveData) (res []byte, err *Error) {
+func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
 	reqId := data.requestId()
 	wErr := t.conn.WriteJSON(data)
+
+	if timeout == 0 {
+		timeout = Timeout
+	}
 
 	if wErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: wErr.Error()}
@@ -37,6 +42,11 @@ func (t *ws) Request(data devicehiveData) (res []byte, err *Error) {
 		return res, nil
 	case err := <-errChan:
 		return nil, err
+	case <-time.After(timeout):
+		close(resChan)
+		close(errChan)
+		t.requests.delete(reqId)
+		return nil, &Error{ name: TimeoutErr, reason: "response timeout" }
 	}
 }
 

@@ -24,11 +24,11 @@ type ClusterInfo struct {
 }
 
 func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
-	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
+	_, resBytes, err := c.request(map[string]interface{}{
 		"action": "server/info",
 	})
 
-	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -44,11 +44,11 @@ func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
 }
 
 func (c *Client) ClusterInfo() (info *ClusterInfo, err *Error) {
-	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
+	_, resBytes, err := c.request(map[string]interface{}{
 		"action": "cluster/info",
 	})
 
-	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return nil, err
 	}
 

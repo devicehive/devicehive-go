@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
+	"time"
 )
 
 func TestRequestId(t *testing.T) {
@@ -24,5 +25,32 @@ func TestRequestId(t *testing.T) {
 
 	is.NoErr(err)
 
-	wsTsp.Request(map[string]interface{}{})
+	wsTsp.Request(map[string]interface{}{}, 0)
+}
+
+func TestTimeout(t *testing.T) {
+	is := is.New(t)
+	wsTestSrv := &stubs.WSTestServer{}
+
+	wsTestSrv.Start("localhost:7357")
+	defer wsTestSrv.Close()
+
+	timeout := 300 * time.Millisecond
+
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		<-time.After(timeout + 1 * time.Second)
+
+		return map[string]interface{} {
+			"result": "success",
+		}
+	})
+
+	wsTsp, err := transport.Create("ws://localhost:7357")
+
+	is.NoErr(err)
+
+	res, tspErr := wsTsp.Request(map[string]interface{}{}, timeout)
+
+	is.True(res == nil)
+	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }

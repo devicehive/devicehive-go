@@ -19,12 +19,12 @@ type Subscription struct {
 }
 
 func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *Error) {
-	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
+	_, resBytes, err := c.request(map[string]interface{}{
 		"action": "subscription/list",
 		"type":   subsType,
 	})
 
-	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return nil, err
 	}
 

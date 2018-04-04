@@ -12,17 +12,23 @@ type Client struct {
 }
 
 func (c *Client) Authenticate(token string) (result bool, err *Error) {
-	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
+	res, _, err := c.request(map[string]interface{}{
 		"action": "authenticate",
 		"token":  token,
 	})
 
-	var res *response
-	if res, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return false, err
 	}
 
 	return res.Status == "success", nil
+}
+
+func (c *Client) request(data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
+	resBytes, tspErr := c.tsp.Request(data, Timeout)
+	res, err = c.handleResponse(resBytes, tspErr)
+
+	return res, resBytes, err
 }
 
 func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {
