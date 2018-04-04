@@ -5,7 +5,10 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 )
+
+var mu = sync.Mutex{}
 
 type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{}
 
@@ -36,6 +39,8 @@ func (wss *WSTestServer) Start(addr string) {
 			panic(err)
 		}
 
+		mu.Lock()
+		defer mu.Unlock()
 		res := wss.handler(req, c)
 
 		if res != nil {
@@ -58,6 +63,8 @@ func (wss *WSTestServer) Close() {
 }
 
 func (wss *WSTestServer) SetHandler(h wsReqHandler) {
+	mu.Lock()
+	defer mu.Unlock()
 	wss.handler = h
 }
 
