@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
 func newWS(conn *websocket.Conn) *ws {
@@ -22,21 +23,29 @@ type ws struct {
 	requests requestMap
 }
 
-func (t *ws) Request(data devicehiveData) (res []byte, err *Error) {
+func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
 	reqId := data.requestId()
 	wErr := t.conn.WriteJSON(data)
+
+	if timeout == 0 {
+		timeout = DefaultTimeout
+	}
 
 	if wErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: wErr.Error()}
 	}
 
-	resChan, errChan := t.requests.create(reqId)
+	req := t.requests.create(reqId)
 
 	select {
-	case res := <-resChan:
+	case res = <-req.response:
 		return res, nil
-	case err := <-errChan:
+	case err := <-req.err:
 		return nil, err
+	case <-time.After(timeout):
+		req.close()
+		t.requests.delete(reqId)
+		return nil, &Error{name: TimeoutErr, reason: "request timeout"}
 	}
 }
 
@@ -55,7 +64,7 @@ func (t *ws) handleResponses() {
 }
 
 func (t *ws) closePendingWithErr(errMsg string, err error) {
-	t.requests.forEach(func(resChan *response) {
+	t.requests.forEach(func(resChan *request) {
 		resChan.err <- &Error{name: errMsg, reason: err.Error()}
 		resChan.close()
 	})
@@ -66,12 +75,12 @@ func (t *ws) respond(res []byte) {
 	err := json.Unmarshal(res, reqId)
 
 	if err != nil {
-		log.Printf("response is not JSON or requestId is not valid: %s", string(res))
+		log.Printf("request is not JSON or requestId is not valid: %s", string(res))
 		return
 	}
 
 	if resChan, ok := t.requests.get(reqId.Value); ok {
-		resChan.data <- res
+		resChan.response <- res
 		resChan.close()
 		t.requests.delete(reqId.Value)
 	}

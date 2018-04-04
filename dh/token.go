@@ -45,9 +45,9 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 }
 
 func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	resBytes, tspErr := c.tsp.Request(data)
+	_, resBytes, err := c.request(data)
 
-	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return "", "", err
 	}
 
@@ -62,12 +62,12 @@ func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refresh
 }
 
 func (c *Client) TokenRefresh(refreshToken string) (accessToken string, err *Error) {
-	resBytes, tspErr := c.tsp.Request(map[string]interface{}{
+	_, resBytes, err := c.request(map[string]interface{}{
 		"action":       "token/refresh",
 		"refreshToken": refreshToken,
 	})
 
-	if _, err = c.handleResponse(resBytes, tspErr); err != nil {
+	if err != nil {
 		return "", err
 	}
 

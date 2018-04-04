@@ -49,5 +49,4 @@ func TestConnectionClose(t *testing.T) {
 	is.Equal(dhErr.Name(), dh.ConnClosedErr)
 }
 
-// @TODO add test for timeout
 // @TODO add test for invalid response (response is not JSON)

@@ -4,6 +4,7 @@ const (
 	ConnClosedErr      = "connection closed"
 	InvalidResponseErr = "invalid response"
 	InvalidRequestErr  = "invalid request"
+	TimeoutErr         = "timeout"
 )
 
 type Error struct {

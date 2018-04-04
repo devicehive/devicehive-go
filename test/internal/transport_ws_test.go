@@ -6,13 +6,17 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
+	"time"
 )
+
+const serverAddr = "localhost:7358"
+const wsServerAddr = "ws://" + serverAddr
 
 func TestRequestId(t *testing.T) {
 	is := is.New(t)
 	wsTestSrv := &stubs.WSTestServer{}
 
-	wsTestSrv.Start("localhost:7357")
+	wsTestSrv.Start(serverAddr)
 	defer wsTestSrv.Close()
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
@@ -20,9 +24,36 @@ func TestRequestId(t *testing.T) {
 		return nil
 	})
 
-	wsTsp, err := transport.Create("ws://localhost:7357")
+	wsTsp, err := transport.Create(wsServerAddr)
 
 	is.NoErr(err)
 
-	wsTsp.Request(map[string]interface{}{})
+	wsTsp.Request(map[string]interface{}{}, 0)
+}
+
+func TestTimeout(t *testing.T) {
+	is := is.New(t)
+	wsTestSrv := &stubs.WSTestServer{}
+
+	wsTestSrv.Start(serverAddr)
+	defer wsTestSrv.Close()
+
+	timeout := 300 * time.Millisecond
+
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		<-time.After(timeout + 1*time.Second)
+
+		return map[string]interface{}{
+			"result": "success",
+		}
+	})
+
+	wsTsp, err := transport.Create(wsServerAddr)
+
+	is.NoErr(err)
+
+	res, tspErr := wsTsp.Request(map[string]interface{}{}, timeout)
+
+	is.True(res == nil)
+	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }

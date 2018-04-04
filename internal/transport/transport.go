@@ -2,10 +2,15 @@ package transport
 
 import (
 	"github.com/gorilla/websocket"
+	"time"
+)
+
+const (
+	DefaultTimeout = 3 * time.Second
 )
 
 type Transporter interface {
-	Request(data devicehiveData) (res []byte, err *Error)
+	Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error)
 }
 
 func Create(url string) (transport Transporter, err error) {
