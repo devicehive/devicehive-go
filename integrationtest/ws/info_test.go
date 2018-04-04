@@ -1,7 +1,6 @@
-package dh_ws_test
+package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/matryer/is"
 	"testing"
 )

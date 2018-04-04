@@ -13,7 +13,7 @@ func TestAuthenticate(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.Equal(reqData["action"], "authenticate")
-		return stubs.ResponseStub.Authenticate(reqData["requestId"].(string))
+		return stubs.ResponseStub.EmptySuccessResponse("authenticate", reqData["requestId"].(string))
 	})
 
 	client, err := dh.Connect(wsServerAddr)
