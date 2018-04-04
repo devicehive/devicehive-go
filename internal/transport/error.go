@@ -2,7 +2,7 @@ package transport
 
 const (
 	ConnClosedErr      = "connection closed"
-	InvalidResponseErr = "invalid response"
+	InvalidResponseErr = "invalid request"
 	InvalidRequestErr  = "invalid request"
 	TimeoutErr         = "timeout"
 )
