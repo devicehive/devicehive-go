@@ -1,11 +1,11 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/gorilla/websocket"
-	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/devicehive/devicehive-go/test/stubs"
+	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"testing"
 )
 
 func TestConfigurationGet(t *testing.T) {

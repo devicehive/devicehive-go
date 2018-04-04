@@ -7,15 +7,15 @@ type configuration struct {
 }
 
 type Configuration struct {
-	Name string `json:"name"`
-	Value string `json:"value"`
-	EntityVersion int `json:"entityVersion"`
+	Name          string `json:"name"`
+	Value         string `json:"value"`
+	EntityVersion int    `json:"entityVersion"`
 }
 
 func (c *Client) ConfigurationGet(name string) (conf *Configuration, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
 		"action": "configuration/get",
-		"name": name,
+		"name":   name,
 	})
 
 	if err != nil {
@@ -23,7 +23,7 @@ func (c *Client) ConfigurationGet(name string) (conf *Configuration, err *Error)
 	}
 
 	conf = &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{ Value: conf })
+	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -35,8 +35,8 @@ func (c *Client) ConfigurationGet(name string) (conf *Configuration, err *Error)
 func (c *Client) ConfigurationPut(name, value string) (conf *Configuration, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
 		"action": "configuration/put",
-		"name": name,
-		"value": value,
+		"name":   name,
+		"value":  value,
 	})
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *Client) ConfigurationPut(name, value string) (conf *Configuration, err 
 	}
 
 	conf = &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{ Value: conf })
+	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -56,7 +56,7 @@ func (c *Client) ConfigurationPut(name, value string) (conf *Configuration, err 
 func (c *Client) ConfigurationDelete(name string) *Error {
 	_, _, err := c.request(map[string]interface{}{
 		"action": "configuration/delete",
-		"name": name,
+		"name":   name,
 	})
 
 	return err

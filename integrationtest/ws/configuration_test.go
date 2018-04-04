@@ -2,9 +2,9 @@ package dh_test
 
 import (
 	"github.com/matryer/is"
+	"strconv"
 	"testing"
 	"time"
-	"strconv"
 )
 
 func TestConfiguration(t *testing.T) {
@@ -16,7 +16,7 @@ func TestConfiguration(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 	}
 
-	name, val := "go-test" + strconv.FormatInt(time.Now().Unix(), 10), "go-sdk-test"
+	name, val := "go-test"+strconv.FormatInt(time.Now().Unix(), 10), "go-sdk-test"
 
 	conf, dhErr := client.ConfigurationPut(name, val)
 	if dhErr != nil {

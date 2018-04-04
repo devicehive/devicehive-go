@@ -6,9 +6,9 @@ type responseStub struct{}
 
 func (s *responseStub) EmptySuccessResponse(action, reqId string) map[string]interface{} {
 	return map[string]interface{}{
-		"action": action,
+		"action":    action,
 		"requestId": reqId,
-		"status": "success",
+		"status":    "success",
 	}
 }
 
@@ -98,12 +98,12 @@ func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]inter
 
 func (s *responseStub) ConfigurationGet(reqId, name string) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "configuration/get",
-		"status": "success",
+		"action":    "configuration/get",
+		"status":    "success",
 		"requestId": reqId,
 		"configuration": map[string]interface{}{
-			"name": name,
-			"value": "test value",
+			"name":          name,
+			"value":         "test value",
 			"entityVersion": 2,
 		},
 	}
@@ -111,12 +111,12 @@ func (s *responseStub) ConfigurationGet(reqId, name string) map[string]interface
 
 func (s *responseStub) ConfigurationPut(reqId, name, val string) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "configuration/put",
-		"status": "success",
+		"action":    "configuration/put",
+		"status":    "success",
 		"requestId": reqId,
 		"configuration": map[string]interface{}{
-			"name": name,
-			"value": val,
+			"name":          name,
+			"value":         val,
 			"entityVersion": 1,
 		},
 	}
