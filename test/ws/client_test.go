@@ -30,23 +30,3 @@ func TestAuthenticate(t *testing.T) {
 
 	is.True(res)
 }
-
-func TestConnectionClose(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		panic(nil)
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, dhErr := client.Authenticate("test")
-
-	is.Equal(dhErr.Name(), dh.ConnClosedErr)
-}
-
-// @TODO add test for invalid response (response is not JSON)
