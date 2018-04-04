@@ -3,7 +3,6 @@ package dh_ws_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
@@ -24,7 +23,9 @@ func TestSubscriptionList(t *testing.T) {
 
 	subscriptions, dhErr := client.SubscriptionList(dh.Notification)
 
-	testutils.LogDHErr(t, dhErr)
+	if dhErr != nil {
+		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	}
 
 	is.True(subscriptions != nil)
 	is.True(len(subscriptions) != 0)

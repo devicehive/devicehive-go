@@ -3,6 +3,7 @@ package transport
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"log"
 )
 
 func newWS(conn *websocket.Conn) *ws {
@@ -21,7 +22,7 @@ type ws struct {
 	requests requestMap
 }
 
-func (t *ws) Request(data devicehiveData) (res devicehiveData, err *Error) {
+func (t *ws) Request(data devicehiveData) (res []byte, err *Error) {
 	reqId := data.requestId()
 	wErr := t.conn.WriteJSON(data)
 
@@ -41,7 +42,6 @@ func (t *ws) Request(data devicehiveData) (res devicehiveData, err *Error) {
 
 func (t *ws) handleResponses() {
 	for {
-		res := make(devicehiveData)
 		mt, msg, err := t.conn.ReadMessage()
 
 		connClosed := mt == websocket.CloseMessage || mt == -1
@@ -50,14 +50,7 @@ func (t *ws) handleResponses() {
 			return
 		}
 
-		err = json.Unmarshal(msg, &res)
-
-		if err != nil {
-			t.closePendingWithErr(InvalidResponseErr, err)
-			return
-		}
-
-		t.respond(res)
+		t.respond(msg)
 	}
 }
 
@@ -68,11 +61,22 @@ func (t *ws) closePendingWithErr(errMsg string, err error) {
 	})
 }
 
-func (t *ws) respond(res devicehiveData) {
-	reqId := res.requestId()
-	if resChan, ok := t.requests.get(reqId); ok {
+func (t *ws) respond(res []byte) {
+	reqId := &requestId{}
+	err := json.Unmarshal(res, reqId)
+
+	if err != nil {
+		log.Printf("response is not JSON or requestId is not valid: %s", string(res))
+		return
+	}
+
+	if resChan, ok := t.requests.get(reqId.Value); ok {
 		resChan.data <- res
 		resChan.close()
-		t.requests.delete(reqId)
+		t.requests.delete(reqId.Value)
 	}
+}
+
+type requestId struct {
+	Value string `json:"requestId"`
 }

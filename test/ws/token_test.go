@@ -3,7 +3,6 @@ package dh_ws_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
@@ -26,7 +25,9 @@ func TestTokenByCreds(t *testing.T) {
 
 	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
 
-	testutils.LogDHErr(t, dhErr)
+	if dhErr != nil {
+		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	}
 
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
@@ -53,7 +54,9 @@ func TestTokenByPayload(t *testing.T) {
 	expiration := time.Now()
 	accessToken, refreshToken, dhErr := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
 
-	testutils.LogDHErr(t, dhErr)
+	if dhErr != nil {
+		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	}
 
 	is.Equal(accessToken, "accTok")
 	is.Equal(refreshToken, "refTok")
@@ -94,7 +97,9 @@ func TestTokenRefresh(t *testing.T) {
 
 	accessToken, dhErr := client.TokenRefresh("test refresh token")
 
-	testutils.LogDHErr(t, dhErr)
+	if dhErr != nil {
+		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	}
 
 	is.Equal(accessToken, "accTok")
 }
