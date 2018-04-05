@@ -121,3 +121,21 @@ func (s *responseStub) ConfigurationPut(reqId, name, val string) map[string]inte
 		},
 	}
 }
+
+func (s *responseStub) NotificationGet(reqId, deviceId string, notifId int64) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "notification/get",
+		"status": "success",
+		"requestId": reqId,
+		"notification": map[string]interface{}{
+			"id": notifId,
+			"notification": "notif test name",
+			"timestamp": "2018-04-03T05:57:59.379",
+			"deviceId": deviceId,
+			"networkId": 1111,
+			"parameters": map[string]interface{}{
+				"testParam": 1,
+			},
+		},
+	}
+}

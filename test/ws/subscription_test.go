@@ -21,7 +21,7 @@ func TestSubscriptionList(t *testing.T) {
 		panic(err)
 	}
 
-	subscriptions, dhErr := client.SubscriptionList(dh.Notification)
+	subscriptions, dhErr := client.SubscriptionList(dh.NotificationType)
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
