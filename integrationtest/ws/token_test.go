@@ -1,7 +1,6 @@
-package dh_ws_test
+package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/testutils"
 	"github.com/matryer/is"
 	"testing"
 	"time"
@@ -23,16 +22,10 @@ func TestTokenByCreds(t *testing.T) {
 func TestTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
-	accTok, _, err := client.TokenByCreds(*dhLogin, *dhPass)
-
-	res, err := client.Authenticate(accTok)
+	err := auth()
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
-	}
-
-	if !res {
-		t.Skip("Invalid access token by credentials, skipping TestTokenByPayload")
 	}
 
 	expiration := time.Now().Add(1 * time.Second)
