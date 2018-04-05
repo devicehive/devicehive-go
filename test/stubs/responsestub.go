@@ -139,3 +139,33 @@ func (s *responseStub) NotificationGet(reqId, deviceId string, notifId int64) ma
 		},
 	}
 }
+
+func (s *responseStub) NotificationList(reqId, deviceId string) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "notification/list",
+		"status": "success",
+		"requestId": reqId,
+		"notifications": []map[string]interface{}{
+			{
+				"id": 1111,
+				"notification": "notif 1",
+				"timestamp": "2018-04-03T05:57:59.379",
+				"deviceId": deviceId,
+				"networkId": 1,
+				"parameters": map[string]interface{}{
+					"param1": 1,
+				},
+			},
+			{
+				"id": 2222,
+				"notification": "notif 2",
+				"timestamp": "2018-04-03T06:57:59.379",
+				"deviceId": deviceId,
+				"networkId": 2,
+				"parameters": map[string]interface{}{
+					"param1": 2,
+				},
+			},
+		},
+	}
+}
