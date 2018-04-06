@@ -2,19 +2,12 @@ package dh_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
-	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
 )
 
 func TestAuthenticate(t *testing.T) {
 	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"], "authenticate")
-		return stubs.ResponseStub.EmptySuccessResponse("authenticate", reqData["requestId"].(string))
-	})
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -29,4 +22,8 @@ func TestAuthenticate(t *testing.T) {
 	}
 
 	is.True(res)
+}
+
+func TestServiceError(t *testing.T) {
+	// @TODO test service error, e.g. 401 Unauthorized
 }

@@ -3,23 +3,12 @@ package dh_test
 import (
 	"testing"
 	"github.com/matryer/is"
-	"github.com/gorilla/websocket"
-	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/devicehive/devicehive-go/dh"
 	"time"
 )
 
 func TestNotificationGet(t *testing.T) {
 	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "notification/get")
-
-		reqId := reqData["requestId"].(string)
-		devId := reqData["deviceId"].(string)
-		notifId := int64(reqData["notificationId"].(float64))
-		return stubs.ResponseStub.NotificationGet(reqId, devId, notifId)
-	})
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -44,11 +33,6 @@ func TestNotificationGet(t *testing.T) {
 
 func TestNotificationList(t *testing.T) {
 	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "notification/list")
-		return stubs.ResponseStub.NotificationList(reqData["requestId"].(string), reqData["deviceId"].(string))
-	})
 
 	client, err := dh.Connect(wsServerAddr)
 

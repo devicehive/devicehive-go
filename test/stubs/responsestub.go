@@ -1,50 +1,77 @@
 package stubs
 
-var ResponseStub = &responseStub{}
+var ResponseStub = &responseStub{
+	actionRes: map[string]func(reqData map[string]interface{}) map[string]interface{} {
+		"authenticate": emptySuccessResponse,
+		"token": token,
+		"token/refresh": tokenRefresh,
+		"token/create": token,
+		"test/unauthorized": unauthorized,
+		"server/info": serverInfo,
+		"cluster/info": clusterInfo,
+		"subscription/list": subscriptionList,
+		"configuration/get": configurationGet,
+		"configuration/put": configurationPut,
+		"notification/get": notificationGet,
+		"notification/list": notificationList,
+	},
+}
 
-type responseStub struct{}
+type responseStub struct {
+	actionRes map[string]func(reqData map[string]interface{}) map[string]interface{}
+}
 
-func (s *responseStub) EmptySuccessResponse(action, reqId string) map[string]interface{} {
+func (s *responseStub) Respond(reqData map[string]interface{}) map[string]interface{} {
+	f, ok := s.actionRes[reqData["action"].(string)]
+
+	if !ok {
+		return emptySuccessResponse(reqData)
+	}
+
+	return f(reqData)
+}
+
+func emptySuccessResponse(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action":    action,
-		"requestId": reqId,
+		"action":    reqData["action"],
+		"requestId": reqData["requestId"],
 		"status":    "success",
 	}
 }
 
-func (s *responseStub) Token(reqId, accessToken, refreshToken string) map[string]interface{} {
+func token(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":       "token",
-		"requestId":    reqId,
+		"requestId":    reqData["requestId"],
 		"status":       "success",
-		"accessToken":  accessToken,
-		"refreshToken": refreshToken,
+		"accessToken":  "accTok",
+		"refreshToken": "refTok",
 	}
 }
 
-func (s *responseStub) TokenRefresh(reqId, accessToken string) map[string]interface{} {
+func tokenRefresh(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":      "token/refresh",
-		"requestId":   reqId,
+		"requestId":   reqData["requestId"],
 		"status":      "success",
-		"accessToken": accessToken,
+		"accessToken": "accTok",
 	}
 }
 
-func (s *responseStub) Unauthorized(action, reqId string) map[string]interface{} {
+func unauthorized(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action":    action,
-		"requestId": reqId,
+		"action":    reqData["action"],
+		"requestId": reqData["requestId"],
 		"status":    "error",
 		"code":      401,
 		"error":     "Unauthorized",
 	}
 }
 
-func (s *responseStub) ServerInfo(reqId string) map[string]interface{} {
+func serverInfo(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":    "server/info",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"status":    "success",
 		"info": map[string]interface{}{
 			"apiVersion":      "4.0.0",
@@ -54,10 +81,10 @@ func (s *responseStub) ServerInfo(reqId string) map[string]interface{} {
 	}
 }
 
-func (s *responseStub) ClusterInfo(reqId string) map[string]interface{} {
+func clusterInfo(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":    "cluster/info",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"status":    "success",
 		"clusterInfo": map[string]interface{}{
 			"bootstrap.servers": "localhost:1111",
@@ -66,11 +93,11 @@ func (s *responseStub) ClusterInfo(reqId string) map[string]interface{} {
 	}
 }
 
-func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]interface{} {
+func subscriptionList(reqData map[string]interface{}) map[string]interface{} {
 	subscriptions := []map[string]interface{}{
 		{
 			"subscriptionId": 1,
-			"type":           subsType,
+			"type":           reqData["type"],
 			"deviceId":       "d1",
 			"networkIds":     []string{"n1", "n2"},
 			"deviceTypeIds":  []string{"dt1", "dt2"},
@@ -79,7 +106,7 @@ func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]inter
 		},
 		{
 			"subscriptionId": 2,
-			"type":           subsType,
+			"type":           reqData["type"],
 			"deviceId":       "d2",
 			"networkIds":     nil,
 			"deviceTypeIds":  nil,
@@ -91,47 +118,47 @@ func (s *responseStub) SubscriptionList(reqId, subsType string) map[string]inter
 	return map[string]interface{}{
 		"action":        "subscription/list",
 		"status":        "success",
-		"requestId":     reqId,
+		"requestId":     reqData["requestId"],
 		"subscriptions": subscriptions,
 	}
 }
 
-func (s *responseStub) ConfigurationGet(reqId, name string) map[string]interface{} {
+func configurationGet(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":    "configuration/get",
 		"status":    "success",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"configuration": map[string]interface{}{
-			"name":          name,
+			"name":          reqData["name"],
 			"value":         "test value",
 			"entityVersion": 2,
 		},
 	}
 }
 
-func (s *responseStub) ConfigurationPut(reqId, name, val string) map[string]interface{} {
+func configurationPut(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":    "configuration/put",
 		"status":    "success",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"configuration": map[string]interface{}{
-			"name":          name,
-			"value":         val,
+			"name":          reqData["name"],
+			"value":         reqData["value"],
 			"entityVersion": 1,
 		},
 	}
 }
 
-func (s *responseStub) NotificationGet(reqId, deviceId string, notifId int64) map[string]interface{} {
+func notificationGet(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action": "notification/get",
 		"status": "success",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"notification": map[string]interface{}{
-			"id": notifId,
+			"id": reqData["notificationId"],
 			"notification": "notif test name",
 			"timestamp": "2018-04-03T05:57:59.379",
-			"deviceId": deviceId,
+			"deviceId": reqData["deviceId"],
 			"networkId": 1111,
 			"parameters": map[string]interface{}{
 				"testParam": 1,
@@ -140,17 +167,17 @@ func (s *responseStub) NotificationGet(reqId, deviceId string, notifId int64) ma
 	}
 }
 
-func (s *responseStub) NotificationList(reqId, deviceId string) map[string]interface{} {
+func notificationList(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action": "notification/list",
 		"status": "success",
-		"requestId": reqId,
+		"requestId": reqData["requestId"],
 		"notifications": []map[string]interface{}{
 			{
 				"id": 1111,
 				"notification": "notif 1",
 				"timestamp": "2018-04-03T05:57:59.379",
-				"deviceId": deviceId,
+				"deviceId": reqData["deviceId"],
 				"networkId": 1,
 				"parameters": map[string]interface{}{
 					"param1": 1,
@@ -160,7 +187,7 @@ func (s *responseStub) NotificationList(reqId, deviceId string) map[string]inter
 				"id": 2222,
 				"notification": "notif 2",
 				"timestamp": "2018-04-03T06:57:59.379",
-				"deviceId": deviceId,
+				"deviceId": reqData["deviceId"],
 				"networkId": 2,
 				"parameters": map[string]interface{}{
 					"param1": 2,

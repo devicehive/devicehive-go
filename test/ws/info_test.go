@@ -2,19 +2,12 @@ package dh_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
-	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
 )
 
 func TestServerInfo(t *testing.T) {
 	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "server/info")
-		return stubs.ResponseStub.ServerInfo(reqData["requestId"].(string))
-	})
 
 	client, err := dh.Connect(wsServerAddr)
 
@@ -36,11 +29,6 @@ func TestServerInfo(t *testing.T) {
 
 func TestClusterInfo(t *testing.T) {
 	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "cluster/info")
-		return stubs.ResponseStub.ClusterInfo(reqData["requestId"].(string))
-	})
 
 	client, err := dh.Connect(wsServerAddr)
 
