@@ -24,18 +24,17 @@ type ws struct {
 }
 
 func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
-	reqId := data.requestId()
-	wErr := t.conn.WriteJSON(data)
-
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
 
+	reqId := data.requestId()
+	req := t.requests.create(reqId)
+
+	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: wErr.Error()}
 	}
-
-	req := t.requests.create(reqId)
 
 	select {
 	case res = <-req.response:

@@ -5,12 +5,18 @@ import (
 	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
 	"time"
+	"github.com/devicehive/devicehive-go/test/stubs"
 )
 
 func TestNotificationGet(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -32,9 +38,14 @@ func TestNotificationGet(t *testing.T) {
 }
 
 func TestNotificationList(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)

@@ -3,9 +3,7 @@ package dh
 import "github.com/devicehive/devicehive-go/internal/transport"
 
 const (
-	ConnClosedErr      = transport.ConnClosedErr
-	InvalidResponseErr = transport.InvalidResponseErr
-	InvalidRequestErr  = transport.InvalidRequestErr
+	InvalidResponseErr = "invalid response"
 	ServiceErr         = "service error"
 )
 

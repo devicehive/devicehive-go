@@ -4,12 +4,18 @@ import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/matryer/is"
 	"testing"
+	"github.com/devicehive/devicehive-go/test/stubs"
 )
 
 func TestServerInfo(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -28,9 +34,14 @@ func TestServerInfo(t *testing.T) {
 }
 
 func TestClusterInfo(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)

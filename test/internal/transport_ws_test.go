@@ -9,21 +9,22 @@ import (
 	"time"
 )
 
-const serverAddr = "localhost:7358"
-const wsServerAddr = "ws://" + serverAddr
 const testTimeout = 300 * time.Millisecond
 
 func TestRequestId(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
-	wsTestSrv, srvClose := createWStestSrv(serverAddr)
-	defer srvClose()
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		is.True(reqData["requestId"] != "")
-		return nil
+		return reqData
 	})
 
-	wsTsp, err := transport.Create(wsServerAddr)
+	wsTsp, err := transport.Create(addr)
 
 	is.NoErr(err)
 
@@ -31,9 +32,12 @@ func TestRequestId(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
-	wsTestSrv, srvClose := createWStestSrv(serverAddr)
-	defer srvClose()
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		<-time.After(testTimeout + 1*time.Second)
@@ -43,7 +47,7 @@ func TestTimeout(t *testing.T) {
 		}
 	})
 
-	wsTsp, err := transport.Create(wsServerAddr)
+	wsTsp, err := transport.Create(addr)
 
 	is.NoErr(err)
 
@@ -54,16 +58,19 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestInvalidResponse(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
-	wsTestSrv, srvClose := createWStestSrv(serverAddr)
-	defer srvClose()
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
 		return nil
 	})
 
-	wsTsp, err := transport.Create(wsServerAddr)
+	wsTsp, err := transport.Create(addr)
 
 	is.NoErr(err)
 
@@ -74,16 +81,19 @@ func TestInvalidResponse(t *testing.T) {
 }
 
 func TestConnectionClose(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
-	wsTestSrv, srvClose := createWStestSrv(serverAddr)
-	defer srvClose()
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		c.Close()
 		return nil
 	})
 
-	wsTsp, err := transport.Create(wsServerAddr)
+	wsTsp, err := transport.Create(addr)
 
 	is.NoErr(err)
 
@@ -91,11 +101,4 @@ func TestConnectionClose(t *testing.T) {
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.ConnClosedErr)
-}
-
-func createWStestSrv(serverAddr string) (srv *stubs.WSTestServer, srvClose func()) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	wsTestSrv.Start(serverAddr)
-	return wsTestSrv, wsTestSrv.Close
 }

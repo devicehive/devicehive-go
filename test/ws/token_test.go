@@ -5,12 +5,18 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
+	"github.com/devicehive/devicehive-go/test/stubs"
 )
 
 func TestTokenByCreds(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -27,9 +33,14 @@ func TestTokenByCreds(t *testing.T) {
 }
 
 func TestTokenByPayload(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -51,9 +62,14 @@ func TestTokenByPayload(t *testing.T) {
 }
 
 func TestTokenRefresh(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
