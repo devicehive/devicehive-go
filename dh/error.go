@@ -4,6 +4,7 @@ import "github.com/devicehive/devicehive-go/internal/transport"
 
 const (
 	InvalidResponseErr = "invalid response"
+	InvalidRequestErr  = "invalid request"
 	ServiceErr         = "service error"
 )
 

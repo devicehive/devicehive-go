@@ -2,42 +2,42 @@ package dh
 
 import (
 	"time"
-	"reflect"
+	"encoding/json"
 )
 
 type ListParams struct {
-	DeviceId string `json:"deviceId"`
-	Start time.Time `json:"start"`
-	End time.Time `json:"end"`
-	Notification string `json:"notification"`
-	SortField string `json:"sortField"`
-	SortOrder string `json:"sortOrder"`
-	Take int `json:"take"`
-	Skip int `json:"skip"`
+	Action string `json:"action"`
+	DeviceId string `json:"deviceId,omitempty"`
+	Start time.Time `json:"start,omitempty"`
+	End time.Time `json:"end,omitempty"`
+	Notification string `json:"notification,omitempty"`
+	SortField string `json:"sortField,omitempty"`
+	SortOrder string `json:"sortOrder,omitempty"`
+	Take int `json:"take,omitempty"`
+	Skip int `json:"skip,omitempty"`
 }
 
-func (lr *ListParams) Map() map[string]interface{} {
-	res := make(map[string]interface{})
-	t := reflect.TypeOf(*lr)
-	v := reflect.ValueOf(*lr)
+func (p *ListParams) Map() (res map[string]interface{}, err error) {
+	res = make(map[string]interface{})
 
-	for i := 0; i < t.NumField(); i++ {
-		tf := t.Field(i)
-		vf := v.Field(i)
+	b, err := json.Marshal(p)
 
-		key := tf.Tag.Get("json")
-		val := vf.Interface()
-
-		if key != "" {
-			switch val.(type) {
-			case time.Time:
-
-				res[key] = val.(time.Time).Format(timestampLayout)
-			default:
-				res[key] = val
-			}
-		}
+	if err != nil {
+		return nil, err
 	}
 
-	return res
+	_ = json.Unmarshal(b, &res)
+
+	if p.Start.Unix() < 0 {
+		delete(res, "start")
+	} else {
+		res["start"] = p.Start.Format(timestampLayout)
+	}
+	if p.End.Unix() < 0 {
+		delete(res, "end")
+	} else {
+		res["end"] = p.End.Format(timestampLayout)
+	}
+
+	return res, nil
 }

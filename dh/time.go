@@ -12,7 +12,7 @@ type dhTime struct {
 func (t *dhTime) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), "\"")
 
-	if s == "null" {
+	if s == "null" || s == "" {
 		t.Time = time.Time{}
 		return
 	}

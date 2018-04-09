@@ -2,11 +2,12 @@ package dh
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type notificationResponse struct {
-	Value *Notification `json:"notification"`
-	List *[]*Notification `json:"notifications"`
+	Notification *Notification    `json:"notification"`
+	List         *[]*Notification `json:"notifications"`
 }
 
 type Notification struct {
@@ -30,7 +31,7 @@ func (c *Client) NotificationGet(deviceId string, notifId int64) (notif *Notific
 	}
 
 	notif = &Notification{}
-	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Value: notif })
+	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -40,10 +41,18 @@ func (c *Client) NotificationGet(deviceId string, notifId int64) (notif *Notific
 }
 
 func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*Notification, err *Error) {
-	params.DeviceId = deviceId
+	if params == nil {
+		params = &ListParams{}
+	}
 
-	data := params.Map()
-	data["action"] = "notification/list"
+	params.DeviceId = deviceId
+	params.Action = "notification/list"
+
+	data, jsonErr := params.Map()
+
+	if jsonErr != nil {
+		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+	}
 
 	_, rawRes, err := c.request(data)
 
@@ -58,4 +67,25 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 	}
 
 	return list, nil
+}
+
+func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.Time, params map[string]interface{}) (notifId int64, err *Error) {
+	_, rawRes, err := c.request(map[string]interface{} {
+		"action": "notification/insert",
+		"deviceId": deviceId,
+		"notification": map[string]interface{} {
+			"notification": notifName,
+			"timestamp": timestamp.UTC().Format(timestampLayout),
+			"parameters": params,
+		},
+	})
+
+	notif := &Notification{}
+	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
+
+	if parseErr != nil {
+		return 0, newJSONErr()
+	}
+
+	return notif.Id, nil
 }

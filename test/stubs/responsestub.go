@@ -14,6 +14,7 @@ var ResponseStub = &responseStub{
 		"configuration/put": configurationPut,
 		"notification/get": notificationGet,
 		"notification/list": notificationList,
+		"notification/insert": notificationInsert,
 	},
 }
 
@@ -193,6 +194,18 @@ func notificationList(reqData map[string]interface{}) map[string]interface{} {
 					"param1": 2,
 				},
 			},
+		},
+	}
+}
+
+func notificationInsert(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "notification/list",
+		"status": "success",
+		"requestId": reqData["requestId"],
+		"notification": map[string]interface{} {
+			"id": 1,
+			"timestamp": "2018-04-03T05:57:59.379",
 		},
 	}
 }

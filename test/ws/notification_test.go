@@ -23,7 +23,6 @@ func TestNotificationGet(t *testing.T) {
 	}
 
 	notif, dhErr := client.NotificationGet("device id", 123456789)
-
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
@@ -68,4 +67,34 @@ func TestNotificationList(t *testing.T) {
 	}
 
 	is.True(len(list) != 0)
+}
+
+func TestNotificationInsert(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
+	is := is.New(t)
+
+	client, err := dh.Connect(addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	devId := "device id"
+	name := "test notif"
+	ts := time.Now()
+	params := map[string]interface{} {
+		"testParam": 1,
+	}
+	notifId, dhErr := client.NotificationInsert(devId, name, ts, params)
+
+	if dhErr != nil {
+		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+		return
+	}
+
+	is.True(notifId != 0)
 }
