@@ -31,9 +31,9 @@ func (c *Client) NotificationGet(deviceId string, notifId int64) (notif *Notific
 	}
 
 	notif = &Notification{}
-	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
+	pErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
 
-	if parseErr != nil {
+	if pErr != nil {
 		return nil, newJSONErr()
 	}
 
@@ -48,10 +48,10 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 	params.DeviceId = deviceId
 	params.Action = "notification/list"
 
-	data, jsonErr := params.Map()
+	data, pErr := params.Map()
 
-	if jsonErr != nil {
-		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+	if pErr != nil {
+		return nil, &Error{ name: InvalidRequestErr, reason: pErr.Error() }
 	}
 
 	_, rawRes, err := c.request(data)
@@ -60,9 +60,9 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 		return nil, err
 	}
 
-	parseErr := json.Unmarshal(rawRes, &notificationResponse{ List: &list })
+	pErr = json.Unmarshal(rawRes, &notificationResponse{ List: &list })
 
-	if parseErr != nil {
+	if pErr != nil {
 		return nil, newJSONErr()
 	}
 
@@ -85,9 +85,9 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 	}
 
 	notif := &Notification{}
-	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
+	pErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
 
-	if parseErr != nil {
+	if pErr != nil {
 		return 0, newJSONErr()
 	}
 
