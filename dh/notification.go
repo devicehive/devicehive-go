@@ -3,7 +3,6 @@ package dh
 import (
 	"encoding/json"
 	"time"
-	"fmt"
 )
 
 type notificationResponse struct {
@@ -81,6 +80,10 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 		},
 	})
 
+	if err != nil {
+		return 0, err
+	}
+
 	notif := &Notification{}
 	parseErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
 
@@ -104,25 +107,25 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
 	}
 
-	tspChan, tspErr := c.tsp.Subscribe(data)
+	_, rawRes, err := c.request(data)
 
-	fmt.Println(tspErr)
-
-	if tspErr != nil {
-		return nil, newTransportErr(tspErr)
+	if err != nil {
+		return nil, err
 	}
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	id := &subsId{}
+
+	json.Unmarshal(rawRes, id)
+
+	tspChan := c.tsp.Subscribe(id.Value)
 
 	notifChan = make(chan *Notification)
 
 	go func() {
-		for {
-			rawNotif, ok :=  <- tspChan
-
-			if !ok {
-				close(notifChan)
-				return
-			}
-
+		for rawNotif := range tspChan {
 			notif := &Notification{}
 			err := json.Unmarshal(rawNotif, &notificationResponse{ Notification: notif })
 
@@ -133,6 +136,8 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 
 			notifChan <- notif
 		}
+
+		close(notifChan)
 	}()
 
 	return notifChan, nil

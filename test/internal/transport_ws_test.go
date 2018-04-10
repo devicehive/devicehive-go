@@ -7,6 +7,7 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
+	"encoding/json"
 )
 
 const testTimeout = 300 * time.Millisecond
@@ -114,19 +115,30 @@ func TestSubscribe(t *testing.T) {
 
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
 		res := stubs.ResponseStub.Respond(reqData)
+
 		c.WriteJSON(res)
 		<- time.After(500 * time.Millisecond)
+		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 
-		return stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"])
+		return nil
 	})
 
 	wsTsp, err := transport.Create(addr)
 
 	is.NoErr(err)
 
-	tspChan, err := wsTsp.Subscribe(map[string]interface{}{
+	res, err := wsTsp.Request(map[string]interface{}{
 		"action": "notification/subscribe",
-	})
+	}, 0)
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	sid := &subsId{}
+
+	json.Unmarshal(res, sid)
+
+	tspChan := wsTsp.Subscribe(sid.Value)
 
 	select {
 	case rawNotif, ok := <- tspChan:

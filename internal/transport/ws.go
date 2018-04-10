@@ -26,24 +26,9 @@ type ws struct {
 	subscriptions requestMap
 }
 
-func (t *ws) Subscribe(data devicehiveData) (eventChan chan []byte, err *Error) {
-	res, err := t.Request(data, 0)
-
-	if err != nil {
-		return nil, err
-	}
-
-	ids := &ids{}
-
-	jsonErr := json.Unmarshal(res, ids)
-
-	if jsonErr != nil {
-		return nil, &Error{ name: InvalidResponseErr, reason: jsonErr.Error() }
-	}
-
-	subscription := t.subscriptions.create(strconv.FormatInt(ids.Subscription, 10))
-
-	return subscription.response, nil
+func (t *ws) Subscribe(subscriptionId int64) (eventChan chan []byte) {
+	subscription := t.subscriptions.create(strconv.FormatInt(subscriptionId, 10))
+	return subscription.response
 }
 
 func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
