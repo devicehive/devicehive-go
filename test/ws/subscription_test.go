@@ -35,7 +35,7 @@ func TestSubscriptionList(t *testing.T) {
 	is.True(subscriptions[0].NetworkIds != nil)
 	is.True(subscriptions[0].DeviceTypeIds != nil)
 	is.True(subscriptions[0].Names != nil)
-	is.True(subscriptions[0].Timestamp.Unix() != 0)
+	is.True(subscriptions[0].Timestamp.Unix() > 0)
 
 	is.True(subscriptions[1].NetworkIds == nil)
 	is.True(subscriptions[1].DeviceTypeIds == nil)

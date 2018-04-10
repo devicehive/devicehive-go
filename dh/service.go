@@ -12,11 +12,11 @@ const (
 	Timeout          = 1 * time.Second
 )
 
-func Connect(url string) (*Client, error) {
-	tsp, err := transport.Create(url)
+func Connect(url string) (client *Client, err *Error) {
+	tsp, tspErr := transport.Create(url)
 
-	if err != nil {
-		return nil, err
+	if tspErr != nil {
+		return nil, &Error{ name: ConnectionFailedErr, reason: tspErr.Error() }
 	}
 
 	return &Client{tsp: tsp}, nil

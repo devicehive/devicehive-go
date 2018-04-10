@@ -102,3 +102,37 @@ func TestConnectionClose(t *testing.T) {
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.ConnClosedErr)
 }
+
+
+func TestSubscribe(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
+	is := is.New(t)
+
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+		res := stubs.ResponseStub.Respond(reqData)
+		c.WriteJSON(res)
+		<- time.After(500 * time.Millisecond)
+
+		return stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"])
+	})
+
+	wsTsp, err := transport.Create(addr)
+
+	is.NoErr(err)
+
+	tspChan, err := wsTsp.Subscribe(map[string]interface{}{
+		"action": "notification/subscribe",
+	})
+
+	select {
+	case rawNotif, ok := <- tspChan:
+		is.True(ok)
+		is.True(rawNotif != nil)
+	case <- time.After(1 * time.Second):
+		t.Error("subscription event timeout")
+	}
+}

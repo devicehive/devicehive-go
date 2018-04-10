@@ -6,6 +6,7 @@ const (
 	InvalidResponseErr = "invalid response"
 	InvalidRequestErr  = "invalid request"
 	ServiceErr         = "service error"
+	ConnectionFailedErr = "connection failed"
 )
 
 func newJSONErr() *Error {

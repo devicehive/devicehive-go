@@ -29,7 +29,7 @@ func TestServerInfo(t *testing.T) {
 
 	is.True(res != nil)
 	is.True(res.APIVersion != "")
-	is.True(res.ServerTimestamp.Unix() != 0)
+	is.True(res.ServerTimestamp.Unix() > 0)
 	is.True(res.RestServerURL != "")
 }
 

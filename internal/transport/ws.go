@@ -5,12 +5,14 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"time"
+	"strconv"
 )
 
 func newWS(conn *websocket.Conn) *ws {
 	tsp := &ws{
 		conn:     conn,
 		requests: make(requestMap),
+		subscriptions: make(requestMap),
 	}
 
 	go tsp.handleResponses()
@@ -21,6 +23,27 @@ func newWS(conn *websocket.Conn) *ws {
 type ws struct {
 	conn     *websocket.Conn
 	requests requestMap
+	subscriptions requestMap
+}
+
+func (t *ws) Subscribe(data devicehiveData) (eventChan chan []byte, err *Error) {
+	res, err := t.Request(data, 0)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ids := &ids{}
+
+	jsonErr := json.Unmarshal(res, ids)
+
+	if jsonErr != nil {
+		return nil, &Error{ name: InvalidResponseErr, reason: jsonErr.Error() }
+	}
+
+	subscription := t.subscriptions.create(strconv.FormatInt(ids.Subscription, 10))
+
+	return subscription.response, nil
 }
 
 func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
@@ -70,21 +93,24 @@ func (t *ws) closePendingWithErr(errMsg string, err error) {
 }
 
 func (t *ws) respond(res []byte) {
-	reqId := &requestId{}
-	err := json.Unmarshal(res, reqId)
+	ids := &ids{}
+	err := json.Unmarshal(res, ids)
 
 	if err != nil {
-		log.Printf("request is not JSON or requestId is not valid: %s", string(res))
+		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(res))
 		return
 	}
 
-	if resChan, ok := t.requests.get(reqId.Value); ok {
+	if resChan, ok := t.requests.get(ids.Request); ok {
 		resChan.response <- res
 		resChan.close()
-		t.requests.delete(reqId.Value)
+		t.requests.delete(ids.Request)
+	} else if eventChan, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
+		eventChan.response <- res
 	}
 }
 
-type requestId struct {
-	Value string `json:"requestId"`
+type ids struct {
+	Request string `json:"requestId"`
+	Subscription int64 `json:"subscriptionId"`
 }

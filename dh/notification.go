@@ -3,6 +3,7 @@ package dh
 import (
 	"encoding/json"
 	"time"
+	"fmt"
 )
 
 type notificationResponse struct {
@@ -88,4 +89,51 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 	}
 
 	return notif.Id, nil
+}
+
+func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan *Notification, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.Action = "notification/subscribe"
+
+	data, jsonErr := params.Map()
+
+	if jsonErr != nil {
+		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+	}
+
+	tspChan, tspErr := c.tsp.Subscribe(data)
+
+	fmt.Println(tspErr)
+
+	if tspErr != nil {
+		return nil, newTransportErr(tspErr)
+	}
+
+	notifChan = make(chan *Notification)
+
+	go func() {
+		for {
+			rawNotif, ok :=  <- tspChan
+
+			if !ok {
+				close(notifChan)
+				return
+			}
+
+			notif := &Notification{}
+			err := json.Unmarshal(rawNotif, &notificationResponse{ Notification: notif })
+
+			if err != nil {
+				close(notifChan)
+				return
+			}
+
+			notifChan <- notif
+		}
+	}()
+
+	return notifChan, nil
 }
