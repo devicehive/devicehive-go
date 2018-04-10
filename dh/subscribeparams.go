@@ -2,7 +2,8 @@ package dh
 
 import (
 	"time"
-	"encoding/json"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"errors"
 )
 
 type SubscribeParams struct {
@@ -14,22 +15,18 @@ type SubscribeParams struct {
 	Timestamp     time.Time `json:"timestamp,omitempty"`
 }
 
-func (p *SubscribeParams) Map() (res map[string]interface{}, err error) {
-	res = make(map[string]interface{})
+func (p *SubscribeParams) Map() (m map[string]interface{}, err error) {
+	m = utils.StructToJSONMap(p)
 
-	b, err := json.Marshal(p)
-
-	if err != nil {
-		return nil, err
+	if m == nil {
+		return nil, errors.New("invalid JSON representation of struct")
 	}
-
-	_ = json.Unmarshal(b, &res)
 
 	if p.Timestamp.Unix() < 0 {
-		delete(res, "timestamp")
+		delete(m, "timestamp")
 	} else {
-		res["timestamp"] = p.Timestamp.Format(timestampLayout)
+		m["timestamp"] = p.Timestamp.Format(timestampLayout)
 	}
 
-	return res, nil
+	return m, nil
 }

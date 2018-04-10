@@ -9,12 +9,12 @@ var mu = sync.Mutex{}
 type clientsMap map[string]*client
 
 type client struct {
-	response chan []byte
-	err      chan *Error
+	data chan []byte
+	err  chan *Error
 }
 
 func (c *client) close() {
-	close(c.response)
+	close(c.data)
 	close(c.err)
 }
 
@@ -25,18 +25,35 @@ func (m clientsMap) delete(key string) {
 	delete(m, key)
 }
 
-func (m clientsMap) create(key string) (req *client) {
+func (m clientsMap) createClient(key string) (req *client) {
+	return m.create(key, true)
+}
+
+func (m clientsMap) createSubscriber(key string) (req *client) {
+	return m.create(key, false)
+}
+
+func (m clientsMap) create(key string, isErrChan bool) (req *client) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	res, err := make(chan []byte), make(chan *Error)
-
-	m[key] = &client{
-		response: res,
-		err:      err,
+	var c *client
+	res := make(chan []byte)
+	if isErrChan {
+		err := make(chan *Error)
+		c = &client{
+			data: res,
+			err:  err,
+		}
+	} else {
+		c = &client{
+			data: res,
+		}
 	}
 
-	return m[key]
+	m[key] = c
+
+	return c
 }
 
 func (m clientsMap) get(key string) (client *client, ok bool) {

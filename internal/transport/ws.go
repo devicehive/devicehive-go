@@ -27,8 +27,8 @@ type ws struct {
 }
 
 func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
-	subscription := t.subscriptions.create(subscriptionId)
-	return subscription.response
+	client := t.subscriptions.createSubscriber(subscriptionId)
+	return client.data
 }
 
 func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
@@ -37,7 +37,7 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 	}
 
 	reqId := data.requestId()
-	req := t.requests.create(reqId)
+	client := t.requests.createClient(reqId)
 
 	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {
@@ -45,12 +45,12 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 	}
 
 	select {
-	case res = <-req.response:
+	case res = <-client.data:
 		return res, nil
-	case err := <-req.err:
+	case err := <-client.err:
 		return nil, err
 	case <-time.After(timeout):
-		req.close()
+		client.close()
 		t.requests.delete(reqId)
 		return nil, &Error{name: TimeoutErr, reason: "request timeout"}
 	}
@@ -62,7 +62,7 @@ func (t *ws) handleResponses() {
 
 		connClosed := mt == websocket.CloseMessage || mt == -1
 		if connClosed {
-			t.closePendingWithErr(ConnClosedErr, err)
+			t.terminateClients(ConnClosedErr, err)
 			return
 		}
 
@@ -70,15 +70,16 @@ func (t *ws) handleResponses() {
 	}
 }
 
-func (t *ws) closePendingWithErr(errMsg string, err error) {
+func (t *ws) terminateClients(errMsg string, err error) {
 	tspErr := &Error{name: errMsg, reason: err.Error()}
-	closeChans := func(c *client) {
+	t.requests.forEach(func(c *client) {
 		c.err <- tspErr
 		c.close()
-	}
+	})
 
-	t.requests.forEach(closeChans)
-	t.subscriptions.forEach(closeChans)
+	t.subscriptions.forEach(func(c *client) {
+		c.close()
+	})
 }
 
 func (t *ws) respond(res []byte) {
@@ -90,12 +91,12 @@ func (t *ws) respond(res []byte) {
 		return
 	}
 
-	if resChan, ok := t.requests.get(ids.Request); ok {
-		resChan.response <- res
-		resChan.close()
+	if client, ok := t.requests.get(ids.Request); ok {
+		client.data <- res
+		client.close()
 		t.requests.delete(ids.Request)
-	} else if eventChan, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
-		eventChan.response <- res
+	} else if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
+		client.data <- res
 	}
 }
 

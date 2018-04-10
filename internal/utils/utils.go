@@ -1,6 +1,9 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"encoding/json"
+)
 
 func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 	for _, elem := range s {
@@ -13,4 +16,18 @@ func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 	}
 
 	return stringSlice, nil
+}
+
+func StructToJSONMap(s interface{}) map[string]interface{} {
+	m := make(map[string]interface{})
+
+	b, err := json.Marshal(s)
+
+	if err != nil {
+		return nil
+	}
+
+	_ = json.Unmarshal(b, &m)
+
+	return m
 }

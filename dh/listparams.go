@@ -2,7 +2,8 @@ package dh
 
 import (
 	"time"
-	"encoding/json"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"errors"
 )
 
 type ListParams struct {
@@ -17,27 +18,23 @@ type ListParams struct {
 	Skip int `json:"skip,omitempty"`
 }
 
-func (p *ListParams) Map() (res map[string]interface{}, err error) {
-	res = make(map[string]interface{})
+func (p *ListParams) Map() (m map[string]interface{}, err error) {
+	m = utils.StructToJSONMap(p)
 
-	b, err := json.Marshal(p)
-
-	if err != nil {
-		return nil, err
+	if m == nil {
+		return nil, errors.New("invalid JSON representation of struct")
 	}
-
-	_ = json.Unmarshal(b, &res)
 
 	if p.Start.Unix() < 0 {
-		delete(res, "start")
+		delete(m, "start")
 	} else {
-		res["start"] = p.Start.Format(timestampLayout)
+		m["start"] = p.Start.Format(timestampLayout)
 	}
 	if p.End.Unix() < 0 {
-		delete(res, "end")
+		delete(m, "end")
 	} else {
-		res["end"] = p.End.Format(timestampLayout)
+		m["end"] = p.End.Format(timestampLayout)
 	}
 
-	return res, nil
+	return m, nil
 }
