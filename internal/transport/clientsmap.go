@@ -15,7 +15,10 @@ type client struct {
 
 func (c *client) close() {
 	close(c.data)
-	close(c.err)
+
+	if c.err != nil {
+		close(c.err)
+	}
 }
 
 func (m clientsMap) delete(key string) {

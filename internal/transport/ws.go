@@ -31,6 +31,15 @@ func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
 	return client.data
 }
 
+func (t *ws) Unsubscribe(subscriptionId string) {
+	client, ok := t.subscriptions.get(subscriptionId)
+
+	if ok {
+		client.close()
+		t.subscriptions.delete(subscriptionId)
+	}
+}
+
 func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
@@ -52,7 +61,7 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 	case <-time.After(timeout):
 		client.close()
 		t.requests.delete(reqId)
-		return nil, &Error{name: TimeoutErr, reason: "request timeout"}
+		return nil, &Error{name: TimeoutErr, reason: "response timeout"}
 	}
 }
 
@@ -87,7 +96,7 @@ func (t *ws) resolveReceiver(msg []byte) {
 	err := json.Unmarshal(msg, ids)
 
 	if err != nil {
-		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(res))
+		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(msg))
 		return
 	}
 

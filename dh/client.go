@@ -25,14 +25,7 @@ func (c *Client) Authenticate(token string) (result bool, err *Error) {
 	return res.Status == "success", nil
 }
 
-func (c *Client) request(data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
-	resBytes, tspErr := c.tsp.Request(data, Timeout)
-	res, err = c.handleResponse(resBytes, tspErr)
-
-	return res, resBytes, err
-}
-
-func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan []byte, err *Error) {
+func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
@@ -42,13 +35,13 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 	data, jsonErr := params.Map()
 
 	if jsonErr != nil {
-		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+		return nil, "", &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
 	}
 
 	_, rawRes, err := c.request(data)
 
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	type subsId struct {
@@ -59,10 +52,34 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 	parseErr := json.Unmarshal(rawRes, id)
 
 	if parseErr != nil {
-		return nil, newJSONErr()
+		return nil, "", newJSONErr()
 	}
 
-	return c.tsp.Subscribe(strconv.FormatInt(id.Value, 10)), nil
+	subscriptionId = strconv.FormatInt(id.Value, 10)
+
+	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
+}
+
+func (c *Client) unsubscribe(action, subscriptionId string) *Error {
+	_, _, err := c.request(map[string]interface{} {
+		"action": action,
+		"subscriptionId": subscriptionId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	c.tsp.Unsubscribe(subscriptionId)
+
+	return nil
+}
+
+func (c *Client) request(data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
+	resBytes, tspErr := c.tsp.Request(data, Timeout)
+	res, err = c.handleResponse(resBytes, tspErr)
+
+	return res, resBytes, err
 }
 
 func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {

@@ -94,4 +94,41 @@ func TestNotificationSubscribe(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
+
+	<-time.After(500 * time.Millisecond)
+}
+
+func TestNotificationUnsubscribe(t *testing.T) {
+	err := auth()
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
+	name := "test notif"
+	ts := time.Now()
+
+	notifChan, err := client.NotificationSubscribe(nil)
+
+	go func() {
+		select {
+		case notif, ok := <- notifChan:
+			if notif != nil || ok {
+				t.Error("client hasn't been unsubscribed")
+			}
+		case <- time.After(1 * time.Second):
+			t.Error("timeout")
+		}
+	}()
+
+	err = client.NotificationUnsubscribe(notifChan)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	client.NotificationInsert(devId, name, ts, nil)
 }

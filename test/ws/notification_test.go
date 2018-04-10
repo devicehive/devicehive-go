@@ -23,9 +23,9 @@ func TestNotificationGet(t *testing.T) {
 		panic(err)
 	}
 
-	notif, dhErr := client.NotificationGet("device id", 123456789)
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	notif, err := client.NotificationGet("device id", 123456789)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
@@ -60,10 +60,10 @@ func TestNotificationList(t *testing.T) {
 		Take: 10,
 		Skip: 5,
 	}
-	list, dhErr := client.NotificationList("device id", listReqParams)
+	list, err := client.NotificationList("device id", listReqParams)
 
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
@@ -90,9 +90,9 @@ func TestNotificationInsert(t *testing.T) {
 	params := map[string]interface{} {
 		"testParam": 1,
 	}
-	notifId, dhErr := client.NotificationInsert(devId, name, ts, params)
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	notifId, err := client.NotificationInsert(devId, name, ts, params)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
@@ -128,9 +128,9 @@ func TestNotificationSubscribe(t *testing.T) {
 		DeviceTypeIds: []string{ "dt1", "dt2" },
 		Names: []string{ "n1", "n2" },
 	}
-	notifChan, dhErr := client.NotificationSubscribe(subsParams)
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	notifChan, err := client.NotificationSubscribe(subsParams)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
@@ -146,5 +146,46 @@ func TestNotificationSubscribe(t *testing.T) {
 		is.True(notif.Parameters != nil)
 	case <- time.After(1 * time.Second):
 		t.Error("notification insert event timeout")
+	}
+}
+
+func TestNotificationUnsubscribe(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
+	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
+		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
+
+		err := conn.ReadJSON(&reqData)
+
+		if err != nil {
+			panic(err)
+		}
+
+		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
+
+		return nil
+	})
+	
+	client, err := dh.Connect(addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	notifChan, err := client.NotificationSubscribe(nil)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	err = client.NotificationUnsubscribe(notifChan)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
 	}
 }

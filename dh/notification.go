@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var notificationSubscriptions = make(map[chan *Notification]string)
+
 type notificationResponse struct {
 	Notification *Notification    `json:"notification"`
 	List         *[]*Notification `json:"notifications"`
@@ -95,7 +97,7 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 }
 
 func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan *Notification, err *Error) {
-	tspChan, err := c.subscribe("notification/subscribe", params)
+	tspChan, subsId,  err := c.subscribe("notification/subscribe", params)
 
 	if err != nil {
 		return nil, err
@@ -103,7 +105,14 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 
 	notifChan = c.notificationsTransform(tspChan)
 
+	notificationSubscriptions[notifChan] = subsId
+
 	return notifChan, nil
+}
+
+func (c *Client) NotificationUnsubscribe(notifChan chan *Notification) *Error {
+	subsId := notificationSubscriptions[notifChan]
+	return c.unsubscribe("notification/unsubscribe", subsId)
 }
 
 func (c *Client) notificationsTransform(tspChan chan []byte) (notifChan chan *Notification) {

@@ -128,9 +128,14 @@ func TestSubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, err := wsTsp.Request(map[string]interface{}{
+	res, tspErr := wsTsp.Request(map[string]interface{}{
 		"action": "notification/subscribe",
 	}, 0)
+
+	if tspErr != nil {
+		t.Errorf("%s: %v", tspErr.Name(), tspErr)
+		return
+	}
 
 	type subsId struct {
 		Value int64 `json:"subscriptionId"`
@@ -148,4 +153,39 @@ func TestSubscribe(t *testing.T) {
 	case <- time.After(1 * time.Second):
 		t.Error("subscription event timeout")
 	}
+}
+
+func TestUnsubscribe(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
+	is := is.New(t)
+
+	wsTsp, err := transport.Create(addr)
+
+	is.NoErr(err)
+
+	res, tspErr := wsTsp.Request(map[string]interface{}{
+		"action": "notification/subscribe",
+	}, 0)
+
+	if tspErr != nil {
+		t.Errorf("%s: %v", tspErr.Name(), tspErr)
+		return
+	}
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	sid := &subsId{}
+
+	json.Unmarshal(res, sid)
+
+	sidStr := strconv.FormatInt(sid.Value, 10)
+
+	wsTsp.Subscribe(sidStr)
+
+	wsTsp.Unsubscribe(sidStr)
 }

@@ -17,6 +17,7 @@ var ResponseStub = &responseStub{
 		"notification/list": notificationList,
 		"notification/insert": notificationInsert,
 		"notification/subscribe": notificationSubscribe,
+		"notification/unsubscribe": notificationUnsubscribe,
 	},
 }
 
@@ -245,5 +246,13 @@ func notificationSubscribe(reqData map[string]interface{}) map[string]interface{
 		"status": "success",
 		"requestId": reqData["requestId"],
 		"subscriptionId": 1,
+	}
+}
+
+func notificationUnsubscribe(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "notification/unsubscribe",
+		"status": "success",
+		"requestId": reqData["requestId"],
 	}
 }
