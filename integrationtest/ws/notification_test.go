@@ -5,7 +5,6 @@ import (
 	"time"
 	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
-	"fmt"
 )
 
 func TestNotification(t *testing.T) {

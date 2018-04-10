@@ -31,6 +31,39 @@ func (c *Client) request(data map[string]interface{}) (res *response, resBytes [
 	return res, resBytes, err
 }
 
+func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan []byte, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.Action = action
+
+	data, jsonErr := params.Map()
+
+	if jsonErr != nil {
+		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+	}
+
+	_, rawRes, err := c.request(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	id := &subsId{}
+
+	parseErr := json.Unmarshal(rawRes, id)
+
+	if parseErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return c.tsp.Subscribe(id.Value), nil
+}
+
 func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {
 	if tspErr != nil {
 		return nil, newTransportErr(tspErr)

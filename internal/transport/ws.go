@@ -71,10 +71,14 @@ func (t *ws) handleResponses() {
 }
 
 func (t *ws) closePendingWithErr(errMsg string, err error) {
-	t.requests.forEach(func(resChan *request) {
-		resChan.err <- &Error{name: errMsg, reason: err.Error()}
+	tspErr := &Error{name: errMsg, reason: err.Error()}
+	closeChans := func(resChan *request) {
+		resChan.err <- tspErr
 		resChan.close()
-	})
+	}
+
+	t.requests.forEach(closeChans)
+	t.subscriptions.forEach(closeChans)
 }
 
 func (t *ws) respond(res []byte) {

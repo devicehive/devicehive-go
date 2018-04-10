@@ -95,33 +95,18 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 }
 
 func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan *Notification, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{}
-	}
-
-	params.Action = "notification/subscribe"
-
-	data, jsonErr := params.Map()
-
-	if jsonErr != nil {
-		return nil, &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
-	}
-
-	_, rawRes, err := c.request(data)
+	tspChan, err := c.subscribe("notification/subscribe", params)
 
 	if err != nil {
 		return nil, err
 	}
 
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	id := &subsId{}
+	notifChan = c.notificationsTransform(tspChan)
 
-	json.Unmarshal(rawRes, id)
+	return notifChan, nil
+}
 
-	tspChan := c.tsp.Subscribe(id.Value)
-
+func (c *Client) notificationsTransform(tspChan chan []byte) (notifChan chan *Notification) {
 	notifChan = make(chan *Notification)
 
 	go func() {
@@ -140,5 +125,5 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 		close(notifChan)
 	}()
 
-	return notifChan, nil
+	return notifChan
 }
