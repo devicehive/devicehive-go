@@ -11,8 +11,8 @@ import (
 func newWS(conn *websocket.Conn) *ws {
 	tsp := &ws{
 		conn:     conn,
-		requests: make(requestMap),
-		subscriptions: make(requestMap),
+		requests: make(clientsMap),
+		subscriptions: make(clientsMap),
 	}
 
 	go tsp.handleResponses()
@@ -21,13 +21,13 @@ func newWS(conn *websocket.Conn) *ws {
 }
 
 type ws struct {
-	conn     *websocket.Conn
-	requests requestMap
-	subscriptions requestMap
+	conn          *websocket.Conn
+	requests      clientsMap
+	subscriptions clientsMap
 }
 
-func (t *ws) Subscribe(subscriptionId int64) (eventChan chan []byte) {
-	subscription := t.subscriptions.create(strconv.FormatInt(subscriptionId, 10))
+func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
+	subscription := t.subscriptions.create(subscriptionId)
 	return subscription.response
 }
 
@@ -72,9 +72,9 @@ func (t *ws) handleResponses() {
 
 func (t *ws) closePendingWithErr(errMsg string, err error) {
 	tspErr := &Error{name: errMsg, reason: err.Error()}
-	closeChans := func(resChan *request) {
-		resChan.err <- tspErr
-		resChan.close()
+	closeChans := func(c *client) {
+		c.err <- tspErr
+		c.close()
 	}
 
 	t.requests.forEach(closeChans)

@@ -11,7 +11,7 @@ const (
 
 type Transporter interface {
 	Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(subscriptionId int64) (eventChan chan []byte)
+	Subscribe(subscriptionId string) (eventChan chan []byte)
 }
 
 func Create(url string) (transport Transporter, err error) {

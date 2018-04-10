@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 	"encoding/json"
+	"strconv"
 )
 
 const testTimeout = 300 * time.Millisecond
@@ -138,7 +139,7 @@ func TestSubscribe(t *testing.T) {
 
 	json.Unmarshal(res, sid)
 
-	tspChan := wsTsp.Subscribe(sid.Value)
+	tspChan := wsTsp.Subscribe(strconv.FormatInt(sid.Value, 10))
 
 	select {
 	case rawNotif, ok := <- tspChan:

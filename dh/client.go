@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
+	"strconv"
 )
 
 type Client struct {
@@ -61,7 +62,7 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 		return nil, newJSONErr()
 	}
 
-	return c.tsp.Subscribe(id.Value), nil
+	return c.tsp.Subscribe(strconv.FormatInt(id.Value, 10)), nil
 }
 
 func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {
