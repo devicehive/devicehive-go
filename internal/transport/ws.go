@@ -15,7 +15,7 @@ func newWS(conn *websocket.Conn) *ws {
 		subscriptions: make(clientsMap),
 	}
 
-	go tsp.handleResponses()
+	go tsp.handleServerMessages()
 
 	return tsp
 }
@@ -56,7 +56,7 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 	}
 }
 
-func (t *ws) handleResponses() {
+func (t *ws) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
 
@@ -66,7 +66,7 @@ func (t *ws) handleResponses() {
 			return
 		}
 
-		t.respond(msg)
+		t.resolveReceiver(msg)
 	}
 }
 
@@ -82,9 +82,9 @@ func (t *ws) terminateClients(errMsg string, err error) {
 	})
 }
 
-func (t *ws) respond(res []byte) {
+func (t *ws) resolveReceiver(msg []byte) {
 	ids := &ids{}
-	err := json.Unmarshal(res, ids)
+	err := json.Unmarshal(msg, ids)
 
 	if err != nil {
 		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(res))
@@ -92,11 +92,11 @@ func (t *ws) respond(res []byte) {
 	}
 
 	if client, ok := t.requests.get(ids.Request); ok {
-		client.data <- res
+		client.data <- msg
 		client.close()
 		t.requests.delete(ids.Request)
 	} else if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
-		client.data <- res
+		client.data <- msg
 	}
 }
 
