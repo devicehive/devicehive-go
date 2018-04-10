@@ -5,6 +5,7 @@ import (
 	"time"
 	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
+	"fmt"
 )
 
 func TestNotification(t *testing.T) {
@@ -61,4 +62,37 @@ func TestNotification(t *testing.T) {
 	}
 
 	is.True(len(list) == 0)
+}
+
+func TestNotificationSubscribe(t *testing.T) {
+	err := auth()
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is := is.New(t)
+
+	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
+	name := "test notif"
+	ts := time.Now()
+
+	notifChan, err := client.NotificationSubscribe(nil)
+
+	go func() {
+		select {
+		case notif := <- notifChan:
+			is.Equal(notif.Notification, name)
+		case <- time.After(1 * time.Second):
+			t.Error("notification insert event timeout")
+		}
+	}()
+
+	_, err = client.NotificationInsert(devId, name, ts, nil)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
 }
