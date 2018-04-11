@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/fatih/structs"
 )
 
 func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
@@ -19,15 +19,8 @@ func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 }
 
 func StructToJSONMap(s interface{}) map[string]interface{} {
-	m := make(map[string]interface{})
+	descr := structs.New(s)
+	descr.TagName = "json"
 
-	b, err := json.Marshal(s)
-
-	if err != nil {
-		return nil
-	}
-
-	_ = json.Unmarshal(b, &m)
-
-	return m
+	return descr.Map()
 }

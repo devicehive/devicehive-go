@@ -9,7 +9,7 @@ const (
 	NotificationType = "notification"
 	CommandType      = "command"
 	timestampLayout  = "2006-01-02T15:04:05.000"
-	Timeout          = 1 * time.Second
+	Timeout          = 5 * time.Second
 )
 
 func Connect(url string) (client *Client, err *Error) {
