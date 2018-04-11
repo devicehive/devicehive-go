@@ -106,6 +106,10 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 		return nil, err
 	}
 
+	if tspChan == nil {
+		return nil, nil
+	}
+
 	notifChan = c.notificationsTransform(tspChan)
 
 	notifSubsMutex.Lock()
