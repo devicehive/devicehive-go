@@ -8,6 +8,13 @@ import (
 	"log"
 )
 
+func StartWSTestServer() (srv *WSTestServer, addr string, closeSrv func()) {
+	srv = &WSTestServer{}
+	addr = srv.Start()
+
+	return srv, addr, srv.Close
+}
+
 type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn)
 
 type WSTestServer struct {

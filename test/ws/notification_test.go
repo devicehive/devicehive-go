@@ -10,10 +10,8 @@ import (
 )
 
 func TestNotificationGet(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -38,10 +36,8 @@ func TestNotificationGet(t *testing.T) {
 }
 
 func TestNotificationList(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -71,10 +67,8 @@ func TestNotificationList(t *testing.T) {
 }
 
 func TestNotificationInsert(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -100,10 +94,8 @@ func TestNotificationInsert(t *testing.T) {
 }
 
 func TestNotificationSubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		res := stubs.ResponseStub.Respond(reqData)
@@ -150,10 +142,8 @@ func TestNotificationSubscribe(t *testing.T) {
 }
 
 func TestNotificationUnsubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		c.WriteJSON(stubs.ResponseStub.Respond(reqData))

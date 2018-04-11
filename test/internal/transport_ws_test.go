@@ -14,10 +14,8 @@ import (
 const testTimeout = 300 * time.Millisecond
 
 func TestRequestId(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -34,10 +32,8 @@ func TestRequestId(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -60,10 +56,8 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestInvalidResponse(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -82,10 +76,8 @@ func TestInvalidResponse(t *testing.T) {
 }
 
 func TestConnectionClose(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -104,10 +96,8 @@ func TestConnectionClose(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -151,10 +141,8 @@ func TestSubscribe(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 

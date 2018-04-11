@@ -8,10 +8,8 @@ import (
 )
 
 func TestServerInfo(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -34,10 +32,8 @@ func TestServerInfo(t *testing.T) {
 }
 
 func TestClusterInfo(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
