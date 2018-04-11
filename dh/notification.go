@@ -2,6 +2,7 @@ package dh
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -13,18 +14,18 @@ type notificationResponse struct {
 }
 
 type Notification struct {
-	Id int64 `json:"id"`
-	Notification string `json:"notification"`
-	Timestamp dhTime `json:"timestamp"`
-	DeviceId string `json:"deviceId"`
-	NetworkId int64 `json:"networkId"`
-	Parameters map[string]interface{} `json:"parameters"`
+	Id           int64                  `json:"id"`
+	Notification string                 `json:"notification"`
+	Timestamp    dhTime                 `json:"timestamp"`
+	DeviceId     string                 `json:"deviceId"`
+	NetworkId    int64                  `json:"networkId"`
+	Parameters   map[string]interface{} `json:"parameters"`
 }
 
 func (c *Client) NotificationGet(deviceId string, notifId int64) (notif *Notification, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
-		"action": "notification/get",
-		"deviceId": deviceId,
+		"action":         "notification/get",
+		"deviceId":       deviceId,
 		"notificationId": notifId,
 	})
 
@@ -33,7 +34,7 @@ func (c *Client) NotificationGet(deviceId string, notifId int64) (notif *Notific
 	}
 
 	notif = &Notification{}
-	pErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
+	pErr := json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
 
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -53,7 +54,7 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 	data, pErr := params.Map()
 
 	if pErr != nil {
-		return nil, &Error{ name: InvalidRequestErr, reason: pErr.Error() }
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
 	_, rawRes, err := c.request(data)
@@ -62,7 +63,7 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 		return nil, err
 	}
 
-	pErr = json.Unmarshal(rawRes, &notificationResponse{ List: &list })
+	pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
 
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -72,13 +73,13 @@ func (c *Client) NotificationList(deviceId string, params *ListParams) (list []*
 }
 
 func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.Time, params map[string]interface{}) (notifId int64, err *Error) {
-	_, rawRes, err := c.request(map[string]interface{} {
-		"action": "notification/insert",
+	_, rawRes, err := c.request(map[string]interface{}{
+		"action":   "notification/insert",
 		"deviceId": deviceId,
-		"notification": map[string]interface{} {
+		"notification": map[string]interface{}{
 			"notification": notifName,
-			"timestamp": timestamp.UTC().Format(timestampLayout),
-			"parameters": params,
+			"timestamp":    timestamp.UTC().Format(timestampLayout),
+			"parameters":   params,
 		},
 	})
 
@@ -87,7 +88,7 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 	}
 
 	notif := &Notification{}
-	pErr := json.Unmarshal(rawRes, &notificationResponse{ Notification: notif })
+	pErr := json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
 
 	if pErr != nil {
 		return 0, newJSONErr()
@@ -97,7 +98,7 @@ func (c *Client) NotificationInsert(deviceId, notifName string, timestamp time.T
 }
 
 func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan *Notification, err *Error) {
-	tspChan, subsId,  err := c.subscribe("notification/subscribe", params)
+	tspChan, subsId, err := c.subscribe("notification/subscribe", params)
 
 	if err != nil {
 		return nil, err
@@ -112,7 +113,15 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 
 func (c *Client) NotificationUnsubscribe(notifChan chan *Notification) *Error {
 	subsId := notificationSubscriptions[notifChan]
-	return c.unsubscribe("notification/unsubscribe", subsId)
+	err := c.unsubscribe("notification/unsubscribe", subsId)
+
+	if err != nil {
+		return err
+	}
+
+	delete(notificationSubscriptions, notifChan)
+
+	return nil
 }
 
 func (c *Client) notificationsTransform(tspChan chan []byte) (notifChan chan *Notification) {
@@ -121,11 +130,11 @@ func (c *Client) notificationsTransform(tspChan chan []byte) (notifChan chan *No
 	go func() {
 		for rawNotif := range tspChan {
 			notif := &Notification{}
-			err := json.Unmarshal(rawNotif, &notificationResponse{ Notification: notif })
+			err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
 
 			if err != nil {
-				close(notifChan)
-				return
+				log.Println("couldn't unmarshal notification insert event data:", err)
+				continue
 			}
 
 			notifChan <- notif

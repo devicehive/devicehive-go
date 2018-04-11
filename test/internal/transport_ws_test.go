@@ -1,14 +1,14 @@
 package internal_test
 
 import (
+	"encoding/json"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
+	"strconv"
 	"testing"
 	"time"
-	"encoding/json"
-	"strconv"
 )
 
 const testTimeout = 300 * time.Millisecond
@@ -105,7 +105,6 @@ func TestConnectionClose(t *testing.T) {
 	is.Equal(tspErr.Name(), transport.ConnClosedErr)
 }
 
-
 func TestSubscribe(t *testing.T) {
 	wsTestSrv := &stubs.WSTestServer{}
 
@@ -118,7 +117,7 @@ func TestSubscribe(t *testing.T) {
 		res := stubs.ResponseStub.Respond(reqData)
 
 		c.WriteJSON(res)
-		<- time.After(500 * time.Millisecond)
+		<-time.After(500 * time.Millisecond)
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 
 		return nil
@@ -147,10 +146,10 @@ func TestSubscribe(t *testing.T) {
 	tspChan := wsTsp.Subscribe(strconv.FormatInt(sid.Value, 10))
 
 	select {
-	case rawNotif, ok := <- tspChan:
+	case rawNotif, ok := <-tspChan:
 		is.True(ok)
 		is.True(rawNotif != nil)
-	case <- time.After(1 * time.Second):
+	case <-time.After(1 * time.Second):
 		t.Error("subscription event timeout")
 	}
 }

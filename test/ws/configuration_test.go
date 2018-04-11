@@ -2,9 +2,9 @@ package dh_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"testing"
-	"github.com/devicehive/devicehive-go/test/stubs"
 )
 
 func TestConfigurationGet(t *testing.T) {

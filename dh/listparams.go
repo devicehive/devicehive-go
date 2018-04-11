@@ -1,21 +1,21 @@
 package dh
 
 import (
-	"time"
-	"github.com/devicehive/devicehive-go/internal/utils"
 	"errors"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"time"
 )
 
 type ListParams struct {
-	Action string `json:"action"`
-	DeviceId string `json:"deviceId,omitempty"`
-	Start time.Time `json:"start,omitempty"`
-	End time.Time `json:"end,omitempty"`
-	Notification string `json:"notification,omitempty"`
-	SortField string `json:"sortField,omitempty"`
-	SortOrder string `json:"sortOrder,omitempty"`
-	Take int `json:"take,omitempty"`
-	Skip int `json:"skip,omitempty"`
+	Action       string    `json:"action"`
+	DeviceId     string    `json:"deviceId,omitempty"`
+	Start        time.Time `json:"start,omitempty"`
+	End          time.Time `json:"end,omitempty"`
+	Notification string    `json:"notification,omitempty"`
+	SortField    string    `json:"sortField,omitempty"`
+	SortOrder    string    `json:"sortOrder,omitempty"`
+	Take         int       `json:"take,omitempty"`
+	Skip         int       `json:"skip,omitempty"`
 }
 
 func (p *ListParams) Map() (m map[string]interface{}, err error) {

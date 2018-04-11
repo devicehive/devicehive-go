@@ -1,10 +1,10 @@
 package dh_test
 
 import (
+	"github.com/devicehive/devicehive-go/dh"
+	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestNotification(t *testing.T) {
@@ -20,7 +20,7 @@ func TestNotification(t *testing.T) {
 	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 	name := "test notif"
 	ts := time.Now()
-	params := map[string]interface{} {
+	params := map[string]interface{}{
 		"testParam": 1,
 	}
 	id, dhErr := client.NotificationInsert(devId, name, ts, params)
@@ -40,7 +40,6 @@ func TestNotification(t *testing.T) {
 	is.True(notif != nil)
 	is.Equal(int(notif.Parameters["testParam"].(float64)), 1)
 
-
 	list, dhErr := client.NotificationList(devId, nil)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
@@ -52,7 +51,7 @@ func TestNotification(t *testing.T) {
 
 	listParams := &dh.ListParams{
 		Start: time.Now().Add(-1 * time.Hour),
-		End: time.Now().Add(-1 * time.Minute),
+		End:   time.Now().Add(-1 * time.Minute),
 	}
 	list, dhErr = client.NotificationList(devId, listParams)
 	if dhErr != nil {
@@ -81,9 +80,9 @@ func TestNotificationSubscribe(t *testing.T) {
 
 	go func() {
 		select {
-		case notif := <- notifChan:
+		case notif := <-notifChan:
 			is.Equal(notif.Notification, name)
-		case <- time.After(1 * time.Second):
+		case <-time.After(1 * time.Second):
 			t.Error("notification insert event timeout")
 		}
 	}()
@@ -114,11 +113,11 @@ func TestNotificationUnsubscribe(t *testing.T) {
 
 	go func() {
 		select {
-		case notif, ok := <- notifChan:
+		case notif, ok := <-notifChan:
 			if notif != nil || ok {
 				t.Error("client hasn't been unsubscribed")
 			}
-		case <- time.After(1 * time.Second):
+		case <-time.After(1 * time.Second):
 			t.Error("timeout")
 		}
 	}()

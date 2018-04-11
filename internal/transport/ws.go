@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
-	"time"
 	"strconv"
+	"time"
 )
 
 func newWS(conn *websocket.Conn) *ws {
 	tsp := &ws{
-		conn:     conn,
-		requests: make(clientsMap),
+		conn:          conn,
+		requests:      make(clientsMap),
 		subscriptions: make(clientsMap),
 	}
 
@@ -110,6 +110,6 @@ func (t *ws) resolveReceiver(msg []byte) {
 }
 
 type ids struct {
-	Request string `json:"requestId"`
-	Subscription int64 `json:"subscriptionId"`
+	Request      string `json:"requestId"`
+	Subscription int64  `json:"subscriptionId"`
 }

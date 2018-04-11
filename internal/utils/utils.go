@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {

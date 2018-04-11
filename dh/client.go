@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type Client struct {
@@ -35,7 +35,7 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 	data, jsonErr := params.Map()
 
 	if jsonErr != nil {
-		return nil, "", &Error{ name: InvalidRequestErr, reason: jsonErr.Error() }
+		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
 	_, rawRes, err := c.request(data)
@@ -61,8 +61,8 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 }
 
 func (c *Client) unsubscribe(action, subscriptionId string) *Error {
-	_, _, err := c.request(map[string]interface{} {
-		"action": action,
+	_, _, err := c.request(map[string]interface{}{
+		"action":         action,
 		"subscriptionId": subscriptionId,
 	})
 

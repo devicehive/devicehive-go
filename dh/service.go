@@ -16,7 +16,7 @@ func Connect(url string) (client *Client, err *Error) {
 	tsp, tspErr := transport.Create(url)
 
 	if tspErr != nil {
-		return nil, &Error{ name: ConnectionFailedErr, reason: tspErr.Error() }
+		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}
 	}
 
 	return &Client{tsp: tsp}, nil

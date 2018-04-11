@@ -1,22 +1,22 @@
 package stubs
 
 var ResponseStub = &responseStub{
-	actionRes: map[string]func(reqData map[string]interface{}) map[string]interface{} {
-		"authenticate": emptySuccessResponse,
-		"token": token,
-		"token/refresh": tokenRefresh,
-		"token/create": token,
-		"test/unauthorized": unauthorized,
-		"server/info": serverInfo,
-		"cluster/info": clusterInfo,
-		"subscription/list": subscriptionList,
-		"configuration/get": configurationGet,
-		"configuration/put": configurationPut,
-		"configuration/delete": emptySuccessResponse,
-		"notification/get": notificationGet,
-		"notification/list": notificationList,
-		"notification/insert": notificationInsert,
-		"notification/subscribe": notificationSubscribe,
+	actionRes: map[string]func(reqData map[string]interface{}) map[string]interface{}{
+		"authenticate":             emptySuccessResponse,
+		"token":                    token,
+		"token/refresh":            tokenRefresh,
+		"token/create":             token,
+		"test/unauthorized":        unauthorized,
+		"server/info":              serverInfo,
+		"cluster/info":             clusterInfo,
+		"subscription/list":        subscriptionList,
+		"configuration/get":        configurationGet,
+		"configuration/put":        configurationPut,
+		"configuration/delete":     emptySuccessResponse,
+		"notification/get":         notificationGet,
+		"notification/list":        notificationList,
+		"notification/insert":      notificationInsert,
+		"notification/subscribe":   notificationSubscribe,
 		"notification/unsubscribe": notificationUnsubscribe,
 	},
 }
@@ -27,14 +27,14 @@ type responseStub struct {
 
 func (s *responseStub) NotificationInsertEvent(subscriptionId, deviceId interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/insert",
+		"action":         "notification/insert",
 		"subscriptionId": subscriptionId,
 		"notification": map[string]interface{}{
-			"id": 1,
+			"id":           1,
 			"notification": "notif test name",
-			"timestamp": "2018-04-03T05:57:59.379",
-			"deviceId": deviceId,
-			"networkId": 1111,
+			"timestamp":    "2018-04-03T05:57:59.379",
+			"deviceId":     deviceId,
+			"networkId":    1111,
 			"parameters": map[string]interface{}{
 				"testParam": 1,
 			},
@@ -56,9 +56,9 @@ func notFound(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"action":    reqData["action"],
 		"requestId": reqData["requestId"],
-		"status": "error",
-		"code": 404,
-		"error": "action not found",
+		"status":    "error",
+		"code":      404,
+		"error":     "action not found",
 	}
 }
 
@@ -182,15 +182,15 @@ func configurationPut(reqData map[string]interface{}) map[string]interface{} {
 
 func notificationGet(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/get",
-		"status": "success",
+		"action":    "notification/get",
+		"status":    "success",
 		"requestId": reqData["requestId"],
 		"notification": map[string]interface{}{
-			"id": reqData["notificationId"],
+			"id":           reqData["notificationId"],
 			"notification": "notif test name",
-			"timestamp": "2018-04-03T05:57:59.379",
-			"deviceId": reqData["deviceId"],
-			"networkId": 1111,
+			"timestamp":    "2018-04-03T05:57:59.379",
+			"deviceId":     reqData["deviceId"],
+			"networkId":    1111,
 			"parameters": map[string]interface{}{
 				"testParam": 1,
 			},
@@ -200,26 +200,26 @@ func notificationGet(reqData map[string]interface{}) map[string]interface{} {
 
 func notificationList(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/list",
-		"status": "success",
+		"action":    "notification/list",
+		"status":    "success",
 		"requestId": reqData["requestId"],
 		"notifications": []map[string]interface{}{
 			{
-				"id": 1111,
+				"id":           1111,
 				"notification": "notif 1",
-				"timestamp": "2018-04-03T05:57:59.379",
-				"deviceId": reqData["deviceId"],
-				"networkId": 1,
+				"timestamp":    "2018-04-03T05:57:59.379",
+				"deviceId":     reqData["deviceId"],
+				"networkId":    1,
 				"parameters": map[string]interface{}{
 					"param1": 1,
 				},
 			},
 			{
-				"id": 2222,
+				"id":           2222,
 				"notification": "notif 2",
-				"timestamp": "2018-04-03T06:57:59.379",
-				"deviceId": reqData["deviceId"],
-				"networkId": 2,
+				"timestamp":    "2018-04-03T06:57:59.379",
+				"deviceId":     reqData["deviceId"],
+				"networkId":    2,
 				"parameters": map[string]interface{}{
 					"param1": 2,
 				},
@@ -230,11 +230,11 @@ func notificationList(reqData map[string]interface{}) map[string]interface{} {
 
 func notificationInsert(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/list",
-		"status": "success",
+		"action":    "notification/list",
+		"status":    "success",
 		"requestId": reqData["requestId"],
-		"notification": map[string]interface{} {
-			"id": 1,
+		"notification": map[string]interface{}{
+			"id":        1,
 			"timestamp": "2018-04-03T05:57:59.379",
 		},
 	}
@@ -242,17 +242,17 @@ func notificationInsert(reqData map[string]interface{}) map[string]interface{} {
 
 func notificationSubscribe(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/subscribe",
-		"status": "success",
-		"requestId": reqData["requestId"],
+		"action":         "notification/subscribe",
+		"status":         "success",
+		"requestId":      reqData["requestId"],
 		"subscriptionId": 1,
 	}
 }
 
 func notificationUnsubscribe(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "notification/unsubscribe",
-		"status": "success",
+		"action":    "notification/unsubscribe",
+		"status":    "success",
 		"requestId": reqData["requestId"],
 	}
 }

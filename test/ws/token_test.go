@@ -2,10 +2,10 @@ package dh_test
 
 import (
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/devicehive/devicehive-go/test/stubs"
 )
 
 func TestTokenByCreds(t *testing.T) {

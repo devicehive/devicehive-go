@@ -1,12 +1,12 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
-	"time"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"testing"
+	"time"
 )
 
 func TestNotificationGet(t *testing.T) {
@@ -52,13 +52,13 @@ func TestNotificationList(t *testing.T) {
 	}
 
 	listReqParams := &dh.ListParams{
-		Start: time.Now().Add(-1 * time.Hour),
-		End: time.Now(),
+		Start:        time.Now().Add(-1 * time.Hour),
+		End:          time.Now(),
 		Notification: "test notif",
-		SortField: "timestamp",
-		SortOrder: "ASC",
-		Take: 10,
-		Skip: 5,
+		SortField:    "timestamp",
+		SortOrder:    "ASC",
+		Take:         10,
+		Skip:         5,
 	}
 	list, err := client.NotificationList("device id", listReqParams)
 
@@ -87,7 +87,7 @@ func TestNotificationInsert(t *testing.T) {
 	devId := "device id"
 	name := "test notif"
 	ts := time.Now()
-	params := map[string]interface{} {
+	params := map[string]interface{}{
 		"testParam": 1,
 	}
 	notifId, err := client.NotificationInsert(devId, name, ts, params)
@@ -108,7 +108,7 @@ func TestNotificationSubscribe(t *testing.T) {
 	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
 		res := stubs.ResponseStub.Respond(reqData)
 		conn.WriteJSON(res)
-		<- time.After(200 * time.Millisecond)
+		<-time.After(200 * time.Millisecond)
 
 		return stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"])
 	})
@@ -122,11 +122,11 @@ func TestNotificationSubscribe(t *testing.T) {
 	}
 
 	subsParams := &dh.SubscribeParams{
-		Timestamp: time.Now(),
-		DeviceId: "device id",
-		NetworkIds: []string{ "net1", "net2" },
-		DeviceTypeIds: []string{ "dt1", "dt2" },
-		Names: []string{ "n1", "n2" },
+		Timestamp:     time.Now(),
+		DeviceId:      "device id",
+		NetworkIds:    []string{"net1", "net2"},
+		DeviceTypeIds: []string{"dt1", "dt2"},
+		Names:         []string{"n1", "n2"},
 	}
 	notifChan, err := client.NotificationSubscribe(subsParams)
 	if err != nil {
@@ -137,14 +137,14 @@ func TestNotificationSubscribe(t *testing.T) {
 	is.True(notifChan != nil)
 
 	select {
-	case notif, ok := <- notifChan:
+	case notif, ok := <-notifChan:
 		is.True(ok)
 		is.True(notif.Id != 0)
 		is.True(notif.Notification != "")
 		is.True(notif.Timestamp.Unix() > 0)
 		is.Equal(notif.DeviceId, "device id")
 		is.True(notif.Parameters != nil)
-	case <- time.After(1 * time.Second):
+	case <-time.After(1 * time.Second):
 		t.Error("notification insert event timeout")
 	}
 }
@@ -168,7 +168,7 @@ func TestNotificationUnsubscribe(t *testing.T) {
 
 		return nil
 	})
-	
+
 	client, err := dh.Connect(addr)
 
 	if err != nil {
