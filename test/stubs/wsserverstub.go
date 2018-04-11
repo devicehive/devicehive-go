@@ -15,16 +15,16 @@ func StartWSTestServer() (srv *WSTestServer, addr string, closeSrv func()) {
 	return srv, addr, srv.Close
 }
 
-type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn)
+type wsRequestHandler func(reqData map[string]interface{}, conn *websocket.Conn)
 
 type WSTestServer struct {
-	handler wsReqHandler
-	srv     *httptest.Server
+	reqHandler wsRequestHandler
+	srv        *httptest.Server
 }
 
 func (wss *WSTestServer) Start() string {
-	if wss.handler == nil {
-		wss.handler = defaultWSHandler
+	if wss.reqHandler == nil {
+		wss.reqHandler = defaultWSHandler
 	}
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func (wss *WSTestServer) Start() string {
 				return
 			}
 
-			wss.handler(req, c)
+			wss.reqHandler(req, c)
 		}
 	})
 	srv := httptest.NewServer(h)
@@ -53,8 +53,8 @@ func (wss *WSTestServer) Close() {
 	wss.srv.Close()
 }
 
-func (wss *WSTestServer) SetRequestHandler(h wsReqHandler) {
-	wss.handler = h
+func (wss *WSTestServer) SetRequestHandler(h wsRequestHandler) {
+	wss.reqHandler = h
 }
 
 func defaultWSHandler(reqData map[string]interface{}, conn *websocket.Conn) {
