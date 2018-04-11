@@ -6,7 +6,6 @@ var ResponseStub = &responseStub{
 		"token":                    token,
 		"token/refresh":            tokenRefresh,
 		"token/create":             token,
-		"test/unauthorized":        unauthorized,
 		"server/info":              serverInfo,
 		"cluster/info":             clusterInfo,
 		"subscription/list":        subscriptionList,

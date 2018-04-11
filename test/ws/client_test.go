@@ -27,7 +27,3 @@ func TestAuthenticate(t *testing.T) {
 
 	is.True(res)
 }
-
-func TestServiceError(t *testing.T) {
-	// @TODO test service error, e.g. 401 Unauthorized
-}
