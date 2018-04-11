@@ -10,7 +10,6 @@ import (
 const serverAddr = "playground-dev.devicehive.com/api/websocket"
 const wsServerAddr = "ws://" + serverAddr
 
-var tok = flag.String("accessToken", "", "Your JWT access token")
 var dhLogin = flag.String("dhLogin", "dhadmin", "Your username")
 var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")
 

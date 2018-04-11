@@ -6,13 +6,15 @@ import (
 )
 
 func TestAuthenticate(t *testing.T) {
-	if *tok == "" {
-		t.Skip("Access token is not specified, skipping TestAuthenticate")
+	accTok, _, err := client.TokenByCreds(*dhLogin, *dhPass)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 	}
 
 	is := is.New(t)
 
-	res, err := client.Authenticate(*tok)
+	res, err := client.Authenticate(accTok)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
