@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"time"
+	"sync"
 )
 
+var notifSubsMutex = sync.Mutex{}
 var notificationSubscriptions = make(map[chan *Notification]string)
 
 type notificationResponse struct {
@@ -106,12 +108,17 @@ func (c *Client) NotificationSubscribe(params *SubscribeParams) (notifChan chan 
 
 	notifChan = c.notificationsTransform(tspChan)
 
+	notifSubsMutex.Lock()
 	notificationSubscriptions[notifChan] = subsId
+	notifSubsMutex.Unlock()
 
 	return notifChan, nil
 }
 
 func (c *Client) NotificationUnsubscribe(notifChan chan *Notification) *Error {
+	notifSubsMutex.Lock()
+	defer notifSubsMutex.Unlock()
+
 	subsId := notificationSubscriptions[notifChan]
 	err := c.unsubscribe("notification/unsubscribe", subsId)
 
