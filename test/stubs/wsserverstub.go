@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"log"
 )
 
-type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{}
+type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn)
 
 type WSTestServer struct {
 	handler wsReqHandler
@@ -22,21 +23,16 @@ func (wss *WSTestServer) Start() string {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := upgrade(w, r)
 
-		req := make(map[string]interface{})
-		err := c.ReadJSON(&req)
-
-		if err != nil {
-			panic(err)
-		}
-
-		res := wss.handler(req, c)
-
-		if res != nil {
-			err = c.WriteJSON(res)
+		for {
+			req := make(map[string]interface{})
+			err := c.ReadJSON(&req)
 
 			if err != nil {
-				panic(err)
+				log.Println("peer closed connection")
+				return
 			}
+
+			wss.handler(req, c)
 		}
 	})
 	srv := httptest.NewServer(h)
@@ -50,12 +46,16 @@ func (wss *WSTestServer) Close() {
 	wss.srv.Close()
 }
 
-func (wss *WSTestServer) SetHandler(h wsReqHandler) {
+func (wss *WSTestServer) SetRequestHandler(h wsReqHandler) {
 	wss.handler = h
 }
 
-func defaultWSHandler(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-	return ResponseStub.Respond(reqData)
+func defaultWSHandler(reqData map[string]interface{}, conn *websocket.Conn) {
+	err := conn.WriteJSON(ResponseStub.Respond(reqData))
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 var wsUpgrader = websocket.Upgrader{}

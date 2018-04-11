@@ -105,12 +105,12 @@ func TestNotificationSubscribe(t *testing.T) {
 	addr := wsTestSrv.Start()
 	defer wsTestSrv.Close()
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		res := stubs.ResponseStub.Respond(reqData)
-		conn.WriteJSON(res)
+		c.WriteJSON(res)
 		<-time.After(200 * time.Millisecond)
 
-		return stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"])
+		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 	})
 
 	is := is.New(t)
@@ -155,18 +155,16 @@ func TestNotificationUnsubscribe(t *testing.T) {
 	addr := wsTestSrv.Start()
 	defer wsTestSrv.Close()
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
+		c.WriteJSON(stubs.ResponseStub.Respond(reqData))
 
-		err := conn.ReadJSON(&reqData)
+		err := c.ReadJSON(&reqData)
 
 		if err != nil {
 			panic(err)
 		}
 
-		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
-
-		return nil
+		c.WriteJSON(stubs.ResponseStub.Respond(reqData))
 	})
 
 	client, err := dh.Connect(addr)

@@ -21,9 +21,9 @@ func TestRequestId(t *testing.T) {
 
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		is.True(reqData["requestId"] != "")
-		return reqData
+		c.WriteJSON(reqData)
 	})
 
 	wsTsp, err := transport.Create(addr)
@@ -41,12 +41,12 @@ func TestTimeout(t *testing.T) {
 
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		<-time.After(testTimeout + 1*time.Second)
 
-		return map[string]interface{}{
+		c.WriteJSON(map[string]interface{}{
 			"result": "success",
-		}
+		})
 	})
 
 	wsTsp, err := transport.Create(addr)
@@ -67,9 +67,8 @@ func TestInvalidResponse(t *testing.T) {
 
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
-		return nil
 	})
 
 	wsTsp, err := transport.Create(addr)
@@ -90,9 +89,8 @@ func TestConnectionClose(t *testing.T) {
 
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		c.Close()
-		return nil
 	})
 
 	wsTsp, err := transport.Create(addr)
@@ -113,14 +111,12 @@ func TestSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		res := stubs.ResponseStub.Respond(reqData)
 
 		c.WriteJSON(res)
 		<-time.After(500 * time.Millisecond)
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
-
-		return nil
 	})
 
 	wsTsp, err := transport.Create(addr)
