@@ -17,6 +17,8 @@ var ResponseStub = &responseStub{
 		"notification/insert":      notificationInsert,
 		"notification/subscribe":   notificationSubscribe,
 		"notification/unsubscribe": notificationUnsubscribe,
+		"command/get": 				commandGet,
+		"command/list":				commandList,
 	},
 }
 
@@ -253,5 +255,68 @@ func notificationUnsubscribe(reqData map[string]interface{}) map[string]interfac
 		"action":    "notification/unsubscribe",
 		"status":    "success",
 		"requestId": reqData["requestId"],
+	}
+}
+
+func commandGet(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "command/get",
+		"status": "success",
+		"requestId": reqData["requestId"],
+		"command": map[string]interface{} {
+			"id": reqData["commandId"],
+			"command": "test command",
+			"timestamp": "2018-04-03T05:57:59.379",
+			"lastUpdated": "2018-04-03T05:57:59.379",
+			"userId": 1,
+			"deviceId": reqData["deviceId"],
+			"networkId": 1,
+			"parameters": map[string]interface{}{
+				"testParam": 1,
+			},
+			"lifetime": 120,
+			"status": "created",
+			"result": map[string]interface{}{
+				"execution": "success",
+			},
+		},
+	}
+}
+
+func commandList(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action":    "command/list",
+		"status":    "success",
+		"requestId": reqData["requestId"],
+		"commands": []map[string]interface{}{
+			{
+				"id": reqData["commandId"],
+				"command": "test command 1",
+				"timestamp": "2018-04-03T05:57:59.379",
+				"lastUpdated": "2018-04-03T05:57:59.379",
+				"userId": 1,
+				"deviceId": reqData["deviceId"],
+				"networkId": 1,
+				"parameters": map[string]interface{}{
+					"testParam": 1,
+				},
+				"lifetime": 120,
+				"status": "created",
+				"result": map[string]interface{}{
+					"execution": "success",
+				},
+			},
+			{
+				"id": reqData["commandId"],
+				"command": "test command 2",
+				"timestamp": "2018-04-03T06:57:59.379",
+				"lastUpdated": "2018-04-03T06:57:59.379",
+				"userId": 2,
+				"deviceId": reqData["deviceId"],
+				"networkId": 1,
+				"lifetime": 120,
+				"status": "created",
+			},
+		},
 	}
 }

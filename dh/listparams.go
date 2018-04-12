@@ -12,6 +12,8 @@ type ListParams struct {
 	Start        time.Time `json:"start,omitempty"`
 	End          time.Time `json:"end,omitempty"`
 	Notification string    `json:"notification,omitempty"`
+	Command 	 string    `json:"command,omitempty"`
+	Status		 string	   `json:"status,omitempty"`
 	SortField    string    `json:"sortField,omitempty"`
 	SortOrder    string    `json:"sortOrder,omitempty"`
 	Take         int       `json:"take,omitempty"`
