@@ -5,18 +5,25 @@ import (
 	"time"
 )
 
-type dhTime struct {
-	time.Time
+type ISO8601Time struct {
+	*time.Time
 }
 
-func (t *dhTime) UnmarshalJSON(b []byte) (err error) {
+func (t *ISO8601Time) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), "\"")
 
 	if s == "null" || s == "" {
-		t.Time = time.Time{}
+		t.Time = &time.Time{}
 		return
 	}
 
-	t.Time, err = time.Parse(timestampLayout, s)
-	return err
+	parsedTime, err := time.Parse(timestampLayout, s)
+
+	if err != nil {
+		return err
+	}
+
+	t.Time = &parsedTime
+
+	return nil
 }

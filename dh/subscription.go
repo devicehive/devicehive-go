@@ -9,13 +9,13 @@ type subscriptions struct {
 }
 
 type Subscription struct {
-	Id            int64    `json:"subscriptionId"`
-	Type          string   `json:"type"`
-	DeviceId      string   `json:"deviceId"`
-	NetworkIds    []string `json:"networkIds"`
-	DeviceTypeIds []string `json:"deviceTypeIds"`
-	Names         []string `json:"names"`
-	Timestamp     dhTime   `json:"timestamp"`
+	Id            int64       `json:"subscriptionId"`
+	Type          string      `json:"type"`
+	DeviceId      string      `json:"deviceId"`
+	NetworkIds    []string    `json:"networkIds"`
+	DeviceTypeIds []string    `json:"deviceTypeIds"`
+	Names         []string    `json:"names"`
+	Timestamp     ISO8601Time `json:"timestamp"`
 }
 
 func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *Error) {

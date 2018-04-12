@@ -10,17 +10,17 @@ type commandResponse struct {
 }
 
 type Command struct {
-	Id int64 `json:"id"`
-	Command string `json:"command"`
-	Timestamp dhTime `json:"timestamp"`
-	LastUpdated dhTime `json:"lastUpdated"`
-	UserId int `json:"userId"`
-	DeviceId string `json:"deviceId"`
-	NetworkId int `json:"networkId"`
-	Parameters map[string]interface{} `json:"parameters"`
-	Lifetime int `json:"lifetime"`
-	Status string `json:"status"`
-	Result map[string]interface{} `json:"result"`
+	Id          int64                  `json:"id"`
+	Command     string                 `json:"command"`
+	Timestamp   ISO8601Time            `json:"timestamp"`
+	LastUpdated ISO8601Time            `json:"lastUpdated"`
+	UserId      int                    `json:"userId"`
+	DeviceId    string                 `json:"deviceId"`
+	NetworkId   int                    `json:"networkId"`
+	Parameters  map[string]interface{} `json:"parameters"`
+	Lifetime    int                    `json:"lifetime"`
+	Status      string                 `json:"status"`
+	Result      map[string]interface{} `json:"result"`
 }
 
 func (c *Client) CommandGet(deviceId string, commandId int64) (comm *Command, err *Error) {
