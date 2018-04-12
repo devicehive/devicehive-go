@@ -8,10 +8,8 @@ import (
 )
 
 func TestAuthenticate(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -28,8 +26,4 @@ func TestAuthenticate(t *testing.T) {
 	}
 
 	is.True(res)
-}
-
-func TestServiceError(t *testing.T) {
-	// @TODO test service error, e.g. 401 Unauthorized
 }

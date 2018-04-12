@@ -8,10 +8,8 @@ import (
 )
 
 func TestConfigurationGet(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -34,10 +32,8 @@ func TestConfigurationGet(t *testing.T) {
 }
 
 func TestConfigurationPut(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -60,10 +56,8 @@ func TestConfigurationPut(t *testing.T) {
 }
 
 func TestConfigurationDelete(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	client, err := dh.Connect(addr)
 

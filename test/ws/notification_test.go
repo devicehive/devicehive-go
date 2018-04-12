@@ -10,10 +10,8 @@ import (
 )
 
 func TestNotificationGet(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -38,10 +36,8 @@ func TestNotificationGet(t *testing.T) {
 }
 
 func TestNotificationList(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -71,10 +67,8 @@ func TestNotificationList(t *testing.T) {
 }
 
 func TestNotificationInsert(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	is := is.New(t)
 
@@ -100,17 +94,20 @@ func TestNotificationInsert(t *testing.T) {
 }
 
 func TestNotificationSubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
+	const (
+		notifInsertEventDelay = 200 * time.Millisecond
+		testTimeout = 1 * time.Second
+	)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		res := stubs.ResponseStub.Respond(reqData)
-		conn.WriteJSON(res)
-		<-time.After(200 * time.Millisecond)
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
+		subscribeResponse := stubs.ResponseStub.Respond(reqData)
+		c.WriteJSON(subscribeResponse)
+		<-time.After(notifInsertEventDelay)
 
-		return stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"])
+		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(subscribeResponse["subscriptionId"], reqData["deviceId"]))
 	})
 
 	is := is.New(t)
@@ -144,30 +141,14 @@ func TestNotificationSubscribe(t *testing.T) {
 		is.True(notif.Timestamp.Unix() > 0)
 		is.Equal(notif.DeviceId, "device id")
 		is.True(notif.Parameters != nil)
-	case <-time.After(1 * time.Second):
+	case <-time.After(testTimeout):
 		t.Error("notification insert event timeout")
 	}
 }
 
 func TestNotificationUnsubscribe(t *testing.T) {
-	wsTestSrv := &stubs.WSTestServer{}
-
-	addr := wsTestSrv.Start()
-	defer wsTestSrv.Close()
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
-
-		err := conn.ReadJSON(&reqData)
-
-		if err != nil {
-			panic(err)
-		}
-
-		conn.WriteJSON(stubs.ResponseStub.Respond(reqData))
-
-		return nil
-	})
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
 
 	client, err := dh.Connect(addr)
 

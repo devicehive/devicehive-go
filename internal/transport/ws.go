@@ -26,7 +26,16 @@ type ws struct {
 	subscriptions clientsMap
 }
 
+type ids struct {
+	Request      string `json:"requestId"`
+	Subscription int64  `json:"subscriptionId"`
+}
+
 func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
+	if _, ok := t.subscriptions.get(subscriptionId); ok {
+		return nil
+	}
+
 	client := t.subscriptions.createSubscriber(subscriptionId)
 	return client.data
 }
@@ -107,9 +116,4 @@ func (t *ws) resolveReceiver(msg []byte) {
 	} else if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
 		client.data <- msg
 	}
-}
-
-type ids struct {
-	Request      string `json:"requestId"`
-	Subscription int64  `json:"subscriptionId"`
 }
