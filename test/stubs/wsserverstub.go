@@ -2,13 +2,10 @@ package stubs
 
 import (
 	"github.com/gorilla/websocket"
-	"net"
 	"net/http"
 	"net/http/httptest"
-	"sync"
+	"strings"
 )
-
-var mu = sync.Mutex{}
 
 type wsReqHandler func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{}
 
@@ -17,13 +14,7 @@ type WSTestServer struct {
 	srv     *httptest.Server
 }
 
-func (wss *WSTestServer) Start(addr string) {
-	l, err := net.Listen("tcp", addr)
-
-	if err != nil {
-		panic(err)
-	}
-
+func (wss *WSTestServer) Start() string {
 	if wss.handler == nil {
 		wss.handler = defaultWSHandler
 	}
@@ -38,8 +29,6 @@ func (wss *WSTestServer) Start(addr string) {
 			panic(err)
 		}
 
-		mu.Lock()
-		defer mu.Unlock()
 		res := wss.handler(req, c)
 
 		if res != nil {
@@ -50,11 +39,11 @@ func (wss *WSTestServer) Start(addr string) {
 			}
 		}
 	})
-	srv := httptest.NewUnstartedServer(h)
-	srv.Listener = l
-	srv.Start()
+	srv := httptest.NewServer(h)
 
 	wss.srv = srv
+
+	return strings.Replace(srv.URL, "http", "ws", 1)
 }
 
 func (wss *WSTestServer) Close() {
@@ -62,13 +51,11 @@ func (wss *WSTestServer) Close() {
 }
 
 func (wss *WSTestServer) SetHandler(h wsReqHandler) {
-	mu.Lock()
-	defer mu.Unlock()
 	wss.handler = h
 }
 
-func defaultWSHandler(req map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-	return req
+func defaultWSHandler(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
+	return ResponseStub.Respond(reqData)
 }
 
 var wsUpgrader = websocket.Upgrader{}

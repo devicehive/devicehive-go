@@ -14,6 +14,7 @@ func TestConfiguration(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
+		return
 	}
 
 	name, val := "go-test"+strconv.FormatInt(time.Now().Unix(), 10), "go-sdk-test"

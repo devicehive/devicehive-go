@@ -17,7 +17,7 @@ var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")
 var client *dh.Client
 
 func TestMain(m *testing.M) {
-	var err error
+	var err *dh.Error
 	client, err = dh.Connect(wsServerAddr)
 
 	if err != nil {

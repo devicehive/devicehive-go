@@ -3,20 +3,19 @@ package dh_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
 )
 
 func TestConfigurationGet(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "configuration/get")
-		return stubs.ResponseStub.ConfigurationGet(reqData["requestId"].(string), reqData["name"].(string))
-	})
-
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -35,14 +34,14 @@ func TestConfigurationGet(t *testing.T) {
 }
 
 func TestConfigurationPut(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "configuration/put")
-		return stubs.ResponseStub.ConfigurationPut(reqData["requestId"].(string), reqData["name"].(string), reqData["value"].(string))
-	})
-
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -61,14 +60,12 @@ func TestConfigurationPut(t *testing.T) {
 }
 
 func TestConfigurationDelete(t *testing.T) {
-	is := is.New(t)
+	wsTestSrv := &stubs.WSTestServer{}
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, conn *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"].(string), "configuration/delete")
-		return stubs.ResponseStub.EmptySuccessResponse("configuration/delete", reqData["requestId"].(string))
-	})
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
 
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)

@@ -1,6 +1,9 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/fatih/structs"
+)
 
 func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 	for _, elem := range s {
@@ -13,4 +16,11 @@ func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 	}
 
 	return stringSlice, nil
+}
+
+func StructToJSONMap(s interface{}) map[string]interface{} {
+	descr := structs.New(s)
+	descr.TagName = "json"
+
+	return descr.Map()
 }

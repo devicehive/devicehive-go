@@ -3,10 +3,10 @@ package dh
 import "github.com/devicehive/devicehive-go/internal/transport"
 
 const (
-	ConnClosedErr      = transport.ConnClosedErr
-	InvalidResponseErr = transport.InvalidResponseErr
-	InvalidRequestErr  = transport.InvalidRequestErr
-	ServiceErr         = "service error"
+	InvalidResponseErr  = "invalid response"
+	InvalidRequestErr   = "invalid request"
+	ServiceErr          = "service error"
+	ConnectionFailedErr = "connection failed"
 )
 
 func newJSONErr() *Error {

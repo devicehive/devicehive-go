@@ -3,21 +3,20 @@ package dh_test
 import (
 	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
 	"time"
 )
 
 func TestTokenByCreds(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"], "token")
-		return stubs.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
-	})
-
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -29,19 +28,19 @@ func TestTokenByCreds(t *testing.T) {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 	}
 
-	is.Equal(accessToken, "accTok")
-	is.Equal(refreshToken, "refTok")
+	is.True(accessToken != "")
+	is.True(refreshToken != "")
 }
 
 func TestTokenByPayload(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"], "token/create")
-		return stubs.ResponseStub.Token(reqData["requestId"].(string), "accTok", "refTok")
-	})
-
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -58,38 +57,19 @@ func TestTokenByPayload(t *testing.T) {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 	}
 
-	is.Equal(accessToken, "accTok")
-	is.Equal(refreshToken, "refTok")
-}
-
-func TestErrorResponseTokenByPayload(t *testing.T) {
-	is := is.New(t)
-
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		return stubs.ResponseStub.Unauthorized(reqData["action"].(string), reqData["requestId"].(string))
-	})
-
-	client, err := dh.Connect(wsServerAddr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, _, dhErr := client.TokenByPayload(1, nil, nil, nil, nil)
-
-	is.Equal(dhErr.Name(), dh.ServiceErr)
-	is.Equal(dhErr.Error(), "401 unauthorized")
+	is.True(accessToken != "")
+	is.True(refreshToken != "")
 }
 
 func TestTokenRefresh(t *testing.T) {
+	wsTestSrv := &stubs.WSTestServer{}
+
+	addr := wsTestSrv.Start()
+	defer wsTestSrv.Close()
+
 	is := is.New(t)
 
-	wsTestSrv.SetHandler(func(reqData map[string]interface{}, c *websocket.Conn) map[string]interface{} {
-		is.Equal(reqData["action"], "token/refresh")
-		return stubs.ResponseStub.TokenRefresh(reqData["requestId"].(string), "accTok")
-	})
-
-	client, err := dh.Connect(wsServerAddr)
+	client, err := dh.Connect(addr)
 
 	if err != nil {
 		panic(err)
@@ -101,5 +81,5 @@ func TestTokenRefresh(t *testing.T) {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 	}
 
-	is.Equal(accessToken, "accTok")
+	is.True(accessToken != "")
 }

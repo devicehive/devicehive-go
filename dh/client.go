@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"strconv"
 	"strings"
 )
 
@@ -22,6 +23,56 @@ func (c *Client) Authenticate(token string) (result bool, err *Error) {
 	}
 
 	return res.Status == "success", nil
+}
+
+func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.Action = action
+
+	data, jsonErr := params.Map()
+
+	if jsonErr != nil {
+		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
+	}
+
+	_, rawRes, err := c.request(data)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	id := &subsId{}
+
+	parseErr := json.Unmarshal(rawRes, id)
+
+	if parseErr != nil {
+		return nil, "", newJSONErr()
+	}
+
+	subscriptionId = strconv.FormatInt(id.Value, 10)
+
+	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
+}
+
+func (c *Client) unsubscribe(action, subscriptionId string) *Error {
+	_, _, err := c.request(map[string]interface{}{
+		"action":         action,
+		"subscriptionId": subscriptionId,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	c.tsp.Unsubscribe(subscriptionId)
+
+	return nil
 }
 
 func (c *Client) request(data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
