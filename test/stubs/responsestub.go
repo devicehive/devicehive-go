@@ -19,6 +19,7 @@ var ResponseStub = &responseStub{
 		"notification/unsubscribe": notificationUnsubscribe,
 		"command/get": 				commandGet,
 		"command/list":				commandList,
+		"command/insert": 			commandInsert,
 	},
 }
 
@@ -317,6 +318,20 @@ func commandList(reqData map[string]interface{}) map[string]interface{} {
 				"lifetime": 120,
 				"status": "created",
 			},
+		},
+	}
+}
+
+func commandInsert(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action": "command/insert",
+		"status": "success",
+		"requestId": reqData["requestId"],
+		"command": map[string]interface{} {
+			"id": 1,
+			"timestamp": "2018-04-03T06:57:59.379",
+			"lastUpdated": "2018-04-03T06:57:59.379",
+			"userId": 1,
 		},
 	}
 }

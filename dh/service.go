@@ -7,7 +7,6 @@ import (
 
 const (
 	NotificationType = "notification"
-	timestampLayout  = "2006-01-02T15:04:05.000"
 	Timeout          = 5 * time.Second
 )
 

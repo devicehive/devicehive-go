@@ -72,3 +72,26 @@ func (c *Client) CommandList(deviceId string, params *ListParams) (list []*Comma
 
 	return list, nil
 }
+
+func (c *Client) CommandInsert(deviceId, commandName string, comm *Command) *Error {
+	comm.DeviceId = deviceId
+	comm.Command = commandName
+
+	_, rawRes, err := c.request(map[string]interface{} {
+		"action": "command/insert",
+		"deviceId": deviceId,
+		"command": comm,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	parseErr := json.Unmarshal(rawRes, &commandResponse{Command: comm})
+
+	if parseErr != nil {
+		return newJSONErr()
+	}
+
+	return nil
+}
