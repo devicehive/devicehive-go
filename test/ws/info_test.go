@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestServerInfo(t *testing.T) {
+func TestGetInfo(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -19,7 +19,7 @@ func TestServerInfo(t *testing.T) {
 		panic(err)
 	}
 
-	res, dhErr := client.ServerInfo()
+	res, dhErr := client.GetInfo()
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
@@ -31,7 +31,7 @@ func TestServerInfo(t *testing.T) {
 	is.True(res.RestServerURL != "")
 }
 
-func TestClusterInfo(t *testing.T) {
+func TestGetClusterInfo(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -43,7 +43,7 @@ func TestClusterInfo(t *testing.T) {
 		panic(err)
 	}
 
-	clusterInfo, dhErr := client.ClusterInfo()
+	clusterInfo, dhErr := client.GetClusterInfo()
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
