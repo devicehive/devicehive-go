@@ -64,3 +64,37 @@ func TestCommand(t *testing.T) {
 
 	is.True(len(list) != 0)
 }
+
+func TestCommandSubscribe(t *testing.T) {
+	err := auth()
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is := is.New(t)
+
+	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
+	name := "test command"
+
+	commChan, err := client.CommandSubscribe(nil)
+
+	go func() {
+		select {
+		case comm := <-commChan:
+			is.Equal(comm.Command, name)
+		case <-time.After(1 * time.Second):
+			t.Error("command insert event timeout")
+		}
+	}()
+
+	err = client.CommandInsert(devId, name, nil)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	<-time.After(500 * time.Millisecond)
+}

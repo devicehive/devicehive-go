@@ -6,6 +6,7 @@ import (
 	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
 	"time"
+	"github.com/gorilla/websocket"
 )
 
 func TestCommandGet(t *testing.T) {
@@ -119,5 +120,60 @@ func TestCommandUpdate(t *testing.T) {
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
+	}
+}
+
+func TestCommandSubscribe(t *testing.T) {
+	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	const (
+		commandInsertEventDelay = 200 * time.Millisecond
+		testTimeout = 1 * time.Second
+	)
+
+	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
+		subscribeResponse := stubs.ResponseStub.Respond(reqData)
+		c.WriteJSON(subscribeResponse)
+		<-time.After(commandInsertEventDelay)
+
+		c.WriteJSON(stubs.ResponseStub.CommandInsertEvent(subscribeResponse["subscriptionId"], reqData["deviceId"]))
+	})
+
+	is := is.New(t)
+
+	client, err := dh.Connect(addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	subsParams := &dh.SubscribeParams{
+		Timestamp:     time.Now(),
+		DeviceId:      "device id",
+		NetworkIds:    []string{"net1", "net2"},
+		DeviceTypeIds: []string{"dt1", "dt2"},
+		Names:         []string{"n1", "n2"},
+		ReturnUpdatedCommands: true,
+		Limit: 100,
+	}
+	commChan, err := client.CommandSubscribe(subsParams)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.True(commChan != nil)
+
+	select {
+	case comm, ok := <-commChan:
+		is.True(ok)
+		is.True(comm.Id != 0)
+		is.True(comm.Command != "")
+		is.True(comm.Timestamp.Unix() > 0)
+		is.Equal(comm.DeviceId, "device id")
+		is.True(comm.Parameters != nil)
+	case <-time.After(testTimeout):
+		t.Error("comand insert event timeout")
 	}
 }

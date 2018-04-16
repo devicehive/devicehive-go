@@ -2,7 +2,12 @@ package dh
 
 import (
 	"encoding/json"
+	"sync"
+	"log"
 )
+
+var commandSubsMutex = sync.Mutex{}
+var commandSubscriptions = make(map[chan *Command]string)
 
 type commandResponse struct {
 	Command *Command `json:"command"`
@@ -74,6 +79,10 @@ func (c *Client) CommandList(deviceId string, params *ListParams) (list []*Comma
 }
 
 func (c *Client) CommandInsert(deviceId, commandName string, comm *Command) *Error {
+	if comm == nil {
+		comm = &Command{}
+	}
+
 	comm.DeviceId = deviceId
 	comm.Command = commandName
 
@@ -105,4 +114,46 @@ func (c *Client) CommandUpdate(deviceId string, commandId int64, comm *Command) 
 	})
 
 	return err
+}
+
+func (c *Client) CommandSubscribe(params *SubscribeParams) (commChan chan *Command, err *Error) {
+	tspChan, subsId, err := c.subscribe("command/subscribe", params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if tspChan == nil {
+		return nil, nil
+	}
+
+	commChan = c.commandsTransform(tspChan)
+
+	commandSubsMutex.Lock()
+	commandSubscriptions[commChan] = subsId
+	commandSubsMutex.Unlock()
+
+	return commChan, nil
+}
+
+func (c *Client) commandsTransform(tspChan chan []byte) (commChan chan *Command) {
+	commChan = make(chan *Command)
+
+	go func() {
+		for rawComm := range tspChan {
+			comm := &Command{}
+			err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
+
+			if err != nil {
+				log.Println("couldn't unmarshal command insert event data:", err)
+				continue
+			}
+
+			commChan <- comm
+		}
+
+		close(commChan)
+	}()
+
+	return commChan
 }

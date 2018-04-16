@@ -21,6 +21,7 @@ var ResponseStub = &responseStub{
 		"command/list":				commandList,
 		"command/insert": 			commandInsert,
 		"command/update": 			emptySuccessResponse,
+		"command/subscribe":   		commandSubscribe,
 	},
 }
 
@@ -40,6 +41,29 @@ func (s *responseStub) NotificationInsertEvent(subscriptionId, deviceId interfac
 			"networkId":    1111,
 			"parameters": map[string]interface{}{
 				"testParam": 1,
+			},
+		},
+	}
+}
+
+func (s *responseStub) CommandInsertEvent(subscriptionId, deviceId interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action":         "command/insert",
+		"subscriptionId": subscriptionId,
+		"command": map[string]interface{}{
+			"id":           1,
+			"command": "command test name",
+			"timestamp":    "2018-04-03T05:57:59.379",
+			"deviceId":     deviceId,
+			"networkId":    1111,
+			"parameters": map[string]interface{}{
+				"testParam": 1,
+			},
+			"lifetime": 120,
+			"userId": 1,
+			"status": "created",
+			"result": map[string]interface{}{
+				"status": 0,
 			},
 		},
 	}
@@ -334,5 +358,14 @@ func commandInsert(reqData map[string]interface{}) map[string]interface{} {
 			"lastUpdated": "2018-04-03T06:57:59.379",
 			"userId": 1,
 		},
+	}
+}
+
+func commandSubscribe(reqData map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"action":         "command/subscribe",
+		"status":         "success",
+		"requestId":      reqData["requestId"],
+		"subscriptionId": 1,
 	}
 }

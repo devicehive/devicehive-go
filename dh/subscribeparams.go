@@ -13,6 +13,8 @@ type SubscribeParams struct {
 	DeviceTypeIds []string  `json:"deviceTypeIds,omitempty"`
 	Names         []string  `json:"names,omitempty"`
 	Timestamp     time.Time `json:"timestamp,omitempty"`
+	ReturnUpdatedCommands bool `json:"returnUpdatedCommands,omitempty"`
+	Limit int `json:"limit,omitempty"`
 }
 
 func (p *SubscribeParams) Map() (m map[string]interface{}, err error) {
