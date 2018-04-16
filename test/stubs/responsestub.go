@@ -20,6 +20,7 @@ var ResponseStub = &responseStub{
 		"command/get": 				commandGet,
 		"command/list":				commandList,
 		"command/insert": 			commandInsert,
+		"command/update": 			emptySuccessResponse,
 	},
 }
 

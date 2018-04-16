@@ -95,3 +95,29 @@ func TestCommandInsert(t *testing.T) {
 	is.True(comm.LastUpdated.Unix() > 0)
 	is.True(comm.UserId != 0)
 }
+
+func TestCommandUpdate(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client, err := dh.Connect(addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	comm := &dh.Command{
+		Timestamp: dh.ISO8601Time{time.Now()},
+		Parameters: map[string]interface{} {
+			"test": 1,
+		},
+		Lifetime: 120,
+		Status: "created",
+	}
+	err = client.CommandUpdate("device id",  111, comm)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+}

@@ -17,6 +17,7 @@ func TestCommand(t *testing.T) {
 
 	is := is.New(t)
 
+	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 	commData := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
 		Parameters: map[string]interface{} {
@@ -25,7 +26,7 @@ func TestCommand(t *testing.T) {
 		Lifetime: 30,
 		Status: "created",
 	}
-	err = client.CommandInsert("4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg", "name", commData)
+	err = client.CommandInsert(devId, "name", commData)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -34,7 +35,17 @@ func TestCommand(t *testing.T) {
 
 	is.True(commData.Id != 0)
 
-	comm, err := client.CommandGet("4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg", commData.Id)
+	commUpdate := &dh.Command{
+		Status: "updated",
+	}
+	err = client.CommandUpdate(devId, commData.Id, commUpdate)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	comm, err := client.CommandGet(devId, commData.Id)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -42,8 +53,9 @@ func TestCommand(t *testing.T) {
 	}
 
 	is.Equal(comm.Id, commData.Id)
+	is.Equal(comm.Status, commUpdate.Status)
 
-	list, err := client.CommandList("4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg", nil)
+	list, err := client.CommandList(devId, nil)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)

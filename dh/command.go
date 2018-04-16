@@ -95,3 +95,14 @@ func (c *Client) CommandInsert(deviceId, commandName string, comm *Command) *Err
 
 	return nil
 }
+
+func (c *Client) CommandUpdate(deviceId string, commandId int64, comm *Command) *Error {
+	_, _, err := c.request(map[string]interface{} {
+		"action": "command/update",
+		"deviceId": deviceId,
+		"commandId": commandId,
+		"command": comm,
+	})
+
+	return err
+}
