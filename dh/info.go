@@ -9,9 +9,9 @@ type serverInfo struct {
 }
 
 type ServerInfo struct {
-	APIVersion      string `json:"apiVersion"`
-	ServerTimestamp dhTime `json:"serverTimestamp"`
-	RestServerURL   string `json:"restServerUrl"`
+	APIVersion      string      `json:"apiVersion"`
+	ServerTimestamp ISO8601Time `json:"serverTimestamp"`
+	RestServerURL   string      `json:"restServerUrl"`
 }
 
 type clusterInfo struct {

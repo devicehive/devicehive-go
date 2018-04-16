@@ -3,8 +3,8 @@ package dh
 import (
 	"encoding/json"
 	"log"
-	"time"
 	"sync"
+	"time"
 )
 
 var notifSubsMutex = sync.Mutex{}
@@ -18,7 +18,7 @@ type notificationResponse struct {
 type Notification struct {
 	Id           int64                  `json:"id"`
 	Notification string                 `json:"notification"`
-	Timestamp    dhTime                 `json:"timestamp"`
+	Timestamp    ISO8601Time            `json:"timestamp"`
 	DeviceId     string                 `json:"deviceId"`
 	NetworkId    int64                  `json:"networkId"`
 	Parameters   map[string]interface{} `json:"parameters"`
