@@ -136,6 +136,22 @@ func (c *Client) CommandSubscribe(params *SubscribeParams) (commChan chan *Comma
 	return commChan, nil
 }
 
+func (c *Client) CommandUnsubscribe(commandChan chan *Command) *Error {
+	commandSubsMutex.Lock()
+	defer commandSubsMutex.Unlock()
+
+	subsId := commandSubscriptions[commandChan]
+	err := c.unsubscribe("command/unsubscribe", subsId)
+
+	if err != nil {
+		return err
+	}
+
+	delete(commandSubscriptions, commandChan)
+
+	return nil
+}
+
 func (c *Client) commandsTransform(tspChan chan []byte) (commChan chan *Command) {
 	commChan = make(chan *Command)
 

@@ -9,6 +9,7 @@ import (
 
 const serverAddr = "playground-dev.devicehive.com/api/websocket"
 const wsServerAddr = "ws://" + serverAddr
+const testDeviceId = "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 
 var dhLogin = flag.String("dhLogin", "dhadmin", "Your username")
 var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")

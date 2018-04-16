@@ -121,9 +121,6 @@ func TestNotificationSubscribe(t *testing.T) {
 	subsParams := &dh.SubscribeParams{
 		Timestamp:     time.Now(),
 		DeviceId:      "device id",
-		NetworkIds:    []string{"net1", "net2"},
-		DeviceTypeIds: []string{"dt1", "dt2"},
-		Names:         []string{"n1", "n2"},
 	}
 	notifChan, err := client.NotificationSubscribe(subsParams)
 	if err != nil {
@@ -136,11 +133,7 @@ func TestNotificationSubscribe(t *testing.T) {
 	select {
 	case notif, ok := <-notifChan:
 		is.True(ok)
-		is.True(notif.Id != 0)
-		is.True(notif.Notification != "")
-		is.True(notif.Timestamp.Unix() > 0)
-		is.Equal(notif.DeviceId, "device id")
-		is.True(notif.Parameters != nil)
+		is.True(notif != nil)
 	case <-time.After(testTimeout):
 		t.Error("notification insert event timeout")
 	}
@@ -156,6 +149,8 @@ func TestNotificationUnsubscribe(t *testing.T) {
 		panic(err)
 	}
 
+	is := is.New(t)
+
 	notifChan, err := client.NotificationSubscribe(nil)
 
 	if err != nil {
@@ -169,4 +164,9 @@ func TestNotificationUnsubscribe(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
+
+	n, ok := <- notifChan
+
+	is.True(n == nil)
+	is.Equal(ok, false)
 }

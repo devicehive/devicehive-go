@@ -17,7 +17,6 @@ func TestCommand(t *testing.T) {
 
 	is := is.New(t)
 
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 	commData := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
 		Parameters: map[string]interface{} {
@@ -26,7 +25,7 @@ func TestCommand(t *testing.T) {
 		Lifetime: 5,
 		Status: "created",
 	}
-	err = client.CommandInsert(devId, "name", commData)
+	err = client.CommandInsert(testDeviceId, "name", commData)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -38,14 +37,14 @@ func TestCommand(t *testing.T) {
 	commUpdate := &dh.Command{
 		Status: "updated",
 	}
-	err = client.CommandUpdate(devId, commData.Id, commUpdate)
+	err = client.CommandUpdate(testDeviceId, commData.Id, commUpdate)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
-	comm, err := client.CommandGet(devId, commData.Id)
+	comm, err := client.CommandGet(testDeviceId, commData.Id)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -55,7 +54,7 @@ func TestCommand(t *testing.T) {
 	is.Equal(comm.Id, commData.Id)
 	is.Equal(comm.Status, commUpdate.Status)
 
-	list, err := client.CommandList(devId, nil)
+	list, err := client.CommandList(testDeviceId, nil)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -75,8 +74,7 @@ func TestCommandInsertSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
-	name := "test command"
+	name := "test command insert"
 
 	commChan, err := client.CommandSubscribe(nil)
 
@@ -92,7 +90,7 @@ func TestCommandInsertSubscribe(t *testing.T) {
 	comm :=&dh.Command{
 		Lifetime: 5,
 	}
-	err = client.CommandInsert(devId, name, comm)
+	err = client.CommandInsert(testDeviceId, name, comm)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -112,9 +110,6 @@ func TestCommandUpdateSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
-	name := "test command"
-
 	params := &dh.SubscribeParams{
 		ReturnUpdatedCommands: true,
 	}
@@ -127,14 +122,15 @@ func TestCommandUpdateSubscribe(t *testing.T) {
 		case comm := <-commChan:
 			is.Equal(comm.Status, "updated")
 		case <-time.After(1 * time.Second):
-			t.Error("command insert event timeout")
+			t.Error("command update event timeout")
 		}
 	}()
 
-	comm :=&dh.Command{
+	name := "test command update"
+	comm := &dh.Command{
 		Lifetime: 5,
 	}
-	err = client.CommandInsert(devId, name, comm)
+	err = client.CommandInsert(testDeviceId, name, comm)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -144,7 +140,7 @@ func TestCommandUpdateSubscribe(t *testing.T) {
 	upd := &dh.Command{
 		Status: "updated",
 	}
-	err = client.CommandUpdate(devId, comm.Id, upd)
+	err = client.CommandUpdate(testDeviceId, comm.Id, upd)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -152,4 +148,36 @@ func TestCommandUpdateSubscribe(t *testing.T) {
 	}
 
 	<-time.After(500 * time.Millisecond)
+}
+
+func TestCommandUnsubscribe(t *testing.T) {
+	err := auth()
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	commChan, err := client.CommandSubscribe(nil)
+
+	go func() {
+		select {
+		case comm, ok := <-commChan:
+			if comm != nil || ok {
+				t.Error("client hasn't been unsubscribed")
+			}
+		case <-time.After(1 * time.Second):
+			t.Error("timeout")
+		}
+	}()
+
+	err = client.CommandUnsubscribe(commChan)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	name := "test command"
+	client.CommandInsert(testDeviceId, name, nil)
 }

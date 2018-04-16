@@ -151,10 +151,6 @@ func TestCommandSubscribe(t *testing.T) {
 	subsParams := &dh.SubscribeParams{
 		Timestamp:     time.Now(),
 		DeviceId:      "device id",
-		NetworkIds:    []string{"net1", "net2"},
-		DeviceTypeIds: []string{"dt1", "dt2"},
-		Names:         []string{"n1", "n2"},
-		ReturnUpdatedCommands: true,
 		Limit: 100,
 	}
 	commChan, err := client.CommandSubscribe(subsParams)
@@ -168,12 +164,40 @@ func TestCommandSubscribe(t *testing.T) {
 	select {
 	case comm, ok := <-commChan:
 		is.True(ok)
-		is.True(comm.Id != 0)
-		is.True(comm.Command != "")
-		is.True(comm.Timestamp.Unix() > 0)
-		is.Equal(comm.DeviceId, "device id")
-		is.True(comm.Parameters != nil)
+		is.True(comm != nil)
 	case <-time.After(testTimeout):
 		t.Error("comand insert event timeout")
 	}
+}
+
+func TestCommandUnsubscribe(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client, err := dh.Connect(addr)
+
+	if err != nil {
+		panic(err)
+	}
+
+	is := is.New(t)
+
+	commChan, err := client.CommandSubscribe(nil)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	err = client.CommandUnsubscribe(commChan)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	n, ok := <- commChan
+
+	is.True(n == nil)
+	is.Equal(ok, false)
 }

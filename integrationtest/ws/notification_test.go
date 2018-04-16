@@ -17,13 +17,12 @@ func TestNotification(t *testing.T) {
 
 	is := is.New(t)
 
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 	name := "test notif"
 	ts := time.Now()
 	params := map[string]interface{}{
 		"testParam": 1,
 	}
-	id, dhErr := client.NotificationInsert(devId, name, ts, params)
+	id, dhErr := client.NotificationInsert(testDeviceId, name, ts, params)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
@@ -31,7 +30,7 @@ func TestNotification(t *testing.T) {
 
 	is.True(id != 0)
 
-	notif, dhErr := client.NotificationGet(devId, id)
+	notif, dhErr := client.NotificationGet(testDeviceId, id)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
@@ -40,7 +39,7 @@ func TestNotification(t *testing.T) {
 	is.True(notif != nil)
 	is.Equal(int(notif.Parameters["testParam"].(float64)), 1)
 
-	list, dhErr := client.NotificationList(devId, nil)
+	list, dhErr := client.NotificationList(testDeviceId, nil)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
@@ -53,7 +52,7 @@ func TestNotification(t *testing.T) {
 		Start: time.Now().Add(-1 * time.Hour),
 		End:   time.Now().Add(-1 * time.Minute),
 	}
-	list, dhErr = client.NotificationList(devId, listParams)
+	list, dhErr = client.NotificationList(testDeviceId, listParams)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
@@ -72,7 +71,6 @@ func TestNotificationSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
 	name := "test notif"
 	ts := time.Now()
 
@@ -87,7 +85,7 @@ func TestNotificationSubscribe(t *testing.T) {
 		}
 	}()
 
-	_, err = client.NotificationInsert(devId, name, ts, nil)
+	_, err = client.NotificationInsert(testDeviceId, name, ts, nil)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -104,10 +102,6 @@ func TestNotificationUnsubscribe(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
-
-	devId := "4NemW3PE9BHRSqb0DVVgsphZh7SCZzgm3Lxg"
-	name := "test notif"
-	ts := time.Now()
 
 	notifChan, err := client.NotificationSubscribe(nil)
 
@@ -129,5 +123,7 @@ func TestNotificationUnsubscribe(t *testing.T) {
 		return
 	}
 
-	client.NotificationInsert(devId, name, ts, nil)
+	name := "test notif"
+	ts := time.Now()
+	client.NotificationInsert(testDeviceId, name, ts, nil)
 }
