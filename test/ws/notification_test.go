@@ -99,7 +99,7 @@ func TestNotificationSubscribe(t *testing.T) {
 
 	const (
 		notifInsertEventDelay = 200 * time.Millisecond
-		testTimeout = 1 * time.Second
+		testTimeout           = 1 * time.Second
 	)
 
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
@@ -119,8 +119,8 @@ func TestNotificationSubscribe(t *testing.T) {
 	}
 
 	subsParams := &dh.SubscribeParams{
-		Timestamp:     time.Now(),
-		DeviceId:      "device id",
+		Timestamp: time.Now(),
+		DeviceId:  "device id",
 	}
 	notifChan, err := client.NotificationSubscribe(subsParams)
 	if err != nil {
@@ -165,7 +165,7 @@ func TestNotificationUnsubscribe(t *testing.T) {
 		return
 	}
 
-	n, ok := <- notifChan
+	n, ok := <-notifChan
 
 	is.True(n == nil)
 	is.Equal(ok, false)

@@ -3,8 +3,8 @@ package dh
 import (
 	"encoding/json"
 	"log"
-	"time"
 	"sync"
+	"time"
 )
 
 var notifSubsMutex = sync.Mutex{}

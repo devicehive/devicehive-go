@@ -1,12 +1,12 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
-	"time"
+	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
+	"github.com/matryer/is"
+	"testing"
+	"time"
 )
 
 func TestCommandGet(t *testing.T) {
@@ -44,14 +44,14 @@ func TestCommandList(t *testing.T) {
 	}
 
 	listReqParams := &dh.ListParams{
-		Start:        time.Now().Add(-1 * time.Hour),
-		End:          time.Now(),
-		Command: 	  "test command",
-		Status:		  "created",
-		SortField:    "timestamp",
-		SortOrder:    "ASC",
-		Take:         10,
-		Skip:         5,
+		Start:     time.Now().Add(-1 * time.Hour),
+		End:       time.Now(),
+		Command:   "test command",
+		Status:    "created",
+		SortField: "timestamp",
+		SortOrder: "ASC",
+		Take:      10,
+		Skip:      5,
 	}
 	list, err := client.CommandList("device id", listReqParams)
 
@@ -77,11 +77,11 @@ func TestCommandInsert(t *testing.T) {
 
 	comm := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
-		Parameters: map[string]interface{} {
+		Parameters: map[string]interface{}{
 			"test": 1,
 		},
 		Lifetime: 120,
-		Status: "created",
+		Status:   "created",
 	}
 	err = client.CommandInsert("device id", "name", comm)
 
@@ -109,13 +109,13 @@ func TestCommandUpdate(t *testing.T) {
 
 	comm := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
-		Parameters: map[string]interface{} {
+		Parameters: map[string]interface{}{
 			"test": 1,
 		},
 		Lifetime: 120,
-		Status: "created",
+		Status:   "created",
 	}
-	err = client.CommandUpdate("device id",  111, comm)
+	err = client.CommandUpdate("device id", 111, comm)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -129,7 +129,7 @@ func TestCommandSubscribe(t *testing.T) {
 
 	const (
 		commandInsertEventDelay = 200 * time.Millisecond
-		testTimeout = 1 * time.Second
+		testTimeout             = 1 * time.Second
 	)
 
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
@@ -149,9 +149,9 @@ func TestCommandSubscribe(t *testing.T) {
 	}
 
 	subsParams := &dh.SubscribeParams{
-		Timestamp:     time.Now(),
-		DeviceId:      "device id",
-		Limit: 100,
+		Timestamp: time.Now(),
+		DeviceId:  "device id",
+		Limit:     100,
 	}
 	commChan, err := client.CommandSubscribe(subsParams)
 	if err != nil {
@@ -196,7 +196,7 @@ func TestCommandUnsubscribe(t *testing.T) {
 		return
 	}
 
-	n, ok := <- commChan
+	n, ok := <-commChan
 
 	is.True(n == nil)
 	is.Equal(ok, false)

@@ -1,9 +1,9 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/matryer/is"
+	"testing"
 	"time"
 )
 
@@ -19,11 +19,11 @@ func TestCommand(t *testing.T) {
 
 	commData := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
-		Parameters: map[string]interface{} {
+		Parameters: map[string]interface{}{
 			"test": 1,
 		},
 		Lifetime: 5,
-		Status: "created",
+		Status:   "created",
 	}
 	err = client.CommandInsert(testDeviceId, "name", commData)
 
@@ -87,7 +87,7 @@ func TestCommandInsertSubscribe(t *testing.T) {
 		}
 	}()
 
-	comm :=&dh.Command{
+	comm := &dh.Command{
 		Lifetime: 5,
 	}
 	err = client.CommandInsert(testDeviceId, name, comm)

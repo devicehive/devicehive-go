@@ -2,16 +2,16 @@ package dh
 
 import (
 	"encoding/json"
-	"sync"
 	"log"
+	"sync"
 )
 
 var commandSubsMutex = sync.Mutex{}
 var commandSubscriptions = make(map[chan *Command]string)
 
 type commandResponse struct {
-	Command *Command `json:"command"`
-	List *[]*Command `json:"commands"`
+	Command *Command    `json:"command"`
+	List    *[]*Command `json:"commands"`
 }
 
 type Command struct {
@@ -86,10 +86,10 @@ func (c *Client) CommandInsert(deviceId, commandName string, comm *Command) *Err
 	comm.DeviceId = deviceId
 	comm.Command = commandName
 
-	_, rawRes, err := c.request(map[string]interface{} {
-		"action": "command/insert",
+	_, rawRes, err := c.request(map[string]interface{}{
+		"action":   "command/insert",
 		"deviceId": deviceId,
-		"command": comm,
+		"command":  comm,
 	})
 
 	if err != nil {
@@ -106,11 +106,11 @@ func (c *Client) CommandInsert(deviceId, commandName string, comm *Command) *Err
 }
 
 func (c *Client) CommandUpdate(deviceId string, commandId int64, comm *Command) *Error {
-	_, _, err := c.request(map[string]interface{} {
-		"action": "command/update",
-		"deviceId": deviceId,
+	_, _, err := c.request(map[string]interface{}{
+		"action":    "command/update",
+		"deviceId":  deviceId,
 		"commandId": commandId,
-		"command": comm,
+		"command":   comm,
 	})
 
 	return err

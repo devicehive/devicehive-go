@@ -2,10 +2,10 @@ package stubs
 
 import (
 	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"log"
 )
 
 func StartWSTestServer() (srv *WSTestServer, addr string, closeSrv func()) {
