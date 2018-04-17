@@ -9,7 +9,10 @@ import (
 )
 
 type Client struct {
-	tsp transport.Transporter
+	tsp          transport.Transporter
+	refreshToken string
+	login        string
+	password     string
 }
 
 func (c *Client) Authenticate(token string) (result bool, err *Error) {

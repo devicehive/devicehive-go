@@ -13,11 +13,7 @@ func TestSubscriptionList(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	subscriptions, dhErr := client.SubscriptionList(dh.NotificationType)
 

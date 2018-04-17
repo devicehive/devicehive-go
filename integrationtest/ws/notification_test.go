@@ -8,13 +8,6 @@ import (
 )
 
 func TestNotification(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	is := is.New(t)
 
 	name := "test notif"
@@ -62,13 +55,6 @@ func TestNotification(t *testing.T) {
 }
 
 func TestNotificationSubscribe(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	is := is.New(t)
 
 	name := "test notif"
@@ -96,13 +82,6 @@ func TestNotificationSubscribe(t *testing.T) {
 }
 
 func TestNotificationUnsubscribe(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	notifChan, err := client.NotificationSubscribe(nil)
 
 	go func() {

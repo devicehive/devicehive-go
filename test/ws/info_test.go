@@ -1,7 +1,6 @@
 package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"testing"
@@ -13,11 +12,7 @@ func TestGetInfo(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	res, dhErr := client.GetInfo()
 
@@ -37,11 +32,7 @@ func TestGetClusterInfo(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	clusterInfo, dhErr := client.GetClusterInfo()
 

@@ -13,17 +13,11 @@ func TestAuthenticate(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
+	client, err := dh.ConnectWithToken(addr, "accTok", "refTok")
 
 	if err != nil {
-		panic(err)
+		t.Errorf("%s: %v", err.Name(), err)
 	}
 
-	res, dhErr := client.Authenticate("someTestToken")
-
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-	}
-
-	is.True(res)
+	is.True(client != nil)
 }
