@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAuthenticate(t *testing.T) {
+func TestConnectWithToken(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 

@@ -7,24 +7,6 @@ import (
 	"time"
 )
 
-func TestTokenByCreds(t *testing.T) {
-	_, addr, srvClose := stubs.StartWSTestServer()
-	defer srvClose()
-
-	is := is.New(t)
-
-	client := connect(addr)
-
-	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
-
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-	}
-
-	is.True(accessToken != "")
-	is.True(refreshToken != "")
-}
-
 func TestTokenByPayload(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
@@ -48,7 +30,7 @@ func TestTokenByPayload(t *testing.T) {
 	is.True(refreshToken != "")
 }
 
-func TestTokenRefresh(t *testing.T) {
+func TestRefreshToken(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -56,7 +38,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	client := connect(addr)
 
-	accessToken, dhErr := client.TokenRefresh("test refresh token")
+	accessToken, dhErr := client.RefreshToken()
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)

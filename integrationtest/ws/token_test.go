@@ -6,19 +6,6 @@ import (
 	"time"
 )
 
-func TestTokenByCreds(t *testing.T) {
-	is := is.New(t)
-
-	accTok, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
-
-	is.True(accTok != "")
-	is.True(refTok != "")
-}
-
 func TestTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
@@ -30,17 +17,10 @@ func TestTokenByPayload(t *testing.T) {
 	is.True(refTok != "")
 }
 
-func TestTokenRefresh(t *testing.T) {
+func TestRefreshToken(t *testing.T) {
 	is := is.New(t)
 
-	_, refTok, err := client.TokenByCreds(*dhLogin, *dhPass)
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		t.Skip("Cannot obtain refresh token by credentials, skipping TestTokenRefresh")
-	}
-
-	accessToken, err := client.TokenRefresh(refTok)
+	accessToken, err := client.RefreshToken()
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
