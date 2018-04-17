@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestTokenByPayload(t *testing.T) {
+func TestCreateToken(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -20,7 +20,7 @@ func TestTokenByPayload(t *testing.T) {
 	networkIds := []string{"n1", "n2"}
 	deviceTypeIds := []string{"d1", "d2"}
 	expiration := time.Now()
-	accessToken, refreshToken, dhErr := client.TokenByPayload(userId, actions, networkIds, deviceTypeIds, &expiration)
+	accessToken, refreshToken, dhErr := client.CreateToken(userId, expiration, actions, networkIds, deviceTypeIds)
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)

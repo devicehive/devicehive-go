@@ -10,7 +10,7 @@ type token struct {
 	Refresh string `json:"refreshToken"`
 }
 
-func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds []string, expiration *time.Time) (accessToken, refreshToken string, err *Error) {
+func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) (accessToken, refreshToken string, err *Error) {
 	payload := map[string]interface{}{
 		"userId": userId,
 	}
@@ -24,7 +24,7 @@ func (c *Client) TokenByPayload(userId int, actions, networkIds, deviceTypeIds [
 	if deviceTypeIds != nil {
 		payload["deviceTypeIds"] = deviceTypeIds
 	}
-	if expiration != nil {
+	if expiration.Unix() > 0 {
 		payload["expiration"] = expiration.UTC().Format(timestampLayout)
 	}
 

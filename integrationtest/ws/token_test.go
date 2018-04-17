@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-func TestTokenByPayload(t *testing.T) {
+func TestCreateToken(t *testing.T) {
 	is := is.New(t)
 
 	expiration := time.Now().Add(1 * time.Second)
-	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, &expiration)
+	accTok, refTok, err := client.CreateToken(1, expiration, nil, nil, nil)
 
 	is.True(err == nil)
 	is.True(accTok != "")
