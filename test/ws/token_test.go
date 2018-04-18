@@ -1,7 +1,6 @@
 package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"testing"
@@ -14,11 +13,7 @@ func TestTokenByCreds(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	accessToken, refreshToken, dhErr := client.TokenByCreds("dhadmin", "dhadmin_#911")
 
@@ -36,11 +31,7 @@ func TestTokenByPayload(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	userId := 123
 	actions := []string{"ManageToken", "ManageNetworks"}
@@ -63,11 +54,7 @@ func TestTokenRefresh(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	accessToken, dhErr := client.TokenRefresh("test refresh token")
 

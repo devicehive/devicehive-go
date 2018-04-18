@@ -1,7 +1,6 @@
 package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"testing"
@@ -13,11 +12,7 @@ func TestConfigurationGet(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	conf, dhErr := client.ConfigurationGet("some_config")
 
@@ -37,11 +32,7 @@ func TestConfigurationPut(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	conf, dhErr := client.ConfigurationPut("some_config", "some test value")
 
@@ -59,11 +50,7 @@ func TestConfigurationDelete(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	dhErr := client.ConfigurationDelete("some_config")
 

@@ -15,11 +15,7 @@ func TestNotificationGet(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	notif, err := client.NotificationGet("device id", 123456789)
 	if err != nil {
@@ -41,11 +37,7 @@ func TestNotificationList(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	listReqParams := &dh.ListParams{
 		Start:        time.Now().Add(-1 * time.Hour),
@@ -72,11 +64,7 @@ func TestNotificationInsert(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	devId := "device id"
 	name := "test notif"
@@ -112,11 +100,7 @@ func TestNotificationSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	subsParams := &dh.SubscribeParams{
 		Timestamp: time.Now(),
@@ -143,11 +127,7 @@ func TestNotificationUnsubscribe(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	is := is.New(t)
 

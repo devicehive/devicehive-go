@@ -8,7 +8,7 @@ import (
 func TestServerInfo(t *testing.T) {
 	is := is.New(t)
 
-	info, err := client.ServerInfo()
+	info, err := client.GetInfo()
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -22,7 +22,7 @@ func TestServerInfo(t *testing.T) {
 func TestClusterInfo(t *testing.T) {
 	is := is.New(t)
 
-	info, err := client.ClusterInfo()
+	info, err := client.GetClusterInfo()
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)

@@ -8,13 +8,6 @@ import (
 )
 
 func TestCommand(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	is := is.New(t)
 
 	commData := &dh.Command{
@@ -25,7 +18,7 @@ func TestCommand(t *testing.T) {
 		Lifetime: 5,
 		Status:   "created",
 	}
-	err = client.CommandInsert(testDeviceId, "name", commData)
+	err := client.CommandInsert(testDeviceId, "name", commData)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -65,13 +58,6 @@ func TestCommand(t *testing.T) {
 }
 
 func TestCommandInsertSubscribe(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	is := is.New(t)
 
 	name := "test command insert"
@@ -100,14 +86,8 @@ func TestCommandInsertSubscribe(t *testing.T) {
 	<-time.After(500 * time.Millisecond)
 }
 
+// @TODO This test is impacted by some other test, so it fails when launched with all test suit, but passes when launched alone
 func TestCommandUpdateSubscribe(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	is := is.New(t)
 
 	params := &dh.SubscribeParams{
@@ -151,13 +131,6 @@ func TestCommandUpdateSubscribe(t *testing.T) {
 }
 
 func TestCommandUnsubscribe(t *testing.T) {
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
 	commChan, err := client.CommandSubscribe(nil)
 
 	go func() {

@@ -15,11 +15,7 @@ func TestCommandGet(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	comm, err := client.CommandGet("device id", 1111111)
 	if err != nil {
@@ -37,11 +33,7 @@ func TestCommandList(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	listReqParams := &dh.ListParams{
 		Start:     time.Now().Add(-1 * time.Hour),
@@ -69,11 +61,7 @@ func TestCommandInsert(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	comm := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
@@ -83,7 +71,7 @@ func TestCommandInsert(t *testing.T) {
 		Lifetime: 120,
 		Status:   "created",
 	}
-	err = client.CommandInsert("device id", "name", comm)
+	err := client.CommandInsert("device id", "name", comm)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -101,11 +89,7 @@ func TestCommandUpdate(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	comm := &dh.Command{
 		Timestamp: dh.ISO8601Time{time.Now()},
@@ -115,7 +99,7 @@ func TestCommandUpdate(t *testing.T) {
 		Lifetime: 120,
 		Status:   "created",
 	}
-	err = client.CommandUpdate("device id", 111, comm)
+	err := client.CommandUpdate("device id", 111, comm)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -142,11 +126,7 @@ func TestCommandSubscribe(t *testing.T) {
 
 	is := is.New(t)
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	subsParams := &dh.SubscribeParams{
 		Timestamp: time.Now(),
@@ -174,11 +154,7 @@ func TestCommandUnsubscribe(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
-	client, err := dh.Connect(addr)
-
-	if err != nil {
-		panic(err)
-	}
+	client := connect(addr)
 
 	is := is.New(t)
 

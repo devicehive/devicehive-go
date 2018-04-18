@@ -22,12 +22,6 @@ func TestTokenByCreds(t *testing.T) {
 func TestTokenByPayload(t *testing.T) {
 	is := is.New(t)
 
-	err := auth()
-
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-	}
-
 	expiration := time.Now().Add(1 * time.Second)
 	accTok, refTok, err := client.TokenByPayload(1, nil, nil, nil, &expiration)
 

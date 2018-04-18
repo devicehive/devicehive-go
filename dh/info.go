@@ -23,7 +23,7 @@ type ClusterInfo struct {
 	ZookeeperConnect string `json:"zookeeper.connect"`
 }
 
-func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
+func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 	_, resBytes, err := c.request(map[string]interface{}{
 		"action": "server/info",
 	})
@@ -43,7 +43,7 @@ func (c *Client) ServerInfo() (info *ServerInfo, err *Error) {
 	return srvInfo.Value, nil
 }
 
-func (c *Client) ClusterInfo() (info *ClusterInfo, err *Error) {
+func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 	_, resBytes, err := c.request(map[string]interface{}{
 		"action": "cluster/info",
 	})
