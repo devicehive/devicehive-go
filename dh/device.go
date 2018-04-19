@@ -16,6 +16,15 @@ type Device struct {
 	client *Client
 }
 
+func (d *Device) Remove() *Error {
+	_, _, err := d.client.request(map[string]interface{} {
+		"action": "device/delete",
+		"deviceId": d.Id,
+	})
+
+	return err
+}
+
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{} {
 		"action": "device/get",
@@ -26,7 +35,9 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 		return nil, err
 	}
 
-	device = &Device{}
+	device = &Device{
+		client: c,
+	}
 	parseErr := json.Unmarshal(rawRes, &deviceResponse{ Device: device })
 
 	if parseErr != nil {
@@ -36,35 +47,44 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	return device, nil
 }
 
-func (c *Client) PutDevice(deviceId string, device *Device) *Error {
-	if device == nil {
-		device = &Device{}
+func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int64, isBlocked bool) (device *Device, err *Error) {
+	device = &Device{
+		client: c,
 	}
 
 	device.Id = deviceId
 
-	if device.Name == "" {
+	if name == "" {
 		device.Name = deviceId
+	} else {
+		device.Name = name
 	}
 
-	_, _, err := c.request(map[string]interface{} {
+	if data != nil {
+		device.Data = data
+	}
+
+	if networkId != 0 {
+		device.NetworkId = networkId
+	}
+
+	if deviceTypeId != 0 {
+		device.DeviceTypeId = deviceTypeId
+	}
+
+	if isBlocked {
+		device.IsBlocked = isBlocked
+	}
+
+	_, _, err = c.request(map[string]interface{} {
 		"action": "device/save",
 		"deviceId": deviceId,
 		"device": device,
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
-}
-
-func (c *Client) RemoveDevice(deviceId string) *Error {
-	_, _, err := c.request(map[string]interface{} {
-		"action": "device/delete",
-		"deviceId": deviceId,
-	})
-
-	return err
+	return device, nil
 }

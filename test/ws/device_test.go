@@ -4,7 +4,6 @@ import (
 	"testing"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestGetDevice(t *testing.T) {
@@ -36,16 +35,14 @@ func TestPutDevice(t *testing.T) {
 
 	is := is.New(t)
 
-	device := &dh.Device{
-		Name: "device",
-		Data: map[string]interface{} {
-			"param": "test",
-		},
-		NetworkId: 1,
-		DeviceTypeId: 1,
-		IsBlocked: false,
+	name := "device-name"
+	data := map[string]interface{} {
+		"param": "test",
 	}
-	err := client.PutDevice("device-id", device)
+	networkId := int64(1)
+	deviceTypeId := int64(1)
+	isBlocked := false
+	device, err := client.PutDevice("device-id", name, data, networkId, deviceTypeId, isBlocked)
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
@@ -60,7 +57,13 @@ func TestDeviceRemove(t *testing.T) {
 
 	client := connect(addr)
 
-	err := client.RemoveDevice("device-id")
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	err = device.Remove()
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return

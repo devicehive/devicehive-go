@@ -3,25 +3,12 @@ package dh_test
 import (
 	"testing"
 	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestDevice(t *testing.T) {
 	is := is.New(t)
 
-	device := &dh.Device{
-		Name: "go test",
-	}
-
-	err := client.PutDevice("go-test-dev", device)
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
-	device.Name = "go test updated"
-
-	err = client.PutDevice(device.Id, device)
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
@@ -34,9 +21,8 @@ func TestDevice(t *testing.T) {
 	}
 
 	is.True(device != nil)
-	is.Equal(device.Name, "go test updated")
 
-	err = client.RemoveDevice("go-test-dev")
+	err = device.Remove()
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
