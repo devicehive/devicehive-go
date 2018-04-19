@@ -14,10 +14,9 @@ func TestGetInfo(t *testing.T) {
 
 	client := connect(addr)
 
-	res, dhErr := client.GetInfo()
-
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	res, err := client.GetInfo()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 	}
 
 	is.True(res != nil)
@@ -34,10 +33,9 @@ func TestGetClusterInfo(t *testing.T) {
 
 	client := connect(addr)
 
-	clusterInfo, dhErr := client.GetClusterInfo()
-
-	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+	clusterInfo, err := client.GetClusterInfo()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
 	}
 
 	is.True(clusterInfo != nil)
