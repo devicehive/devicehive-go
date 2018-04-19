@@ -14,6 +14,13 @@ func TestDevice(t *testing.T) {
 		return
 	}
 
+	device.Name = "updated name"
+	err = device.Save()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
 	device, err = client.GetDevice(device.Id)
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
@@ -21,6 +28,7 @@ func TestDevice(t *testing.T) {
 	}
 
 	is.True(device != nil)
+	is.Equal(device.Name, "updated name")
 
 	err = device.Remove()
 	if err != nil {

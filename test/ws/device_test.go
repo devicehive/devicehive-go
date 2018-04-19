@@ -69,3 +69,24 @@ func TestDeviceRemove(t *testing.T) {
 		return
 	}
 }
+
+func TestDeviceSave(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client := connect(addr)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	device.Name = "updated name"
+
+	err = device.Save()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+}

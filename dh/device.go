@@ -25,6 +25,16 @@ func (d *Device) Remove() *Error {
 	return err
 }
 
+func (d *Device) Save() *Error {
+	_, _, err := d.client.request(map[string]interface{} {
+		"action": "device/save",
+		"deviceId": d.Id,
+		"device": d,
+	})
+
+	return err
+}
+
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{} {
 		"action": "device/get",
