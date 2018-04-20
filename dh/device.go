@@ -1,6 +1,9 @@
 package dh
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type deviceResponse struct {
 	Device *Device `json:"device"`
@@ -33,6 +36,79 @@ func (d *Device) Save() *Error {
 	})
 
 	return err
+}
+
+func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	params.DeviceId = d.Id
+	params.Action = "command/list"
+
+	data, pErr := params.Map()
+
+	if pErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	_, rawRes, err := d.client.request(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
+
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}
+
+func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
+							 status string, result map[string]interface{}) (comm *Command, err *Error) {
+
+	comm = &Command{}
+
+	comm.Command = name
+
+	if params != nil {
+		comm.Parameters = params
+	}
+	if lifetime != 0 {
+		comm.Lifetime = lifetime
+	}
+	if timestamp.Unix() > 0 {
+		comm.Timestamp = ISO8601Time{ Time: timestamp }
+	}
+	if status != "" {
+		comm.Status = status
+	}
+	if result != nil {
+		comm.Result = result
+	}
+
+	_, rawRes, err := d.client.request(map[string]interface{}{
+		"action":   "command/insert",
+		"deviceId": d.Id,
+		"command":  comm,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	parseErr := json.Unmarshal(rawRes, &commandResponse{Command: comm})
+
+	if parseErr != nil {
+		return nil, newJSONErr()
+	}
+
+	comm.DeviceId = d.Id
+
+	return comm, nil
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {

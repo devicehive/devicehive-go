@@ -19,9 +19,9 @@ type Command struct {
 	Command     string                 `json:"command,omitempty"`
 	Timestamp   ISO8601Time            `json:"timestamp,omitempty"`
 	LastUpdated ISO8601Time            `json:"lastUpdated,omitempty"`
-	UserId      int                    `json:"userId,omitempty"`
+	UserId      int64                  `json:"userId,omitempty"`
 	DeviceId    string                 `json:"deviceId,omitempty"`
-	NetworkId   int                    `json:"networkId,omitempty"`
+	NetworkId   int64                  `json:"networkId,omitempty"`
 	Parameters  map[string]interface{} `json:"parameters,omitempty"`
 	Lifetime    int                    `json:"lifetime,omitempty"`
 	Status      string                 `json:"status,omitempty"`

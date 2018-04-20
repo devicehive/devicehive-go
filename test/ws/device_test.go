@@ -4,6 +4,8 @@ import (
 	"testing"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
+	"github.com/devicehive/devicehive-go/dh"
+	"time"
 )
 
 func TestGetDevice(t *testing.T) {
@@ -89,4 +91,66 @@ func TestDeviceSave(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
+}
+
+func TestDeviceListCommands(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client := connect(addr)
+
+	is := is.New(t)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	listReqParams := &dh.ListParams{
+		Start:     time.Now().Add(-1 * time.Hour),
+		End:       time.Now(),
+		Command:   "test command",
+		Status:    "created",
+		SortField: "timestamp",
+		SortOrder: "ASC",
+		Take:      10,
+		Skip:      5,
+	}
+	list, err := device.ListCommands(listReqParams)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.True(len(list) != 0)
+}
+
+func TestDeviceSendCommand(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	is := is.New(t)
+
+	client := connect(addr)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	comm, err := device.SendCommand("command name", nil, 120, time.Now(), "created", nil)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.Equal(comm.DeviceId, "device-id")
+	is.Equal(comm.Command, "command name")
+	is.True(comm.Id != 0)
+	is.True(comm.LastUpdated.Unix() > 0)
+	is.True(comm.UserId != 0)
 }
