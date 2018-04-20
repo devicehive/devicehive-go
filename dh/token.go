@@ -39,12 +39,7 @@ func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkI
 func (c *Client) RefreshToken() (accessToken string, err *Error) {
 	if c.refreshToken == "" {
 		accessToken, _, err = c.tokensByCreds(c.login, c.password)
-
-		if err != nil {
-			return "", err
-		}
-
-		return accessToken, nil
+		return accessToken, err
 	}
 
 	return c.accessTokenByRefresh(c.refreshToken)
