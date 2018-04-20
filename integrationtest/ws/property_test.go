@@ -7,34 +7,31 @@ import (
 	"time"
 )
 
-func TestConfiguration(t *testing.T) {
+func TestProperty(t *testing.T) {
 	is := is.New(t)
 
 	name, val := "go-test"+strconv.FormatInt(time.Now().Unix(), 10), "go-sdk-test"
 
-	conf, dhErr := client.ConfigurationPut(name, val)
+	entityVersion, dhErr := client.SetProperty(name, val)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
 	}
 
-	is.True(conf != nil)
-	is.Equal(conf.Name, name)
-	is.Equal(conf.Value, val)
-	is.Equal(conf.EntityVersion, 0)
+	is.True(entityVersion >= 0)
 
-	conf, dhErr = client.ConfigurationGet(name)
+	prop, dhErr := client.GetProperty(name)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return
 	}
 
-	is.True(conf != nil)
-	is.Equal(conf.Name, name)
-	is.Equal(conf.Value, val)
-	is.True(conf.EntityVersion == 0)
+	is.True(prop != nil)
+	is.Equal(prop.Name, name)
+	is.Equal(prop.Value, val)
+	is.True(prop.EntityVersion >= 0)
 
-	dhErr = client.ConfigurationDelete(name)
+	dhErr = client.DeleteProperty(name)
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		return

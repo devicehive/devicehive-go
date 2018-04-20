@@ -29,7 +29,7 @@ func ConnectWithCreds(url, login, password string) (client *Client, err *Error) 
 		return nil, err
 	}
 
-	accTok, _, err := client.TokenByCreds(login, password)
+	accTok, _, err := client.tokensByCreds(login, password)
 
 	if err != nil {
 		return nil, err

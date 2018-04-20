@@ -12,7 +12,7 @@ type Configuration struct {
 	EntityVersion int    `json:"entityVersion"`
 }
 
-func (c *Client) ConfigurationGet(name string) (conf *Configuration, err *Error) {
+func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
 		"action": "configuration/get",
 		"name":   name,
@@ -32,7 +32,7 @@ func (c *Client) ConfigurationGet(name string) (conf *Configuration, err *Error)
 	return conf, nil
 }
 
-func (c *Client) ConfigurationPut(name, value string) (conf *Configuration, err *Error) {
+func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
 		"action": "configuration/put",
 		"name":   name,
@@ -40,20 +40,20 @@ func (c *Client) ConfigurationPut(name, value string) (conf *Configuration, err 
 	})
 
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	conf = &Configuration{}
+	conf := &Configuration{}
 	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
 
 	if parseErr != nil {
-		return nil, newJSONErr()
+		return -1, newJSONErr()
 	}
 
-	return conf, nil
+	return conf.EntityVersion, nil
 }
 
-func (c *Client) ConfigurationDelete(name string) *Error {
+func (c *Client) DeleteProperty(name string) *Error {
 	_, _, err := c.request(map[string]interface{}{
 		"action": "configuration/delete",
 		"name":   name,

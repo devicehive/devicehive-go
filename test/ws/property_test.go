@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestConfigurationGet(t *testing.T) {
+func TestGetProperty(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -14,19 +14,19 @@ func TestConfigurationGet(t *testing.T) {
 
 	client := connect(addr)
 
-	conf, dhErr := client.ConfigurationGet("some_config")
+	prop, dhErr := client.GetProperty("some.test.prop")
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		t.Fail()
 	}
 
-	is.True(conf != nil)
-	is.Equal(conf.Name, "some_config")
-	is.True(conf.Value != "")
+	is.True(prop != nil)
+	is.Equal(prop.Name, "some.test.prop")
+	is.True(prop.Value != "")
 }
 
-func TestConfigurationPut(t *testing.T) {
+func TestSetProperty(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -34,25 +34,23 @@ func TestConfigurationPut(t *testing.T) {
 
 	client := connect(addr)
 
-	conf, dhErr := client.ConfigurationPut("some_config", "some test value")
+	entityVersion, dhErr := client.SetProperty("some.test.prop", "some test value")
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
 		t.Fail()
 	}
 
-	is.True(conf != nil)
-	is.Equal(conf.Name, "some_config")
-	is.True(conf.Value == "some test value")
+	is.True(entityVersion != -1)
 }
 
-func TestConfigurationDelete(t *testing.T) {
+func TestDeleteProperty(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
 	client := connect(addr)
 
-	dhErr := client.ConfigurationDelete("some_config")
+	dhErr := client.DeleteProperty("some.test.prop")
 
 	if dhErr != nil {
 		t.Error(dhErr)
