@@ -102,3 +102,117 @@ func TestDeviceNotifications(t *testing.T) {
 		return
 	}
 }
+
+func TestDeviceSubscribeInsertCommands(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	commChan, err := device.SubscribeInsertCommands(nil)
+
+	go func() {
+		select {
+		case comm, ok := <-commChan.CommandsChan:
+			is.True(ok)
+			is.True(comm != nil)
+			is.Equal(comm.Command, "go test command")
+		case <-time.After(1 * time.Second):
+			t.Error("command insert event timeout")
+		}
+
+		err = device.Remove()
+		if err != nil {
+			t.Errorf("%s: %v", err.Name(), err)
+			return
+		}
+	}()
+
+	_, err = device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	<-time.After(1 * time.Second)
+}
+
+func TestDeviceSubscribeUpdateCommands(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	commUpdChan, err := device.SubscribeUpdateCommands(nil)
+
+	go func() {
+		select {
+		case comm, ok := <-commUpdChan.CommandsChan:
+			is.True(ok)
+			is.True(comm != nil)
+			is.Equal(comm.Status, "updated")
+		case <-time.After(1 * time.Second):
+			t.Error("command update event timeout")
+		}
+
+		err = device.Remove()
+		if err != nil {
+			t.Errorf("%s: %v", err.Name(), err)
+			return
+		}
+	}()
+
+	comm, err := device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	comm.Status = "updated"
+
+	err = comm.Save()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	<-time.After(1 * time.Second)
+}
+
+func TestDeviceCommandSubscriptionRemove(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	commChan, err := device.SubscribeInsertCommands(nil)
+
+	go func() {
+		select {
+		case comm, ok := <-commChan.CommandsChan:
+			is.True(!ok)
+			is.True(comm == nil)
+		case <-time.After(300 * time.Millisecond):
+			t.Error("command unsubscribe timeout")
+		}
+
+		err = device.Remove()
+		if err != nil {
+			t.Errorf("%s: %v", err.Name(), err)
+			return
+		}
+	}()
+
+	commChan.Remove()
+
+	<-time.After(300 * time.Millisecond)
+}
