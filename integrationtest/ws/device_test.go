@@ -65,3 +65,31 @@ func TestDeviceCommands(t *testing.T) {
 		return
 	}
 }
+
+func TestDeviceNotifications(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	notif, err := device.SendNotification("test notif", nil, time.Time{})
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.True(notif != nil)
+
+	list, err := device.ListNotifications(nil)
+
+	is.True(len(list) > 0)
+
+	err = device.Remove()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+}

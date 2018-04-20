@@ -154,3 +154,59 @@ func TestDeviceSendCommand(t *testing.T) {
 	is.True(comm.LastUpdated.Unix() > 0)
 	is.True(comm.UserId != 0)
 }
+
+func TestDeviceListNotifications(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client := connect(addr)
+
+	is := is.New(t)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	listParams := &dh.ListParams{
+		Start:        time.Now().Add(-1 * time.Hour),
+		End:          time.Now(),
+		Notification: "test notif",
+		SortField:    "timestamp",
+		SortOrder:    "ASC",
+		Take:         10,
+		Skip:         5,
+	}
+	list, err := device.ListNotifications(listParams)
+
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.True(len(list) > 0)
+}
+
+func TestDeviceSendNotification(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client := connect(addr)
+
+	is := is.New(t)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	notif, err := device.SendNotification("test notif", nil, time.Now())
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	is.True(notif != nil)
+}

@@ -70,9 +70,9 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
 							 status string, result map[string]interface{}) (comm *Command, err *Error) {
 
-	comm = &Command{}
-
-	comm.Command = name
+	comm = &Command{
+		Command: name,
+	}
 
 	if params != nil {
 		comm.Parameters = params
@@ -109,6 +109,66 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	comm.DeviceId = d.Id
 
 	return comm, nil
+}
+
+func (d *Device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	params.DeviceId = d.Id
+	params.Action = "notification/list"
+
+	data, pErr := params.Map()
+
+	if pErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	_, rawRes, err := d.client.request(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
+
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}
+
+func (d *Device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
+	notif = &Notification{
+		Notification: name,
+	}
+
+	if params != nil {
+		notif.Parameters = params
+	}
+	if timestamp.Unix() > 0 {
+		notif.Timestamp = ISO8601Time{ Time: timestamp }
+	}
+
+	_, rawRes, err := d.client.request(map[string]interface{}{
+		"action":   "notification/insert",
+		"deviceId": d.Id,
+		"notification": notif,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	pErr := json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
+
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return notif, nil
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
