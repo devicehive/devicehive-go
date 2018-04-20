@@ -3,8 +3,6 @@ package dh
 import (
 	"encoding/json"
 	"time"
-	"log"
-	"sync"
 )
 
 type deviceResponse struct {
@@ -19,30 +17,6 @@ type Device struct {
 	DeviceTypeId int64                  `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
 	client       *Client
-}
-
-var commandSubsMutex = sync.Mutex{}
-var commandSubscriptions = make(map[*CommandSubscription]string)
-
-type CommandSubscription struct {
-	CommandsChan chan *Command
-	client *Client
-}
-
-func (cs *CommandSubscription) Remove() *Error {
-	commandSubsMutex.Lock()
-	defer commandSubsMutex.Unlock()
-
-	subsId := commandSubscriptions[cs]
-	err := cs.client.unsubscribe("command/unsubscribe", subsId)
-
-	if err != nil {
-		return err
-	}
-
-	delete(commandSubscriptions, cs)
-
-	return nil
 }
 
 func (d *Device) Remove() *Error {
@@ -237,38 +211,9 @@ func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscr
 		return nil, nil
 	}
 
-	subs = d.commandsTransform(tspChan)
-
-	commandSubsMutex.Lock()
-	commandSubscriptions[subs] = subsId
-	commandSubsMutex.Unlock()
+	subs = newCommandSubscription(subsId, tspChan, d.client)
 
 	return subs, nil
-}
-
-func (d *Device) commandsTransform(tspChan chan []byte) *CommandSubscription {
-	subs := &CommandSubscription{
-		CommandsChan: make(chan *Command),
-		client: d.client,
-	}
-
-	go func() {
-		for rawComm := range tspChan {
-			comm := &Command{}
-			err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
-
-			if err != nil {
-				log.Println("couldn't unmarshal command insert event data:", err)
-				continue
-			}
-
-			subs.CommandsChan <- comm
-		}
-
-		close(subs.CommandsChan)
-	}()
-
-	return subs
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {

@@ -1,0 +1,60 @@
+package dh
+
+import (
+	"sync"
+	"encoding/json"
+	"log"
+)
+
+var commandSubsMutex = sync.Mutex{}
+var commandSubscriptions = make(map[*CommandSubscription]string)
+
+type CommandSubscription struct {
+	CommandsChan chan *Command
+	client *Client
+}
+
+func (cs *CommandSubscription) Remove() *Error {
+	commandSubsMutex.Lock()
+	defer commandSubsMutex.Unlock()
+
+	subsId := commandSubscriptions[cs]
+	err := cs.client.unsubscribe("command/unsubscribe", subsId)
+
+	if err != nil {
+		return err
+	}
+
+	delete(commandSubscriptions, cs)
+
+	return nil
+}
+
+func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) *CommandSubscription {
+	subs := &CommandSubscription{
+		CommandsChan: make(chan *Command),
+		client: client,
+	}
+
+	go func() {
+		for rawComm := range tspChan {
+			comm := &Command{}
+			err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
+
+			if err != nil {
+				log.Println("couldn't unmarshal command data in subscription:", err)
+				continue
+			}
+
+			subs.CommandsChan <- comm
+		}
+
+		close(subs.CommandsChan)
+	}()
+
+	commandSubsMutex.Lock()
+	commandSubscriptions[subs] = subsId
+	commandSubsMutex.Unlock()
+
+	return subs
+}
