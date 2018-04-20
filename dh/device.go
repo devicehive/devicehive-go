@@ -201,6 +201,8 @@ func (d *Device) SubscribeUpdateCommands(params *SubscribeParams) (subs *Command
 }
 
 func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+	params.DeviceId = d.Id
+
 	tspChan, subsId, err := d.client.subscribe("command/subscribe", params)
 
 	if err != nil {
@@ -212,6 +214,28 @@ func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscr
 	}
 
 	subs = newCommandSubscription(subsId, tspChan, d.client)
+
+	return subs, nil
+}
+
+func (d *Device) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.DeviceId = d.Id
+
+	tspChan, subsId, err := d.client.subscribe("notification/subscribe", params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if tspChan == nil {
+		return nil, nil
+	}
+
+	subs = newNotificationSubscription(subsId, tspChan, d.client)
 
 	return subs, nil
 }

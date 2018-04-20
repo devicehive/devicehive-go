@@ -216,3 +216,72 @@ func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 
 	<-time.After(300 * time.Millisecond)
 }
+
+func TestDeviceSubscribeNotifications(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	notifChan, err := device.SubscribeNotifications(nil)
+
+	go func() {
+		select {
+		case notif, ok := <-notifChan.NotificationChan:
+			is.True(ok)
+			is.True(notif != nil)
+			is.Equal(notif.Notification, "go test notification")
+		case <-time.After(1 * time.Second):
+			t.Error("notification insert event timeout")
+		}
+
+		err = device.Remove()
+		if err != nil {
+			t.Errorf("%s: %v", err.Name(), err)
+			return
+		}
+	}()
+
+	_, err = device.SendNotification("go test notification", nil, time.Time{})
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	<-time.After(1 * time.Second)
+}
+
+func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
+	is := is.New(t)
+
+	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	subs, err := device.SubscribeNotifications(nil)
+
+	go func() {
+		select {
+		case comm, ok := <-subs.NotificationChan:
+			is.True(!ok)
+			is.True(comm == nil)
+		case <-time.After(300 * time.Millisecond):
+			t.Error("notification unsubscribe timeout")
+		}
+
+		err = device.Remove()
+		if err != nil {
+			t.Errorf("%s: %v", err.Name(), err)
+			return
+		}
+	}()
+
+	subs.Remove()
+
+	<-time.After(300 * time.Millisecond)
+}
