@@ -1,9 +1,9 @@
 package dh
 
 import (
-	"sync"
 	"encoding/json"
 	"log"
+	"sync"
 )
 
 var notifSubsMutex = sync.Mutex{}
@@ -11,7 +11,7 @@ var notificationSubscriptions = make(map[*NotificationSubscription]string)
 
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
-	client *Client
+	client           *Client
 }
 
 func (ns *NotificationSubscription) Remove() *Error {
@@ -33,13 +33,13 @@ func (ns *NotificationSubscription) Remove() *Error {
 func newNotificationSubscription(subsId string, tspChan chan []byte, client *Client) *NotificationSubscription {
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
-		client: client,
+		client:           client,
 	}
 
 	go func() {
 		for rawNotif := range tspChan {
 			notif := &Notification{}
-			err := json.Unmarshal(rawNotif, &notificationResponse{ Notification: notif })
+			err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
 
 			if err != nil {
 				log.Println("couldn't unmarshal notification insert event data:", err)

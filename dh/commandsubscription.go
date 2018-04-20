@@ -1,9 +1,9 @@
 package dh
 
 import (
-	"sync"
 	"encoding/json"
 	"log"
+	"sync"
 )
 
 var commandSubsMutex = sync.Mutex{}
@@ -11,7 +11,7 @@ var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
-	client *Client
+	client       *Client
 }
 
 func (cs *CommandSubscription) Remove() *Error {
@@ -33,7 +33,7 @@ func (cs *CommandSubscription) Remove() *Error {
 func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) *CommandSubscription {
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
-		client: client,
+		client:       client,
 	}
 
 	go func() {
