@@ -64,6 +64,10 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, newJSONErr()
 	}
 
+	for _, c := range list {
+		c.client = d.client
+	}
+
 	return list, nil
 }
 
@@ -72,6 +76,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 
 	comm = &Command{
 		Command: name,
+		client: d.client,
 	}
 
 	if params != nil {

@@ -26,6 +26,18 @@ type Command struct {
 	Lifetime    int                    `json:"lifetime,omitempty"`
 	Status      string                 `json:"status,omitempty"`
 	Result      map[string]interface{} `json:"result,omitempty"`
+	client *Client
+}
+
+func (comm *Command) Save() *Error {
+	_, _, err := comm.client.request(map[string]interface{}{
+		"action":    "command/update",
+		"deviceId":  comm.DeviceId,
+		"commandId": comm.Id,
+		"command":   comm,
+	})
+
+	return err
 }
 
 func (c *Client) CommandGet(deviceId string, commandId int64) (comm *Command, err *Error) {

@@ -47,7 +47,7 @@ func TestDeviceCommands(t *testing.T) {
 		return
 	}
 
-	comm, err := device.SendCommand("test command", nil, 0, time.Time{}, "", nil)
+	comm, err := device.SendCommand("test command", nil, 5, time.Time{}, "", nil)
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
@@ -55,9 +55,18 @@ func TestDeviceCommands(t *testing.T) {
 
 	is.True(comm != nil)
 
+	comm.Status = "updated"
+
+	err = comm.Save()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
 	list, err := device.ListCommands(nil)
 
 	is.True(len(list) > 0)
+	is.Equal(list[0].Status, "updated")
 
 	err = device.Remove()
 	if err != nil {
