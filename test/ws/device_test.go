@@ -1,10 +1,10 @@
 package dh_test
 
 import (
-	"testing"
+	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/dh"
+	"testing"
 	"time"
 )
 
@@ -38,7 +38,7 @@ func TestPutDevice(t *testing.T) {
 	is := is.New(t)
 
 	name := "device-name"
-	data := map[string]interface{} {
+	data := map[string]interface{}{
 		"param": "test",
 	}
 	networkId := int64(1)

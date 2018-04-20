@@ -10,18 +10,18 @@ type deviceResponse struct {
 }
 
 type Device struct {
-	Id string `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
-	Data map[string]interface{} `json:"data,omitempty"`
-	NetworkId int64 `json:"networkId,omitempty"`
-	DeviceTypeId int64 `json:"deviceTypeId,omitempty"`
-	IsBlocked bool `json:"isBlocked,omitempty"`
-	client *Client
+	Id           string                 `json:"id,omitempty"`
+	Name         string                 `json:"name,omitempty"`
+	Data         map[string]interface{} `json:"data,omitempty"`
+	NetworkId    int64                  `json:"networkId,omitempty"`
+	DeviceTypeId int64                  `json:"deviceTypeId,omitempty"`
+	IsBlocked    bool                   `json:"isBlocked,omitempty"`
+	client       *Client
 }
 
 func (d *Device) Remove() *Error {
-	_, _, err := d.client.request(map[string]interface{} {
-		"action": "device/delete",
+	_, _, err := d.client.request(map[string]interface{}{
+		"action":   "device/delete",
 		"deviceId": d.Id,
 	})
 
@@ -29,10 +29,10 @@ func (d *Device) Remove() *Error {
 }
 
 func (d *Device) Save() *Error {
-	_, _, err := d.client.request(map[string]interface{} {
-		"action": "device/save",
+	_, _, err := d.client.request(map[string]interface{}{
+		"action":   "device/save",
 		"deviceId": d.Id,
-		"device": d,
+		"device":   d,
 	})
 
 	return err
@@ -72,11 +72,11 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 }
 
 func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
-							 status string, result map[string]interface{}) (comm *Command, err *Error) {
+	status string, result map[string]interface{}) (comm *Command, err *Error) {
 
 	comm = &Command{
 		Command: name,
-		client: d.client,
+		client:  d.client,
 	}
 
 	if params != nil {
@@ -86,7 +86,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		comm.Lifetime = lifetime
 	}
 	if timestamp.Unix() > 0 {
-		comm.Timestamp = ISO8601Time{ Time: timestamp }
+		comm.Timestamp = ISO8601Time{Time: timestamp}
 	}
 	if status != "" {
 		comm.Status = status
@@ -154,12 +154,12 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Parameters = params
 	}
 	if timestamp.Unix() > 0 {
-		notif.Timestamp = ISO8601Time{ Time: timestamp }
+		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
 	_, rawRes, err := d.client.request(map[string]interface{}{
-		"action":   "notification/insert",
-		"deviceId": d.Id,
+		"action":       "notification/insert",
+		"deviceId":     d.Id,
 		"notification": notif,
 	})
 
@@ -177,8 +177,8 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	_, rawRes, err := c.request(map[string]interface{} {
-		"action": "device/get",
+	_, rawRes, err := c.request(map[string]interface{}{
+		"action":   "device/get",
 		"deviceId": deviceId,
 	})
 
@@ -189,7 +189,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, &deviceResponse{ Device: device })
+	parseErr := json.Unmarshal(rawRes, &deviceResponse{Device: device})
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -227,10 +227,10 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 		device.IsBlocked = isBlocked
 	}
 
-	_, _, err = c.request(map[string]interface{} {
-		"action": "device/save",
+	_, _, err = c.request(map[string]interface{}{
+		"action":   "device/save",
 		"deviceId": deviceId,
-		"device": device,
+		"device":   device,
 	})
 
 	if err != nil {

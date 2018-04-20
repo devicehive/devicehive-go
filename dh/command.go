@@ -26,7 +26,7 @@ type Command struct {
 	Lifetime    int                    `json:"lifetime,omitempty"`
 	Status      string                 `json:"status,omitempty"`
 	Result      map[string]interface{} `json:"result,omitempty"`
-	client *Client
+	client      *Client
 }
 
 func (comm *Command) Save() *Error {

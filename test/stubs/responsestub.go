@@ -23,9 +23,9 @@ var ResponseStub = &responseStub{
 		"command/update":           emptySuccessResponse,
 		"command/subscribe":        commandSubscribe,
 		"command/unsubscribe":      emptySuccessResponse,
-		"device/get":				deviceGet,
-		"device/save":				emptySuccessResponse,
-		"device/delete":			emptySuccessResponse,
+		"device/get":               deviceGet,
+		"device/save":              emptySuccessResponse,
+		"device/delete":            emptySuccessResponse,
 	},
 }
 
@@ -368,16 +368,16 @@ func commandSubscribe(reqData map[string]interface{}) map[string]interface{} {
 
 func deviceGet(reqData map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"action": "device/get",
-		"status": "success",
+		"action":    "device/get",
+		"status":    "success",
 		"requestId": reqData["requestId"],
 		"device": map[string]interface{}{
-			"id": reqData["deviceId"],
-			"name": "test device",
-			"data": map[string]interface{}{},
-			"networkId": 1,
+			"id":           reqData["deviceId"],
+			"name":         "test device",
+			"data":         map[string]interface{}{},
+			"networkId":    1,
 			"deviceTypeId": 1,
-			"isBlocked": false,
+			"isBlocked":    false,
 		},
 	}
 }
