@@ -10,7 +10,9 @@ const (
 	Timeout          = 5 * time.Second
 )
 
-func ConnectWithToken(url, accessToken, refreshToken string) (client *Client, err *Error) {
+var client = &Client{}
+
+func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
 	client, err = connect(url)
 
 	if err != nil {
@@ -22,7 +24,7 @@ func ConnectWithToken(url, accessToken, refreshToken string) (client *Client, er
 	return auth(accessToken, client)
 }
 
-func ConnectWithCreds(url, login, password string) (client *Client, err *Error) {
+func ConnectWithCreds(url, login, password string) (c *Client, err *Error) {
 	client, err = connect(url)
 
 	if err != nil {
@@ -41,14 +43,16 @@ func ConnectWithCreds(url, login, password string) (client *Client, err *Error) 
 	return auth(accTok, client)
 }
 
-func connect(url string) (client *Client, err *Error) {
+func connect(url string) (c *Client, err *Error) {
 	tsp, tspErr := transport.Create(url)
 
 	if tspErr != nil {
 		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}
 	}
 
-	return &Client{tsp: tsp}, nil
+	client.tsp = tsp
+
+	return client, nil
 }
 
 func auth(accTok string, c *Client) (client *Client, err *Error) {

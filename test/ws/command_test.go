@@ -159,14 +159,12 @@ func TestCommandUnsubscribe(t *testing.T) {
 	is := is.New(t)
 
 	commChan, err := client.CommandSubscribe(nil)
-
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
 
 	err = client.CommandUnsubscribe(commChan)
-
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
@@ -176,4 +174,33 @@ func TestCommandUnsubscribe(t *testing.T) {
 
 	is.True(n == nil)
 	is.Equal(ok, false)
+}
+
+func TestCommandSave(t *testing.T) {
+	_, addr, srvClose := stubs.StartWSTestServer()
+	defer srvClose()
+
+	client := connect(addr)
+
+	device, err := client.GetDevice("device-id")
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	list, err := device.ListCommands(nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
+	comm := list[0]
+
+	comm.Status = "updated"
+
+	err = comm.Save()
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
 }
