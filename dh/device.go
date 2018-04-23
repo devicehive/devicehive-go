@@ -176,6 +176,73 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 	return notif, nil
 }
 
+func (d *Device) SubscribeInsertCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{
+			ReturnUpdatedCommands: false,
+		}
+	} else {
+		params.ReturnUpdatedCommands = false
+	}
+
+	return d.subscribeCommands(params)
+}
+
+func (d *Device) SubscribeUpdateCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{
+			ReturnUpdatedCommands: true,
+		}
+	} else {
+		params.ReturnUpdatedCommands = true
+	}
+
+	return d.subscribeCommands(params)
+}
+
+func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+	s, err := d.subscribe(params, "command/subscribe")
+
+	if err != nil || s == nil {
+		return nil, err
+	}
+
+	return s.(*CommandSubscription), nil
+
+}
+
+func (d *Device) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
+	s, err := d.subscribe(params, "notification/subscribe")
+
+	if err != nil || s == nil {
+		return nil, err
+	}
+
+	return s.(*NotificationSubscription), nil
+}
+
+func (d *Device) subscribe(params *SubscribeParams, action string) (subs interface{}, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.DeviceId = d.Id
+
+	tspChan, subsId, err := d.client.subscribe(action, params)
+
+	if err != nil || tspChan == nil {
+		return nil, err
+	}
+
+	if action == "notification/subscribe" {
+		subs = newNotificationSubscription(subsId, tspChan, d.client)
+	} else if action == "command/subscribe" {
+		subs = newCommandSubscription(subsId, tspChan, d.client)
+	}
+
+	return subs, nil
+}
+
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	_, rawRes, err := c.request(map[string]interface{}{
 		"action":   "device/get",
