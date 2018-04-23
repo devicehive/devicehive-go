@@ -1,4 +1,4 @@
-package internal_test
+package transport_test
 
 import (
 	"encoding/json"
@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-const testTimeout = 300 * time.Millisecond
+const testWSTimeout = 300 * time.Millisecond
 
-func TestRequestId(t *testing.T) {
+func TestWSRequestId(t *testing.T) {
 	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -28,17 +28,17 @@ func TestRequestId(t *testing.T) {
 
 	is.NoErr(err)
 
-	wsTsp.Request("", nil, testTimeout)
+	wsTsp.Request("", nil, testWSTimeout)
 }
 
-func TestTimeout(t *testing.T) {
+func TestWSTimeout(t *testing.T) {
 	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
 	is := is.New(t)
 
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
-		<-time.After(testTimeout + 1*time.Second)
+		<-time.After(testWSTimeout + 1*time.Second)
 
 		c.WriteJSON(map[string]interface{}{
 			"result": "success",
@@ -49,13 +49,13 @@ func TestTimeout(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", nil, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testWSTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }
 
-func TestInvalidResponse(t *testing.T) {
+func TestWSInvalidResponse(t *testing.T) {
 	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -69,13 +69,13 @@ func TestInvalidResponse(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", nil, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testWSTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }
 
-func TestConnectionClose(t *testing.T) {
+func TestWSConnectionClose(t *testing.T) {
 	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -89,13 +89,13 @@ func TestConnectionClose(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", nil, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testWSTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.ConnClosedErr)
 }
 
-func TestSubscribe(t *testing.T) {
+func TestWSSubscribe(t *testing.T) {
 	wsTestSrv, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
@@ -138,7 +138,7 @@ func TestSubscribe(t *testing.T) {
 	}
 }
 
-func TestUnsubscribe(t *testing.T) {
+func TestWSUnsubscribe(t *testing.T) {
 	_, addr, srvClose := stubs.StartWSTestServer()
 	defer srvClose()
 
