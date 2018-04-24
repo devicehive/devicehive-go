@@ -2,8 +2,8 @@ package transport
 
 import (
 	"github.com/gorilla/websocket"
-	"time"
 	"strings"
+	"time"
 )
 
 const (

@@ -1,23 +1,23 @@
 package transport
 
 import (
-	"time"
-	"net/http"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	"time"
 )
 
 func newHTTP(addr string) *httpTsp {
 	return &httpTsp{
 		client: &http.Client{},
-		addr: addr,
+		addr:   addr,
 	}
 }
 
 type httpTsp struct {
 	client *http.Client
-	addr string
+	addr   string
 }
 
 func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
