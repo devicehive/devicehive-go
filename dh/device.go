@@ -176,32 +176,20 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 	return notif, nil
 }
 
-func (d *Device) SubscribeInsertCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{
-			ReturnUpdatedCommands: false,
-		}
-	} else {
-		params.ReturnUpdatedCommands = false
-	}
-
-	return d.subscribeCommands(params)
+func (d *Device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+	return d.subscribeCommands(names, timestamp, false)
 }
 
-func (d *Device) SubscribeUpdateCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{
-			ReturnUpdatedCommands: true,
-		}
-	} else {
-		params.ReturnUpdatedCommands = true
-	}
-
-	return d.subscribeCommands(params)
+func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+	return d.subscribeCommands(names, timestamp, true)
 }
 
-func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
-	s, err := d.subscribe(params, "command/subscribe")
+func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+	s, err := d.subscribe(&SubscribeParams{
+		Names: names,
+		Timestamp: timestamp,
+		ReturnUpdatedCommands: isCommUpdatesSubscription,
+	}, "command/subscribe")
 
 	if err != nil || s == nil {
 		return nil, err
@@ -211,8 +199,11 @@ func (d *Device) subscribeCommands(params *SubscribeParams) (subs *CommandSubscr
 
 }
 
-func (d *Device) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
-	s, err := d.subscribe(params, "notification/subscribe")
+func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+	s, err := d.subscribe(&SubscribeParams{
+		Names: names,
+		Timestamp: timestamp,
+	}, "notification/subscribe")
 
 	if err != nil || s == nil {
 		return nil, err

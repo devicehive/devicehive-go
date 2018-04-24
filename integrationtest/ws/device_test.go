@@ -112,7 +112,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		return
 	}
 
-	commChan, err := device.SubscribeInsertCommands(nil)
+	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
 
 	go func() {
 		select {
@@ -149,7 +149,7 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 		return
 	}
 
-	commUpdChan, err := device.SubscribeUpdateCommands(nil)
+	commUpdChan, err := device.SubscribeUpdateCommands(nil, time.Time{})
 
 	go func() {
 		select {
@@ -194,7 +194,7 @@ func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 		return
 	}
 
-	commChan, err := device.SubscribeInsertCommands(nil)
+	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
 
 	go func() {
 		select {
@@ -226,7 +226,7 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 		return
 	}
 
-	notifChan, err := device.SubscribeNotifications(nil)
+	notifChan, err := device.SubscribeNotifications(nil, time.Time{})
 
 	go func() {
 		select {
@@ -263,7 +263,7 @@ func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
 		return
 	}
 
-	subs, err := device.SubscribeNotifications(nil)
+	subs, err := device.SubscribeNotifications(nil, time.Time{})
 
 	go func() {
 		select {
