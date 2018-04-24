@@ -1,12 +1,12 @@
 package transport_test
 
 import (
-	"time"
-	"testing"
+	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
-	"github.com/devicehive/devicehive-go/internal/transport"
 	"net/http"
+	"testing"
+	"time"
 )
 
 const testHTTPTimeout = 300 * time.Millisecond
@@ -36,4 +36,3 @@ func TestHTTPRequestId(t *testing.T) {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
 	}
 }
-

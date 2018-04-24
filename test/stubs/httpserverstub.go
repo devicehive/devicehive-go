@@ -1,10 +1,10 @@
 package stubs
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 )
 
 func StartHTTPTestServer() (srv *HTTPTestServer, addr string, closeSrv func()) {
