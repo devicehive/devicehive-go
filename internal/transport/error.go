@@ -19,3 +19,12 @@ func (e *Error) Name() string {
 func (e *Error) Error() string {
 	return e.reason
 }
+
+type httpTimeoutErr interface {
+	Timeout() bool
+}
+
+func isTimeoutErr(err error) bool {
+	timeoutErr, ok := err.(httpTimeoutErr)
+	return ok && timeoutErr.Timeout()
+}

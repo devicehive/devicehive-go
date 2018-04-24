@@ -36,3 +36,24 @@ func TestHTTPRequestId(t *testing.T) {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
 	}
 }
+
+func TestHTTPTimeout(t *testing.T) {
+	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
+	defer srvClose()
+
+	is := is.New(t)
+
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+		<-time.After(testWSTimeout + 1*time.Second)
+		rw.Write([]byte("{\"result\": \"success\"}"))
+	})
+
+	httpTsp, err := transport.Create(addr)
+
+	is.NoErr(err)
+
+	res, tspErr := httpTsp.Request(map[string]interface{}{}, testHTTPTimeout)
+
+	is.True(res == nil)
+	is.Equal(tspErr.Name(), transport.TimeoutErr)
+}

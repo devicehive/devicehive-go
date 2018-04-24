@@ -25,6 +25,8 @@ func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []
 		timeout = DefaultTimeout
 	}
 
+	t.client.Timeout = timeout
+
 	if _, ok := data["method"]; !ok {
 		data["method"] = "GET"
 	}
@@ -51,6 +53,10 @@ func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []
 	res, resErr := t.client.Do(req)
 
 	if resErr != nil {
+		if isTimeoutErr(resErr) {
+			return nil, &Error{name: TimeoutErr, reason: resErr.Error()}
+		}
+
 		return nil, &Error{name: InvalidRequestErr, reason: resErr.Error()}
 	}
 	defer res.Body.Close()
