@@ -6,18 +6,25 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	"net/url"
 )
 
-func newHTTP(addr string) *httpTsp {
+func newHTTP(addr string) (tsp *httpTsp, err error) {
+	u, err := url.Parse(addr)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &httpTsp{
 		client: &http.Client{},
-		addr:   addr,
-	}
+		url:    u,
+	}, nil
 }
 
 type httpTsp struct {
 	client *http.Client
-	addr   string
+	url   *url.URL
 }
 
 func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
@@ -44,7 +51,19 @@ func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []
 	}
 
 	dataReader := bytes.NewReader(reqRawData)
-	req, reqErr := http.NewRequest(data["method"].(string), t.addr, dataReader)
+
+	addr := t.url
+
+	if resource, ok := data["resource"].(string); ok {
+		var urlErr error
+		addr, urlErr = t.url.Parse(resource)
+
+		if urlErr != nil {
+			return nil, &Error{name: InvalidRequestErr, reason: urlErr.Error()}
+		}
+	}
+
+	req, reqErr := http.NewRequest(data["method"].(string), addr.String(), dataReader)
 
 	if reqErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
