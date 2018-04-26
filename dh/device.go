@@ -20,8 +20,7 @@ type Device struct {
 }
 
 func (d *Device) Remove() *Error {
-	_, _, err := d.client.request(map[string]interface{}{
-		"action":   "device/delete",
+	_, _, err := d.client.request("device/delete", map[string]interface{}{
 		"deviceId": d.Id,
 	})
 
@@ -29,8 +28,7 @@ func (d *Device) Remove() *Error {
 }
 
 func (d *Device) Save() *Error {
-	_, _, err := d.client.request(map[string]interface{}{
-		"action":   "device/save",
+	_, _, err := d.client.request("device/save", map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
 	})
@@ -44,7 +42,6 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 	}
 
 	params.DeviceId = d.Id
-	params.Action = "command/list"
 
 	data, pErr := params.Map()
 
@@ -52,7 +49,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	_, rawRes, err := d.client.request(data)
+	_, rawRes, err := d.client.request("command/list", data)
 
 	if err != nil {
 		return nil, err
@@ -95,8 +92,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		comm.Result = result
 	}
 
-	_, rawRes, err := d.client.request(map[string]interface{}{
-		"action":   "command/insert",
+	_, rawRes, err := d.client.request("command/insert", map[string]interface{}{
 		"deviceId": d.Id,
 		"command":  comm,
 	})
@@ -122,7 +118,6 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 	}
 
 	params.DeviceId = d.Id
-	params.Action = "notification/list"
 
 	data, pErr := params.Map()
 
@@ -130,7 +125,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	_, rawRes, err := d.client.request(data)
+	_, rawRes, err := d.client.request("notification/list", data)
 
 	if err != nil {
 		return nil, err
@@ -157,8 +152,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	_, rawRes, err := d.client.request(map[string]interface{}{
-		"action":       "notification/insert",
+	_, rawRes, err := d.client.request("notification/insert", map[string]interface{}{
 		"deviceId":     d.Id,
 		"notification": notif,
 	})
@@ -235,8 +229,7 @@ func (d *Device) subscribe(params *SubscribeParams, action string) (subs interfa
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	_, rawRes, err := c.request(map[string]interface{}{
-		"action":   "device/get",
+	_, rawRes, err := c.request("device/get", map[string]interface{}{
 		"deviceId": deviceId,
 	})
 
@@ -285,8 +278,7 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 		device.IsBlocked = isBlocked
 	}
 
-	_, _, err = c.request(map[string]interface{}{
-		"action":   "device/save",
+	_, _, err = c.request("device/save", map[string]interface{}{
 		"deviceId": deviceId,
 		"device":   device,
 	})

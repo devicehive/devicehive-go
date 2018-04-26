@@ -29,11 +29,10 @@ func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkI
 	}
 
 	data := map[string]interface{}{
-		"action":  "token/create",
 		"payload": payload,
 	}
 
-	return c.tokenRequest(data)
+	return c.tokenRequest("token/create", data)
 }
 
 func (c *Client) RefreshToken() (accessToken string, err *Error) {
@@ -46,8 +45,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 }
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	_, resBytes, err := c.request(map[string]interface{}{
-		"action":       "token/refresh",
+	_, resBytes, err := c.request("token/refresh", map[string]interface{}{
 		"refreshToken": c.refreshToken,
 	})
 
@@ -66,15 +64,14 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 }
 
 func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	return c.tokenRequest(map[string]interface{}{
-		"action":   "token",
+	return c.tokenRequest("token", map[string]interface{}{
 		"login":    login,
 		"password": pass,
 	})
 }
 
-func (c *Client) tokenRequest(data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	_, resBytes, err := c.request(data)
+func (c *Client) tokenRequest(resource string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
+	_, resBytes, err := c.request(resource, data)
 
 	if err != nil {
 		return "", "", err

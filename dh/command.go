@@ -21,8 +21,7 @@ type Command struct {
 }
 
 func (comm *Command) Save() *Error {
-	_, _, err := comm.client.request(map[string]interface{}{
-		"action":    "command/update",
+	_, _, err := comm.client.request("command/update", map[string]interface{}{
 		"deviceId":  comm.DeviceId,
 		"commandId": comm.Id,
 		"command":   comm,

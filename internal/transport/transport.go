@@ -10,7 +10,7 @@ const (
 )
 
 type Transporter interface {
-	Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error)
+	Request(resource string, data devicehiveData, timeout time.Duration) (res []byte, err *Error)
 	Subscribe(subscriptionId string) (eventChan chan []byte)
 	Unsubscribe(subscriptionId string)
 }
