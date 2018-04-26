@@ -28,7 +28,7 @@ func TestRequestId(t *testing.T) {
 
 	is.NoErr(err)
 
-	wsTsp.Request("", map[string]interface{}{}, testTimeout)
+	wsTsp.Request("", nil, testTimeout)
 }
 
 func TestTimeout(t *testing.T) {
@@ -49,7 +49,7 @@ func TestTimeout(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", map[string]interface{}{}, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
@@ -69,7 +69,7 @@ func TestInvalidResponse(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", map[string]interface{}{}, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
@@ -89,7 +89,7 @@ func TestConnectionClose(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("", map[string]interface{}{}, testTimeout)
+	res, tspErr := wsTsp.Request("", nil, testTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.ConnClosedErr)
@@ -113,7 +113,7 @@ func TestSubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("notification/subscribe", map[string]interface{}{}, 0)
+	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
 
 	if tspErr != nil {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
@@ -148,7 +148,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("notification/subscribe", map[string]interface{}{}, 0)
+	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
 
 	if tspErr != nil {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
