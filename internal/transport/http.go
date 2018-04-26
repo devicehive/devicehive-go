@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"time"
 	"net/url"
+	"time"
 )
 
 func newHTTP(addr string) (tsp *httpTsp, err error) {
@@ -24,7 +24,7 @@ func newHTTP(addr string) (tsp *httpTsp, err error) {
 
 type httpTsp struct {
 	client *http.Client
-	url   *url.URL
+	url    *url.URL
 }
 
 func (t *httpTsp) Request(resource string, data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {

@@ -17,7 +17,7 @@ type Client struct {
 
 func (c *Client) Authenticate(token string) (result bool, err *Error) {
 	res, _, err := c.request("authenticate", map[string]interface{}{
-		"token":  token,
+		"token": token,
 	})
 
 	if err != nil {
