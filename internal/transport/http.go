@@ -28,47 +28,86 @@ type httpTsp struct {
 }
 
 func (t *httpTsp) Request(resource string, data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
+	t.setTimeout(timeout)
+	method := t.getRequestMethod(data)
+
+	reqDataReader, err := t.createRequestDataReader(data)
+	if err != nil {
+		return nil, err
+	}
+
+	addr, err := t.createRequestAddr(data)
+	if err != nil {
+		return
+	}
+
+	req, reqErr := http.NewRequest(method, addr, reqDataReader)
+	if reqErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
+	}
+
+	return t.doRequest(req)
+}
+
+func (t *httpTsp) setTimeout(timeout time.Duration) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
 
 	t.client.Timeout = timeout
+}
 
-	if _, ok := data["method"]; !ok {
-		data["method"] = "GET"
+func (t *httpTsp) getRequestMethod(data devicehiveData) string {
+	defaultMethod := "GET"
+
+	if data == nil {
+		return defaultMethod
 	}
 
-	var reqRawData []byte
+	if _, ok := data["method"]; !ok {
+		return defaultMethod
+	}
+
+	if m, ok := data["method"].(string); ok {
+		return m
+	}
+
+	return defaultMethod
+}
+
+func (t *httpTsp) createRequestDataReader(data devicehiveData) (dataReader *bytes.Reader, err *Error) {
+	var reqData []byte
+
 	if reqData, ok := data["request"]; ok {
 		var err error
-		reqRawData, err = json.Marshal(reqData)
+		reqData, err = json.Marshal(reqData)
 
 		if err != nil {
 			return nil, &Error{name: InvalidRequestErr, reason: err.Error()}
 		}
 	} else {
-		reqRawData = []byte("{}")
+		reqData = []byte("{}")
 	}
 
-	dataReader := bytes.NewReader(reqRawData)
+	return bytes.NewReader(reqData), nil
+}
 
-	addr := t.url
+func (t *httpTsp) createRequestAddr(data devicehiveData) (addr string, err *Error) {
+	u := t.url
 
 	if resource, ok := data["resource"].(string); ok {
 		var urlErr error
-		addr, urlErr = t.url.Parse(resource)
+		u, urlErr = t.url.Parse(resource)
 
 		if urlErr != nil {
-			return nil, &Error{name: InvalidRequestErr, reason: urlErr.Error()}
+			return "", &Error{name: InvalidRequestErr, reason: urlErr.Error()}
 		}
 	}
 
-	req, reqErr := http.NewRequest(data["method"].(string), addr.String(), dataReader)
+	return u.String(), nil
+}
 
-	if reqErr != nil {
-		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
-	}
-
+func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 	res, resErr := t.client.Do(req)
 
 	if resErr != nil {

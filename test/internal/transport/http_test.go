@@ -30,7 +30,7 @@ func TestHTTPRequestId(t *testing.T) {
 		return
 	}
 
-	_, tspErr := httpTsp.Request("", map[string]interface{}{}, testHTTPTimeout)
+	_, tspErr := httpTsp.Request("", nil, testHTTPTimeout)
 
 	if tspErr != nil {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
@@ -52,7 +52,7 @@ func TestHTTPTimeout(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := httpTsp.Request("", map[string]interface{}{}, testHTTPTimeout)
+	res, tspErr := httpTsp.Request("", nil, testHTTPTimeout)
 
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
