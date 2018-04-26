@@ -27,7 +27,7 @@ type httpTsp struct {
 	url   *url.URL
 }
 
-func (t *httpTsp) Request(data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
+func (t *httpTsp) Request(resource string, data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
