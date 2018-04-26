@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	defaultHTTPMethod = "GET"
+)
+
 func newHTTP(addr string) (tsp *httpTsp, err error) {
 	u, err := url.Parse(addr)
 
@@ -58,21 +62,19 @@ func (t *httpTsp) setTimeout(timeout time.Duration) {
 }
 
 func (t *httpTsp) getRequestMethod(data devicehiveData) string {
-	defaultMethod := "GET"
-
 	if data == nil {
-		return defaultMethod
+		return defaultHTTPMethod
 	}
 
 	if _, ok := data["method"]; !ok {
-		return defaultMethod
+		return defaultHTTPMethod
 	}
 
 	if m, ok := data["method"].(string); ok {
 		return m
 	}
 
-	return defaultMethod
+	return defaultHTTPMethod
 }
 
 func (t *httpTsp) createRequestDataReader(data devicehiveData) (dataReader *bytes.Reader, err *Error) {
