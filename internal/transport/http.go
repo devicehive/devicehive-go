@@ -76,20 +76,20 @@ func (t *httpTsp) getRequestMethod(data devicehiveData) string {
 }
 
 func (t *httpTsp) createRequestDataReader(data devicehiveData) (dataReader *bytes.Reader, err *Error) {
-	var reqData []byte
+	var rawReqData []byte
 
 	if reqData, ok := data["request"]; ok {
 		var err error
-		reqData, err = json.Marshal(reqData)
+		rawReqData, err = json.Marshal(reqData)
 
 		if err != nil {
 			return nil, &Error{name: InvalidRequestErr, reason: err.Error()}
 		}
 	} else {
-		reqData = []byte("{}")
+		rawReqData = []byte("{}")
 	}
 
-	return bytes.NewReader(reqData), nil
+	return bytes.NewReader(rawReqData), nil
 }
 
 func (t *httpTsp) createRequestAddr(data devicehiveData) (addr string, err *Error) {
