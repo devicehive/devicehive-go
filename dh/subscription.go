@@ -20,7 +20,7 @@ type Subscription struct {
 
 func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *Error) {
 	_, resBytes, err := c.request("subscription/list", map[string]interface{}{
-		"type":   subsType,
+		"type": subsType,
 	})
 
 	if err != nil {

@@ -14,7 +14,7 @@ type Configuration struct {
 
 func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 	_, rawRes, err := c.request("configuration/get", map[string]interface{}{
-		"name":   name,
+		"name": name,
 	})
 
 	if err != nil {
@@ -33,8 +33,8 @@ func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 
 func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error) {
 	_, rawRes, err := c.request("configuration/put", map[string]interface{}{
-		"name":   name,
-		"value":  value,
+		"name":  name,
+		"value": value,
 	})
 
 	if err != nil {
@@ -53,7 +53,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 
 func (c *Client) DeleteProperty(name string) *Error {
 	_, _, err := c.request("configuration/delete", map[string]interface{}{
-		"name":   name,
+		"name": name,
 	})
 
 	return err

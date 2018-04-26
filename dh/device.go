@@ -180,8 +180,8 @@ func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (s
 
 func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
 	s, err := d.subscribe(&SubscribeParams{
-		Names: names,
-		Timestamp: timestamp,
+		Names:                 names,
+		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
 	}, "command/subscribe")
 
@@ -195,7 +195,7 @@ func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUp
 
 func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	s, err := d.subscribe(&SubscribeParams{
-		Names: names,
+		Names:     names,
 		Timestamp: timestamp,
 	}, "notification/subscribe")
 
