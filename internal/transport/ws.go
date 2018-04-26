@@ -8,8 +8,14 @@ import (
 	"time"
 )
 
-func newWS(conn *websocket.Conn) *ws {
-	tsp := &ws{
+func newWS(addr string) (tsp *ws, err error) {
+	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tsp = &ws{
 		conn:          conn,
 		requests:      make(clientsMap),
 		subscriptions: make(clientsMap),
@@ -17,7 +23,7 @@ func newWS(conn *websocket.Conn) *ws {
 
 	go tsp.handleServerMessages()
 
-	return tsp
+	return tsp, nil
 }
 
 type ws struct {

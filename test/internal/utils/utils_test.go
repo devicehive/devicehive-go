@@ -1,4 +1,4 @@
-package internal_test
+package utils_test
 
 import (
 	"github.com/devicehive/devicehive-go/internal/utils"

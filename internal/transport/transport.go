@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"github.com/gorilla/websocket"
+	"strings"
 	"time"
 )
 
@@ -16,12 +16,9 @@ type Transporter interface {
 }
 
 func Create(url string) (transport Transporter, err error) {
-	// @TODO HTTP transport
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
-
-	if err != nil {
-		return nil, err
+	if strings.Contains(url, "http") {
+		return newHTTP(url)
 	}
 
-	return newWS(conn), nil
+	return newWS(url)
 }
