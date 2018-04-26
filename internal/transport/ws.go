@@ -37,31 +37,19 @@ type ids struct {
 	Subscription int64  `json:"subscriptionId"`
 }
 
-func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
-	if _, ok := t.subscriptions.get(subscriptionId); ok {
-		return nil
-	}
-
-	client := t.subscriptions.createSubscriber(subscriptionId)
-	return client.data
-}
-
-func (t *ws) Unsubscribe(subscriptionId string) {
-	client, ok := t.subscriptions.get(subscriptionId)
-
-	if ok {
-		client.close()
-		t.subscriptions.delete(subscriptionId)
-	}
-}
-
-func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
+func (t *ws) Request(resource string, data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
 
+	if data == nil {
+		data = devicehiveData(make(map[string]interface{}))
+	}
+
 	reqId := data.requestId()
 	client := t.requests.createClient(reqId)
+
+	data["action"] = resource
 
 	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {
@@ -77,6 +65,24 @@ func (t *ws) Request(data devicehiveData, timeout time.Duration) (res []byte, er
 		client.close()
 		t.requests.delete(reqId)
 		return nil, &Error{name: TimeoutErr, reason: "response timeout"}
+	}
+}
+
+func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
+	if _, ok := t.subscriptions.get(subscriptionId); ok {
+		return nil
+	}
+
+	client := t.subscriptions.createSubscriber(subscriptionId)
+	return client.data
+}
+
+func (t *ws) Unsubscribe(subscriptionId string) {
+	client, ok := t.subscriptions.get(subscriptionId)
+
+	if ok {
+		client.close()
+		t.subscriptions.delete(subscriptionId)
 	}
 }
 

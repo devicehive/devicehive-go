@@ -24,9 +24,7 @@ type ClusterInfo struct {
 }
 
 func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
-	_, resBytes, err := c.request(map[string]interface{}{
-		"action": "server/info",
-	})
+	_, resBytes, err := c.request("server/info", nil)
 
 	if err != nil {
 		return nil, err
@@ -44,9 +42,7 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 }
 
 func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
-	_, resBytes, err := c.request(map[string]interface{}{
-		"action": "cluster/info",
-	})
+	_, resBytes, err := c.request("cluster/info", nil)
 
 	if err != nil {
 		return nil, err

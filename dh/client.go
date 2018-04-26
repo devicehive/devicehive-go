@@ -16,8 +16,7 @@ type Client struct {
 }
 
 func (c *Client) Authenticate(token string) (result bool, err *Error) {
-	res, _, err := c.request(map[string]interface{}{
-		"action": "authenticate",
+	res, _, err := c.request("authenticate", map[string]interface{}{
 		"token":  token,
 	})
 
@@ -28,12 +27,10 @@ func (c *Client) Authenticate(token string) (result bool, err *Error) {
 	return res.Status == "success", nil
 }
 
-func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
+func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
-
-	params.Action = action
 
 	data, jsonErr := params.Map()
 
@@ -41,7 +38,7 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	_, rawRes, err := c.request(data)
+	_, rawRes, err := c.request(resource, data)
 
 	if err != nil {
 		return nil, "", err
@@ -63,9 +60,8 @@ func (c *Client) subscribe(action string, params *SubscribeParams) (tspChan chan
 	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
 }
 
-func (c *Client) unsubscribe(action, subscriptionId string) *Error {
-	_, _, err := c.request(map[string]interface{}{
-		"action":         action,
+func (c *Client) unsubscribe(resource, subscriptionId string) *Error {
+	_, _, err := c.request(resource, map[string]interface{}{
 		"subscriptionId": subscriptionId,
 	})
 
@@ -78,8 +74,8 @@ func (c *Client) unsubscribe(action, subscriptionId string) *Error {
 	return nil
 }
 
-func (c *Client) request(data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
-	resBytes, tspErr := c.tsp.Request(data, Timeout)
+func (c *Client) request(resource string, data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
+	resBytes, tspErr := c.tsp.Request(resource, data, Timeout)
 	res, err = c.handleResponse(resBytes, tspErr)
 
 	return res, resBytes, err
