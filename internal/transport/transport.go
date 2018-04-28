@@ -10,9 +10,11 @@ const (
 )
 
 type Transporter interface {
-	Request(resource string, data devicehiveData, timeout time.Duration) (res []byte, err *Error)
+	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
 	Subscribe(subscriptionId string) (eventChan chan []byte)
 	Unsubscribe(subscriptionId string)
+	IsHTTP() bool
+	IsWS() bool
 }
 
 func Create(url string) (transport Transporter, err error) {

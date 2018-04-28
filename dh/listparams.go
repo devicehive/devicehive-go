@@ -7,7 +7,6 @@ import (
 )
 
 type ListParams struct {
-	Action       string    `json:"action"`
 	DeviceId     string    `json:"deviceId,omitempty"`
 	Start        time.Time `json:"start,omitempty"`
 	End          time.Time `json:"end,omitempty"`

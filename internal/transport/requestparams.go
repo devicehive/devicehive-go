@@ -6,19 +6,24 @@ import (
 	"time"
 )
 
-type devicehiveData map[string]interface{}
+type RequestParams struct {
+	Action    string
+	Data      map[string]interface{}
+	Method    string
+	RequestId string
+}
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
 
-func (d devicehiveData) requestId() string {
-	reqId, ok := d["requestId"].(string)
+func (p *RequestParams) requestId() string {
+	reqId := p.RequestId
 
-	if !ok {
+	if reqId == "" {
 		r := strconv.FormatUint(ranGen.Uint64(), 10)
 		ts := strconv.FormatInt(time.Now().Unix(), 10)
 		reqId = r + ts
 
-		d["requestId"] = reqId
+		p.RequestId = reqId
 	}
 
 	return reqId

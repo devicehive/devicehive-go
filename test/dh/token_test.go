@@ -24,6 +24,7 @@ func TestCreateToken(t *testing.T) {
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+		return
 	}
 
 	is.True(accessToken != "")
@@ -42,6 +43,7 @@ func TestRefreshToken(t *testing.T) {
 
 	if dhErr != nil {
 		t.Errorf("%s: %v", dhErr.Name(), dhErr)
+		return
 	}
 
 	is.True(accessToken != "")

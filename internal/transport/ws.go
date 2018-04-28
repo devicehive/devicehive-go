@@ -32,24 +32,38 @@ type ws struct {
 	subscriptions clientsMap
 }
 
+func (t *ws) IsHTTP() bool {
+	return false
+}
+
+func (t *ws) IsWS() bool {
+	return true
+}
+
 type ids struct {
 	Request      string `json:"requestId"`
 	Subscription int64  `json:"subscriptionId"`
 }
 
-func (t *ws) Request(resource string, data devicehiveData, timeout time.Duration) (res []byte, err *Error) {
+func (t *ws) Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
 
-	if data == nil {
-		data = devicehiveData(make(map[string]interface{}))
+	if params == nil {
+		params = &RequestParams{}
 	}
 
-	reqId := data.requestId()
+	reqId := params.requestId()
 	client := t.requests.createClient(reqId)
 
+	data := make(map[string]interface{})
 	data["action"] = resource
+	data["requestId"] = reqId
+
+	for k, v := range params.Data {
+		data[k] = v
+	}
 
 	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {

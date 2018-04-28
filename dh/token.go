@@ -32,7 +32,7 @@ func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkI
 		"payload": payload,
 	}
 
-	return c.tokenRequest("token/create", data)
+	return c.tokenRequest("tokenCreate", data)
 }
 
 func (c *Client) RefreshToken() (accessToken string, err *Error) {
@@ -70,8 +70,8 @@ func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken st
 	})
 }
 
-func (c *Client) tokenRequest(resource string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	_, resBytes, err := c.request(resource, data)
+func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
+	_, resBytes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return "", "", err

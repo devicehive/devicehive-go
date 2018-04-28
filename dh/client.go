@@ -10,21 +10,27 @@ import (
 
 type Client struct {
 	tsp          transport.Transporter
+	accessToken  string
 	refreshToken string
 	login        string
 	password     string
 }
 
-func (c *Client) Authenticate(token string) (result bool, err *Error) {
-	res, _, err := c.request("authenticate", map[string]interface{}{
-		"token": token,
-	})
+func (c *Client) authenticate(token string) (result bool, err *Error) {
+	if c.tsp.IsHTTP() {
+		c.accessToken = token
+		return true, nil
+	} else {
+		res, _, err := c.request("auth", map[string]interface{}{
+			"token": token,
+		})
 
-	if err != nil {
-		return false, err
+		if err != nil {
+			return false, err
+		}
+
+		return res.Status == "success", nil
 	}
-
-	return res.Status == "success", nil
 }
 
 func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
@@ -74,8 +80,26 @@ func (c *Client) unsubscribe(resource, subscriptionId string) *Error {
 	return nil
 }
 
-func (c *Client) request(resource string, data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
-	resBytes, tspErr := c.tsp.Request(resource, data, Timeout)
+func (c *Client) request(resourceName string, data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
+	resource, method := c.resolveResource(resourceName)
+
+	if resource == "" {
+		return nil, nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
+	}
+
+	tspReqParams := &transport.RequestParams{
+		Data: make(map[string]interface{}),
+	}
+
+	if c.tsp.IsHTTP() && method != "" {
+		tspReqParams.Method = method
+	}
+
+	for k, v := range data {
+		tspReqParams.Data[k] = v
+	}
+
+	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
 	res, err = c.handleResponse(resBytes, tspErr)
 
 	return res, resBytes, err

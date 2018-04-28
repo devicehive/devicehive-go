@@ -7,6 +7,7 @@ import (
 
 const (
 	NotificationType = "notification"
+	CommandType      = "command"
 	Timeout          = 5 * time.Second
 )
 
@@ -56,7 +57,7 @@ func connect(url string) (c *Client, err *Error) {
 }
 
 func auth(accTok string, c *Client) (client *Client, err *Error) {
-	auth, err := c.Authenticate(accTok)
+	auth, err := c.authenticate(accTok)
 
 	if err != nil {
 		return nil, err
