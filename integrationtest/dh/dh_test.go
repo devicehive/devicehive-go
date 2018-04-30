@@ -7,8 +7,9 @@ import (
 	"testing"
 )
 
-const serverAddr = "playground-dev.devicehive.com/api/websocket"
-const wsServerAddr = "ws://" + serverAddr
+const serverAddr = "playground-dev.devicehive.com/api"
+const wsServerAddr = "ws://" + serverAddr + "/websocket"
+const httpServerAddr = "http://" + serverAddr + "/rest"
 
 var dhLogin = flag.String("dhLogin", "dhadmin", "Your username")
 var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")

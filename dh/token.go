@@ -45,7 +45,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 }
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	_, resBytes, err := c.request("token/refresh", map[string]interface{}{
+	_, resBytes, err := c.request("tokenRefresh", map[string]interface{}{
 		"refreshToken": c.refreshToken,
 	})
 
@@ -64,7 +64,7 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 }
 
 func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	return c.tokenRequest("token", map[string]interface{}{
+	return c.tokenRequest("tokenByCreds", map[string]interface{}{
 		"login":    login,
 		"password": pass,
 	})

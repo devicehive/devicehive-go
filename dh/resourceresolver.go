@@ -3,11 +3,21 @@ package dh
 var wsResources = map[string]string{
 	"auth":        "authenticate",
 	"tokenCreate": "token/create",
+	"tokenRefresh": "token/refresh",
+	"tokenByCreds": "token",
 }
 
 var httpResources = map[string][2]string{
 	"tokenCreate": [2]string{
 		"token/create",
+		"POST",
+	},
+	"tokenRefresh": [2]string{
+		"token/refresh",
+		"POST",
+	},
+	"tokenByCreds": [2]string{
+		"token",
 		"POST",
 	},
 }
