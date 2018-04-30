@@ -206,22 +206,22 @@ func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (su
 	return s.(*NotificationSubscription), nil
 }
 
-func (d *Device) subscribe(params *SubscribeParams, action string) (subs interface{}, err *Error) {
+func (d *Device) subscribe(params *SubscribeParams, resourceName string) (subs interface{}, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
 
 	params.DeviceId = d.Id
 
-	tspChan, subsId, err := d.client.subscribe(action, params)
+	tspChan, subsId, err := d.client.subscribe(resourceName, params)
 
 	if err != nil || tspChan == nil {
 		return nil, err
 	}
 
-	if action == "notification/subscribe" {
+	if resourceName == "notification/subscribe" {
 		subs = newNotificationSubscription(subsId, tspChan, d.client)
-	} else if action == "command/subscribe" {
+	} else if resourceName == "command/subscribe" {
 		subs = newCommandSubscription(subsId, tspChan, d.client)
 	}
 

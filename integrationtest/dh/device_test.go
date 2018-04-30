@@ -113,6 +113,10 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	}
 
 	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
 
 	go func() {
 		select {
@@ -150,6 +154,10 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 	}
 
 	commUpdChan, err := device.SubscribeUpdateCommands(nil, time.Time{})
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
 
 	go func() {
 		select {

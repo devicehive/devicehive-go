@@ -33,7 +33,7 @@ func (c *Client) authenticate(token string) (result bool, err *Error) {
 	}
 }
 
-func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
+func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
@@ -44,7 +44,7 @@ func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan ch
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	_, rawRes, err := c.request(resource, data)
+	_, rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return nil, "", err
@@ -66,8 +66,8 @@ func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan ch
 	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
 }
 
-func (c *Client) unsubscribe(resource, subscriptionId string) *Error {
-	_, _, err := c.request(resource, map[string]interface{}{
+func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
+	_, _, err := c.request(resourceName, map[string]interface{}{
 		"subscriptionId": subscriptionId,
 	})
 
