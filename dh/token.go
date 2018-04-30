@@ -45,7 +45,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 }
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	_, resBytes, err := c.request("tokenRefresh", map[string]interface{}{
+	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
 		"refreshToken": c.refreshToken,
 	})
 
@@ -54,7 +54,7 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 	}
 
 	tok := &token{}
-	parseErr := json.Unmarshal(resBytes, tok)
+	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
 		return "", newJSONErr()
@@ -71,14 +71,14 @@ func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken st
 }
 
 func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	_, resBytes, err := c.request(resourceName, data)
+	rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return "", "", err
 	}
 
 	tok := &token{}
-	parseErr := json.Unmarshal(resBytes, tok)
+	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
 		return "", "", newJSONErr()

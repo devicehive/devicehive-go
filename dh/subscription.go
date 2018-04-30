@@ -19,7 +19,7 @@ type Subscription struct {
 }
 
 func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *Error) {
-	_, resBytes, err := c.request("subscription/list", map[string]interface{}{
+	rawRes, err := c.request("subscription/list", map[string]interface{}{
 		"type": subsType,
 	})
 
@@ -28,7 +28,7 @@ func (c *Client) SubscriptionList(subsType string) (list []*Subscription, err *E
 	}
 
 	subs := &subscriptions{List: list}
-	parseErr := json.Unmarshal(resBytes, subs)
+	parseErr := json.Unmarshal(rawRes, subs)
 
 	if parseErr != nil {
 		return nil, newJSONErr()

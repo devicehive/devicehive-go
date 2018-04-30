@@ -21,9 +21,15 @@ func (c *Client) authenticate(token string) (result bool, err *Error) {
 		c.accessToken = token
 		return true, nil
 	} else {
-		res, _, err := c.request("auth", map[string]interface{}{
+		rawRes, err := c.request("auth", map[string]interface{}{
 			"token": token,
 		})
+
+		if err != nil {
+			return false, err
+		}
+
+		res, err := c.handleResponse(rawRes)
 
 		if err != nil {
 			return false, err
@@ -44,7 +50,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	_, rawRes, err := c.request(resourceName, data)
+	rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return nil, "", err
@@ -67,7 +73,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	_, _, err := c.request(resourceName, map[string]interface{}{
+	_, err := c.request(resourceName, map[string]interface{}{
 		"subscriptionId": subscriptionId,
 	})
 
@@ -80,11 +86,11 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 	return nil
 }
 
-func (c *Client) request(resourceName string, data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
+func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
 	resource, method := c.resolveResource(resourceName)
 
 	if resource == "" {
-		return nil, nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
+		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
 	tspReqParams := &transport.RequestParams{
@@ -100,16 +106,17 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (res 
 	}
 
 	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
-	res, err = c.handleResponse(resBytes, tspErr)
 
-	return res, resBytes, err
-}
-
-func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {
 	if tspErr != nil {
 		return nil, newTransportErr(tspErr)
 	}
 
+	_, err = c.handleResponse(resBytes)
+
+	return resBytes, err
+}
+
+func (c *Client) handleResponse(resBytes []byte) (res *response, err *Error) {
 	res = &response{}
 	parseErr := json.Unmarshal(resBytes, res)
 

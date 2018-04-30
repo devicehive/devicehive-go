@@ -24,7 +24,7 @@ type ClusterInfo struct {
 }
 
 func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
-	_, resBytes, err := c.request("server/info", nil)
+	rawRes, err := c.request("server/info", nil)
 
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 
 	info = &ServerInfo{}
 	srvInfo := &serverInfo{Value: info}
-	parseErr := json.Unmarshal(resBytes, srvInfo)
+	parseErr := json.Unmarshal(rawRes, srvInfo)
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -42,7 +42,7 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 }
 
 func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
-	_, resBytes, err := c.request("cluster/info", nil)
+	rawRes, err := c.request("cluster/info", nil)
 
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 
 	info = &ClusterInfo{}
 	clustInfo := &clusterInfo{Value: info}
-	parseErr := json.Unmarshal(resBytes, clustInfo)
+	parseErr := json.Unmarshal(rawRes, clustInfo)
 
 	if parseErr != nil {
 		return nil, newJSONErr()
