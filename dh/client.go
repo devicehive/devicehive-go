@@ -87,21 +87,7 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	tspReqParams := &transport.RequestParams{
-		Data: make(map[string]interface{}),
-	}
-
-	if c.tsp.IsHTTP() {
-		if method != "" {
-			tspReqParams.Method = method
-		}
-
-		tspReqParams.AccessToken = c.accessToken
-	}
-
-	for k, v := range data {
-		tspReqParams.Data[k] = v
-	}
+	tspReqParams := c.createRequestParams(method, data)
 
 	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
 
@@ -148,4 +134,24 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 	}
 
 	return nil
+}
+
+func (c *Client) createRequestParams(method string, data map[string]interface{}) *transport.RequestParams {
+	tspReqParams := &transport.RequestParams{
+		Data: make(map[string]interface{}),
+	}
+
+	if c.tsp.IsHTTP() {
+		if method != "" {
+			tspReqParams.Method = method
+		}
+
+		tspReqParams.AccessToken = c.accessToken
+	}
+
+	for k, v := range data {
+		tspReqParams.Data[k] = v
+	}
+
+	return tspReqParams
 }
