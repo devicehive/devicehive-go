@@ -11,6 +11,7 @@ type RequestParams struct {
 	Data      map[string]interface{}
 	Method    string
 	RequestId string
+	AccessToken string
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))

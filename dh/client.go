@@ -21,7 +21,7 @@ func (c *Client) authenticate(token string) (result bool, err *Error) {
 		c.accessToken = token
 		return true, nil
 	} else {
-		rawRes, err := c.request("auth", map[string]interface{}{
+		_, err := c.request("auth", map[string]interface{}{
 			"token": token,
 		})
 
@@ -29,13 +29,7 @@ func (c *Client) authenticate(token string) (result bool, err *Error) {
 			return false, err
 		}
 
-		res, err := c.handleResponse(rawRes)
-
-		if err != nil {
-			return false, err
-		}
-
-		return res.Status == "success", nil
+		return true, nil
 	}
 }
 
@@ -97,8 +91,12 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		Data: make(map[string]interface{}),
 	}
 
-	if c.tsp.IsHTTP() && method != "" {
-		tspReqParams.Method = method
+	if c.tsp.IsHTTP() {
+		if method != "" {
+			tspReqParams.Method = method
+		}
+
+		tspReqParams.AccessToken = c.accessToken
 	}
 
 	for k, v := range data {
@@ -111,25 +109,43 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		return nil, newTransportErr(tspErr)
 	}
 
-	_, err = c.handleResponse(resBytes)
+	err = c.handleResponse(resBytes)
 
 	return resBytes, err
 }
 
-func (c *Client) handleResponse(resBytes []byte) (res *response, err *Error) {
-	res = &response{}
-	parseErr := json.Unmarshal(resBytes, res)
+func (c *Client) handleResponse(resBytes []byte) (err *Error) {
+	// @TODO Refactor this conditions
+	if c.tsp.IsWS() {
+		res := &response{}
+		parseErr := json.Unmarshal(resBytes, res)
 
-	if parseErr != nil {
-		return nil, newJSONErr()
+		if parseErr != nil {
+			return newJSONErr()
+		}
+
+		if res.Status == "error" {
+			errMsg := strings.ToLower(res.Error)
+			errCode := res.Code
+			r := fmt.Sprintf("%d %s", errCode, errMsg)
+			return &Error{name: ServiceErr, reason: r}
+		}
+	} else {
+		res := &httpResponse{}
+
+		parseErr := json.Unmarshal(resBytes, res)
+
+		if parseErr != nil {
+			return newJSONErr()
+		}
+
+		if res.Status >= 400 {
+			errMsg := strings.ToLower(res.Error)
+			errCode := res.Status
+			r := fmt.Sprintf("%d %s", errCode, errMsg)
+			return &Error{name: ServiceErr, reason: r}
+		}
 	}
 
-	if res.Status == "error" {
-		errMsg := strings.ToLower(res.Error)
-		errCode := res.Code
-		r := fmt.Sprintf("%d %s", errCode, errMsg)
-		return nil, &Error{name: ServiceErr, reason: r}
-	}
-
-	return res, nil
+	return nil
 }

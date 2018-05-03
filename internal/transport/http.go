@@ -14,6 +14,10 @@ const (
 )
 
 func newHTTP(addr string) (tsp *httpTsp, err error) {
+	if addr[len(addr) - 1:] != "/" {
+		addr += "/"
+	}
+
 	u, err := url.Parse(addr)
 
 	if err != nil {
@@ -56,6 +60,10 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	req, reqErr := http.NewRequest(method, addr, reqDataReader)
 	if reqErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
+	}
+
+	if params != nil && params.AccessToken != "" {
+		req.Header.Add("Authorization", "Bearer " + params.AccessToken)
 	}
 
 	return t.doRequest(req)

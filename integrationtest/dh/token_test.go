@@ -12,7 +12,11 @@ func TestCreateToken(t *testing.T) {
 	expiration := time.Now().Add(1 * time.Second)
 	accTok, refTok, err := client.CreateToken(1, expiration, nil, nil, nil)
 
-	is.True(err == nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
+
 	is.True(accTok != "")
 	is.True(refTok != "")
 }
@@ -24,6 +28,7 @@ func TestRefreshToken(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
+		return
 	}
 
 	is.True(accessToken != "")
