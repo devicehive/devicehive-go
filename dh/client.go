@@ -81,7 +81,7 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
-	resource, method := c.resolveResource(resourceName)
+	resource, method := c.resolveResource(resourceName, data)
 
 	if resource == "" {
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}

@@ -47,9 +47,12 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	t.setTimeout(timeout)
 	method := t.getRequestMethod(params)
 
-	reqDataReader, err := t.createRequestDataReader(params)
-	if err != nil {
-		return nil, err
+	var reqDataReader *bytes.Reader
+	if method != "GET" {
+		reqDataReader, err = t.createRequestDataReader(params)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	addr, err := t.createRequestAddr(resource)

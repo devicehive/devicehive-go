@@ -1,6 +1,11 @@
 package dh
 
-func (c *Client) resolveResource(resourceName string) (resource, method string) {
+import (
+	"text/template"
+	"bytes"
+)
+
+func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
 	if c.tsp.IsHTTP() {
 		rsrc, ok := httpResources[resourceName]
 
@@ -8,7 +13,10 @@ func (c *Client) resolveResource(resourceName string) (resource, method string) 
 			return resourceName, ""
 		}
 
-		return rsrc[0], rsrc[1]
+		resource := prepareHttpResource(rsrc[0], data)
+		method := rsrc[1]
+
+		return resource, method
 	}
 
 	if wsResources[resourceName] == "" {
@@ -18,6 +26,21 @@ func (c *Client) resolveResource(resourceName string) (resource, method string) 
 	return wsResources[resourceName], ""
 }
 
+func prepareHttpResource(resourceTemplate string, data map[string]interface{}) string {
+	t, err := template.New("resource").Parse(resourceTemplate)
+	if err != nil {
+		return ""
+	}
+
+	var resource bytes.Buffer
+	err = t.Execute(&resource, data)
+	if err != nil {
+		return ""
+	}
+
+	return resource.String()
+}
+
 var wsResources = map[string]string{
 	"auth":        "authenticate",
 	"tokenCreate": "token/create",
@@ -25,6 +48,9 @@ var wsResources = map[string]string{
 	"tokenByCreds": "token",
 	"apiInfo": "server/info",
 	"apiInfoCluster": "cluster/info",
+	"putConfig": "configuration/put",
+	"getConfig": "configuration/get",
+	"deleteConfig": "configuration/delete",
 }
 
 var httpResources = map[string][2]string{
@@ -33,4 +59,7 @@ var httpResources = map[string][2]string{
 	"tokenByCreds": [2]string{ "token", "POST" },
 	"apiInfo": [2]string{ "info" },
 	"apiInfoCluster": [2]string{ "info/config/cluster" },
+	"putConfig": [2]string{ "configuration/{{index . `name`}}", "PUT" },
+	"getConfig": [2]string{ "configuration/{{index . `name`}}" },
+	"deleteConfig": [2]string{ "configuration/{{index . `name`}}", "DELETE" },
 }

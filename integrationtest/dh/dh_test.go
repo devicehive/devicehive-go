@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	var err *dh.Error
-	client, err = dh.ConnectWithCreds(wsServerAddr, *dhLogin, *dhPass)
+	client, err = dh.ConnectWithCreds(httpServerAddr, *dhLogin, *dhPass)
 
 	if err != nil {
 		panic(err)
