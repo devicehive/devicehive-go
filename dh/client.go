@@ -87,7 +87,8 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	tspReqParams := c.createRequestParams(method, data)
+	reqData := c.buildRequestData(resourceName, data)
+	tspReqParams := c.createRequestParams(method, reqData)
 
 	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
 

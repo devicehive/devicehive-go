@@ -16,7 +16,7 @@ func TestServerInfo(t *testing.T) {
 
 	is.True(info != nil)
 	is.True(info.APIVersion != "")
-	is.True(info.RestServerURL != "")
+	is.True(info.RestServerURL != "" || info.WebSocketServerURL != "")
 }
 
 func TestClusterInfo(t *testing.T) {

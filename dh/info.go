@@ -8,14 +8,15 @@ type serverInfo struct {
 	Value *ServerInfo `json:"info"`
 }
 
-type ServerInfo struct {
-	APIVersion      string      `json:"apiVersion"`
-	ServerTimestamp ISO8601Time `json:"serverTimestamp"`
-	RestServerURL   string      `json:"restServerUrl"`
-}
-
 type clusterInfo struct {
 	Value *ClusterInfo `json:"clusterInfo"`
+}
+
+type ServerInfo struct {
+	APIVersion         string      `json:"apiVersion"`
+	ServerTimestamp    ISO8601Time `json:"serverTimestamp"`
+	RestServerURL      string      `json:"restServerUrl"`
+	WebSocketServerURL string      `json:"webSocketServerUrl"`
 }
 
 type ClusterInfo struct {
@@ -24,37 +25,45 @@ type ClusterInfo struct {
 }
 
 func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
-	rawRes, err := c.request("server/info", nil)
+	rawRes, err := c.request("apiInfo", nil)
 
 	if err != nil {
 		return nil, err
 	}
 
 	info = &ServerInfo{}
-	srvInfo := &serverInfo{Value: info}
-	parseErr := json.Unmarshal(rawRes, srvInfo)
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(rawRes, &serverInfo{ info })
+	} else {
+		parseErr = json.Unmarshal(rawRes, info)
+	}
 
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
 
-	return srvInfo.Value, nil
+	return info, nil
 }
 
 func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
-	rawRes, err := c.request("cluster/info", nil)
+	rawRes, err := c.request("apiInfoCluster", nil)
 
 	if err != nil {
 		return nil, err
 	}
 
 	info = &ClusterInfo{}
-	clustInfo := &clusterInfo{Value: info}
-	parseErr := json.Unmarshal(rawRes, clustInfo)
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(rawRes, &clusterInfo{ info })
+	} else {
+		parseErr = json.Unmarshal(rawRes, info)
+	}
 
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
 
-	return clustInfo.Value, nil
+	return info, nil
 }
