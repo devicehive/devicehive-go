@@ -54,6 +54,9 @@ var wsResources = map[string]string{
 	"putDevice": "device/save",
 	"getDevice": "device/get",
 	"deleteDevice": "device/delete",
+	"insertCommand": "command/insert",
+	"listCommands": "command/list",
+	"updateCommand": "command/update",
 }
 
 var httpResources = map[string][2]string{
@@ -62,10 +65,15 @@ var httpResources = map[string][2]string{
 	"tokenByCreds": [2]string{ "token", "POST" },
 	"apiInfo": [2]string{ "info" },
 	"apiInfoCluster": [2]string{ "info/config/cluster" },
-	"putConfig": [2]string{ "configuration/{{index . `name`}}", "PUT" },
-	"getConfig": [2]string{ "configuration/{{index . `name`}}" },
-	"deleteConfig": [2]string{ "configuration/{{index . `name`}}", "DELETE" },
-	"putDevice": [2]string{ "device/{{index . `deviceId`}}", "PUT" },
-	"getDevice": [2]string{ "device/{{index . `deviceId`}}" },
-	"deleteDevice": [2]string{ "device/{{index . `deviceId`}}", "DELETE" },
+	"putConfig": [2]string{ "configuration/{{.name}}", "PUT" },
+	"getConfig": [2]string{ "configuration/{{.name}}" },
+	"deleteConfig": [2]string{ "configuration/{{.name}}", "DELETE" },
+	"putDevice": [2]string{ "device/{{.deviceId}}", "PUT" },
+	"getDevice": [2]string{ "device/{{.deviceId}}" },
+	"deleteDevice": [2]string{ "device/{{.deviceId}}", "DELETE" },
+	"insertCommand": [2]string{ "device/{{.deviceId}}/command", "POST" },
+	"listCommands": [2]string{
+		`device/{{.deviceId}}/command?start={{or .start ""}}&end={{or .end ""}}&command={{or .command ""}}&status={{or .status ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
+	},
+	"updateCommand": [2]string{ "device/{{.deviceId}}/command/{{.commandId}}", "PUT" },
 }

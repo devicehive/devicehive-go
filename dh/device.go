@@ -44,18 +44,20 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 	params.DeviceId = d.Id
 
 	data, pErr := params.Map()
-
 	if pErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("command/list", data)
-
+	rawRes, err := d.client.request("listCommands", data)
 	if err != nil {
 		return nil, err
 	}
 
-	pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
+	if d.client.tsp.IsWS() {
+		pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
+	} else {
+		pErr = json.Unmarshal(rawRes, &list)
+	}
 
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -92,7 +94,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		comm.Result = result
 	}
 
-	rawRes, err := d.client.request("command/insert", map[string]interface{}{
+	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
 		"deviceId": d.Id,
 		"command":  comm,
 	})
@@ -101,7 +103,12 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		return nil, err
 	}
 
-	parseErr := json.Unmarshal(rawRes, &commandResponse{Command: comm})
+	var parseErr error
+	if d.client.tsp.IsWS() {
+		parseErr = json.Unmarshal(rawRes, &commandResponse{Command: comm})
+	} else {
+		parseErr = json.Unmarshal(rawRes, comm)
+	}
 
 	if parseErr != nil {
 		return nil, newJSONErr()

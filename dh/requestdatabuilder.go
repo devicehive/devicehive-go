@@ -1,9 +1,11 @@
 package dh
 
 func (c *Client) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
-	builders := httpRequestPayloadBuilders
+	var builders map[string]func(map[string]interface{}) interface{}
 	if c.tsp.IsWS() {
 		builders = wsRequestPayloadBuilder
+	} else {
+		builders = httpRequestPayloadBuilders
 	}
 
 	payloadBuilder, ok := builders[resourceName]
@@ -37,5 +39,14 @@ var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interfa
 	},
 	"getDevice": func(data map[string]interface{}) interface{} {
 		return nil
+	},
+	"insertCommand": func(data map[string]interface{}) interface{} {
+		return data["command"]
+	},
+	"listCommands": func(data map[string]interface{}) interface{} {
+		return nil
+	},
+	"updateCommand": func(data map[string]interface{}) interface{} {
+		return data["command"]
 	},
 }

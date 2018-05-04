@@ -123,11 +123,9 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 		}
 
 		res := &httpResponse{}
-
 		parseErr := json.Unmarshal(resBytes, res)
-
 		if parseErr != nil {
-			return newJSONErr()
+			return nil
 		}
 
 		if res.Error >= 400 {

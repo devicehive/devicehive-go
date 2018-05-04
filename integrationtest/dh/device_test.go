@@ -64,9 +64,13 @@ func TestDeviceCommands(t *testing.T) {
 	}
 
 	list, err := device.ListCommands(nil)
+	if err != nil {
+		t.Errorf("%s: %v", err.Name(), err)
+		return
+	}
 
 	is.True(len(list) > 0)
-	is.Equal(list[0].Status, "updated")
+	is.Equal(list[len(list) - 1].Status, "updated")
 
 	err = device.Remove()
 	if err != nil {
