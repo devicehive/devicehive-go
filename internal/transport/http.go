@@ -44,23 +44,27 @@ func (t *httpTsp) IsWS() bool {
 }
 
 func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) (rawRes []byte, err *Error) {
+	addr, err := t.createRequestAddr(resource)
+	if err != nil {
+		return nil, err
+	}
+
 	t.setTimeout(timeout)
 	method := t.getRequestMethod(params)
 
-	var reqDataReader *bytes.Reader
+	var req *http.Request
+	var reqErr error
 	if method != "GET" {
-		reqDataReader, err = t.createRequestDataReader(params)
+		reqDataReader, err := t.createRequestDataReader(params)
 		if err != nil {
 			return nil, err
 		}
+
+		req, reqErr = http.NewRequest(method, addr, reqDataReader)
+	} else {
+		req, reqErr = http.NewRequest(method, addr, nil)
 	}
 
-	addr, err := t.createRequestAddr(resource)
-	if err != nil {
-		return
-	}
-
-	req, reqErr := http.NewRequest(method, addr, reqDataReader)
 	if reqErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
 	}

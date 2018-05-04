@@ -118,6 +118,10 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 			return &Error{name: ServiceErr, reason: r}
 		}
 	} else {
+		if len(resBytes) == 0 {
+			return nil
+		}
+
 		res := &httpResponse{}
 
 		parseErr := json.Unmarshal(resBytes, res)

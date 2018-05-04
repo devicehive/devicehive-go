@@ -1,6 +1,8 @@
 package dh
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type configuration struct {
 	Value *Configuration `json:"configuration"`
@@ -21,8 +23,7 @@ func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 		return nil, err
 	}
 
-	conf = &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
+	conf, parseErr := c.handlePropertyResponse(rawRes)
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -41,8 +42,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 		return -1, err
 	}
 
-	conf := &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
+	conf, parseErr := c.handlePropertyResponse(rawRes)
 
 	if parseErr != nil {
 		return -1, newJSONErr()
@@ -57,4 +57,16 @@ func (c *Client) DeleteProperty(name string) *Error {
 	})
 
 	return err
+}
+
+func (c *Client) handlePropertyResponse(res []byte) (conf *Configuration, err error) {
+	conf = &Configuration{}
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(res, &configuration{Value: conf})
+	} else {
+		parseErr = json.Unmarshal(res, conf)
+	}
+
+	return conf, parseErr
 }
