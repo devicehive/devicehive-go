@@ -8,7 +8,6 @@ import (
 )
 
 type RequestParams struct {
-	Action    string
 	Data      interface{}
 	Method    string
 	RequestId string
