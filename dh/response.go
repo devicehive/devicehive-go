@@ -7,6 +7,6 @@ type response struct {
 }
 
 type httpResponse struct {
-	Status int 	  `json:"status"`
-	Error  string `json:"error"`
+	Message string `json:"message"`
+	Error   int    `json:"error"`
 }

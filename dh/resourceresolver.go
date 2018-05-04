@@ -51,6 +51,9 @@ var wsResources = map[string]string{
 	"putConfig": "configuration/put",
 	"getConfig": "configuration/get",
 	"deleteConfig": "configuration/delete",
+	"putDevice": "device/save",
+	"getDevice": "device/get",
+	"deleteDevice": "device/delete",
 }
 
 var httpResources = map[string][2]string{
@@ -62,4 +65,7 @@ var httpResources = map[string][2]string{
 	"putConfig": [2]string{ "configuration/{{index . `name`}}", "PUT" },
 	"getConfig": [2]string{ "configuration/{{index . `name`}}" },
 	"deleteConfig": [2]string{ "configuration/{{index . `name`}}", "DELETE" },
+	"putDevice": [2]string{ "device/{{index . `deviceId`}}", "PUT" },
+	"getDevice": [2]string{ "device/{{index . `deviceId`}}" },
+	"deleteDevice": [2]string{ "device/{{index . `deviceId`}}", "DELETE" },
 }

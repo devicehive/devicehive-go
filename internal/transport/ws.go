@@ -57,13 +57,9 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	reqId := params.requestId()
 	client := t.requests.createClient(reqId)
 
-	data := make(map[string]interface{})
+	data := params.mapData()
 	data["action"] = resource
 	data["requestId"] = reqId
-
-	for k, v := range params.Data {
-		data[k] = v
-	}
 
 	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {

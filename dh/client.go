@@ -130,9 +130,9 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 			return newJSONErr()
 		}
 
-		if res.Status >= 400 {
-			errMsg := strings.ToLower(res.Error)
-			errCode := res.Status
+		if res.Error >= 400 {
+			errMsg := strings.ToLower(res.Message)
+			errCode := res.Error
 			r := fmt.Sprintf("%d %s", errCode, errMsg)
 			return &Error{name: ServiceErr, reason: r}
 		}
@@ -141,9 +141,9 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 	return nil
 }
 
-func (c *Client) createRequestParams(method string, data map[string]interface{}) *transport.RequestParams {
+func (c *Client) createRequestParams(method string, data interface{}) *transport.RequestParams {
 	tspReqParams := &transport.RequestParams{
-		Data: make(map[string]interface{}),
+		Data: data,
 	}
 
 	if c.tsp.IsHTTP() {
@@ -152,10 +152,6 @@ func (c *Client) createRequestParams(method string, data map[string]interface{})
 		}
 
 		tspReqParams.AccessToken = c.accessToken
-	}
-
-	for k, v := range data {
-		tspReqParams.Data[k] = v
 	}
 
 	return tspReqParams

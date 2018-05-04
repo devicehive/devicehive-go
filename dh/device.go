@@ -20,7 +20,7 @@ type Device struct {
 }
 
 func (d *Device) Remove() *Error {
-	_, err := d.client.request("device/delete", map[string]interface{}{
+	_, err := d.client.request("deleteDevice", map[string]interface{}{
 		"deviceId": d.Id,
 	})
 
@@ -28,7 +28,7 @@ func (d *Device) Remove() *Error {
 }
 
 func (d *Device) Save() *Error {
-	_, err := d.client.request("device/save", map[string]interface{}{
+	_, err := d.client.request("putDevice", map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
 	})
@@ -229,7 +229,7 @@ func (d *Device) subscribe(params *SubscribeParams, resourceName string) (subs i
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	rawRes, err := c.request("device/get", map[string]interface{}{
+	rawRes, err := c.request("getDevice", map[string]interface{}{
 		"deviceId": deviceId,
 	})
 
@@ -240,7 +240,12 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, &deviceResponse{Device: device})
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(rawRes, &deviceResponse{Device: device})
+	} else {
+		parseErr = json.Unmarshal(rawRes, device)
+	}
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -278,7 +283,7 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 		device.IsBlocked = isBlocked
 	}
 
-	_, err = c.request("device/save", map[string]interface{}{
+	_, err = c.request("putDevice", map[string]interface{}{
 		"deviceId": deviceId,
 		"device":   device,
 	})
