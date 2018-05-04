@@ -57,23 +57,29 @@ var wsResources = map[string]string{
 	"insertCommand": "command/insert",
 	"listCommands": "command/list",
 	"updateCommand": "command/update",
+	"insertNotification": "notification/insert",
+	"listNotifications": "notification/list",
 }
 
 var httpResources = map[string][2]string{
-	"tokenCreate": [2]string{ "token/create", "POST" },
-	"tokenRefresh": [2]string{ "token/refresh", "POST" },
-	"tokenByCreds": [2]string{ "token", "POST" },
-	"apiInfo": [2]string{ "info" },
-	"apiInfoCluster": [2]string{ "info/config/cluster" },
-	"putConfig": [2]string{ "configuration/{{.name}}", "PUT" },
-	"getConfig": [2]string{ "configuration/{{.name}}" },
-	"deleteConfig": [2]string{ "configuration/{{.name}}", "DELETE" },
-	"putDevice": [2]string{ "device/{{.deviceId}}", "PUT" },
-	"getDevice": [2]string{ "device/{{.deviceId}}" },
-	"deleteDevice": [2]string{ "device/{{.deviceId}}", "DELETE" },
-	"insertCommand": [2]string{ "device/{{.deviceId}}/command", "POST" },
-	"listCommands": [2]string{
+	"tokenCreate": { "token/create", "POST" },
+	"tokenRefresh": { "token/refresh", "POST" },
+	"tokenByCreds": { "token", "POST" },
+	"apiInfo": { "info" },
+	"apiInfoCluster": { "info/config/cluster" },
+	"putConfig": { "configuration/{{.name}}", "PUT" },
+	"getConfig": { "configuration/{{.name}}" },
+	"deleteConfig": { "configuration/{{.name}}", "DELETE" },
+	"putDevice": { "device/{{.deviceId}}", "PUT" },
+	"getDevice": { "device/{{.deviceId}}" },
+	"deleteDevice": { "device/{{.deviceId}}", "DELETE" },
+	"insertCommand": { "device/{{.deviceId}}/command", "POST" },
+	"listCommands": {
 		`device/{{.deviceId}}/command?start={{or .start ""}}&end={{or .end ""}}&command={{or .command ""}}&status={{or .status ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
-	"updateCommand": [2]string{ "device/{{.deviceId}}/command/{{.commandId}}", "PUT" },
+	"updateCommand": { "device/{{.deviceId}}/command/{{.commandId}}", "PUT" },
+	"insertNotification": { "device/{{.deviceId}}/notification", "POST" },
+	"listNotifications": {
+		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
+	},
 }

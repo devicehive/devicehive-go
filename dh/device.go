@@ -127,18 +127,20 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 	params.DeviceId = d.Id
 
 	data, pErr := params.Map()
-
 	if pErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("notification/list", data)
-
+	rawRes, err := d.client.request("listNotifications", data)
 	if err != nil {
 		return nil, err
 	}
 
-	pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
+	if d.client.tsp.IsWS() {
+		pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
+	} else {
+		pErr = json.Unmarshal(rawRes, &list)
+	}
 
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -159,7 +161,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	rawRes, err := d.client.request("notification/insert", map[string]interface{}{
+	rawRes, err := d.client.request("insertNotification", map[string]interface{}{
 		"deviceId":     d.Id,
 		"notification": notif,
 	})
@@ -168,7 +170,12 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		return nil, err
 	}
 
-	pErr := json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
+	var pErr error
+	if d.client.tsp.IsWS() {
+		pErr = json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
+	} else {
+		pErr = json.Unmarshal(rawRes, notif)
+	}
 
 	if pErr != nil {
 		return nil, newJSONErr()

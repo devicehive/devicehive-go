@@ -49,4 +49,7 @@ var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interfa
 	"updateCommand": func(data map[string]interface{}) interface{} {
 		return data["command"]
 	},
+	"insertNotification": func(data map[string]interface{}) interface{} {
+		return data["notification"]
+	},
 }
