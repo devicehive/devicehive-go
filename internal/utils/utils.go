@@ -19,6 +19,10 @@ func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 }
 
 func StructToJSONMap(s interface{}) map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+
 	if m, ok := s.(map[string]interface{}); ok {
 		return m
 	}

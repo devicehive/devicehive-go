@@ -34,11 +34,14 @@ func (s *HTTPTestServer) Start() (srvAddr string) {
 			panic(err)
 		}
 
-		data := make(map[string]interface{})
-		err = json.Unmarshal(body, &data)
+		var data map[string]interface{}
+		if len(body) != 0 {
+			data = make(map[string]interface{})
+			err = json.Unmarshal(body, &data)
 
-		if err != nil {
-			panic(err)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		s.reqHandler(data, w)
