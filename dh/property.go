@@ -1,6 +1,8 @@
 package dh
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type configuration struct {
 	Value *Configuration `json:"configuration"`
@@ -13,7 +15,7 @@ type Configuration struct {
 }
 
 func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
-	_, rawRes, err := c.request("configuration/get", map[string]interface{}{
+	rawRes, err := c.request("getConfig", map[string]interface{}{
 		"name": name,
 	})
 
@@ -21,8 +23,7 @@ func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 		return nil, err
 	}
 
-	conf = &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
+	conf, parseErr := c.handlePropertyResponse(rawRes)
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -32,7 +33,7 @@ func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 }
 
 func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error) {
-	_, rawRes, err := c.request("configuration/put", map[string]interface{}{
+	rawRes, err := c.request("putConfig", map[string]interface{}{
 		"name":  name,
 		"value": value,
 	})
@@ -41,8 +42,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 		return -1, err
 	}
 
-	conf := &Configuration{}
-	parseErr := json.Unmarshal(rawRes, &configuration{Value: conf})
+	conf, parseErr := c.handlePropertyResponse(rawRes)
 
 	if parseErr != nil {
 		return -1, newJSONErr()
@@ -52,9 +52,21 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 }
 
 func (c *Client) DeleteProperty(name string) *Error {
-	_, _, err := c.request("configuration/delete", map[string]interface{}{
+	_, err := c.request("deleteConfig", map[string]interface{}{
 		"name": name,
 	})
 
 	return err
+}
+
+func (c *Client) handlePropertyResponse(res []byte) (conf *Configuration, err error) {
+	conf = &Configuration{}
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(res, &configuration{Value: conf})
+	} else {
+		parseErr = json.Unmarshal(res, conf)
+	}
+
+	return conf, parseErr
 }

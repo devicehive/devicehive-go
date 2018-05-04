@@ -7,7 +7,6 @@ import (
 )
 
 type SubscribeParams struct {
-	Action                string    `json:"action"`
 	DeviceId              string    `json:"deviceId,omitempty"`
 	NetworkIds            []string  `json:"networkIds,omitempty"`
 	DeviceTypeIds         []string  `json:"deviceTypeIds,omitempty"`

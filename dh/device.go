@@ -20,7 +20,7 @@ type Device struct {
 }
 
 func (d *Device) Remove() *Error {
-	_, _, err := d.client.request("device/delete", map[string]interface{}{
+	_, err := d.client.request("deleteDevice", map[string]interface{}{
 		"deviceId": d.Id,
 	})
 
@@ -28,7 +28,7 @@ func (d *Device) Remove() *Error {
 }
 
 func (d *Device) Save() *Error {
-	_, _, err := d.client.request("device/save", map[string]interface{}{
+	_, err := d.client.request("putDevice", map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
 	})
@@ -49,7 +49,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	_, rawRes, err := d.client.request("command/list", data)
+	rawRes, err := d.client.request("command/list", data)
 
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		comm.Result = result
 	}
 
-	_, rawRes, err := d.client.request("command/insert", map[string]interface{}{
+	rawRes, err := d.client.request("command/insert", map[string]interface{}{
 		"deviceId": d.Id,
 		"command":  comm,
 	})
@@ -125,7 +125,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	_, rawRes, err := d.client.request("notification/list", data)
+	rawRes, err := d.client.request("notification/list", data)
 
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	_, rawRes, err := d.client.request("notification/insert", map[string]interface{}{
+	rawRes, err := d.client.request("notification/insert", map[string]interface{}{
 		"deviceId":     d.Id,
 		"notification": notif,
 	})
@@ -206,22 +206,22 @@ func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (su
 	return s.(*NotificationSubscription), nil
 }
 
-func (d *Device) subscribe(params *SubscribeParams, action string) (subs interface{}, err *Error) {
+func (d *Device) subscribe(params *SubscribeParams, resourceName string) (subs interface{}, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
 
 	params.DeviceId = d.Id
 
-	tspChan, subsId, err := d.client.subscribe(action, params)
+	tspChan, subsId, err := d.client.subscribe(resourceName, params)
 
 	if err != nil || tspChan == nil {
 		return nil, err
 	}
 
-	if action == "notification/subscribe" {
+	if resourceName == "notification/subscribe" {
 		subs = newNotificationSubscription(subsId, tspChan, d.client)
-	} else if action == "command/subscribe" {
+	} else if resourceName == "command/subscribe" {
 		subs = newCommandSubscription(subsId, tspChan, d.client)
 	}
 
@@ -229,7 +229,7 @@ func (d *Device) subscribe(params *SubscribeParams, action string) (subs interfa
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	_, rawRes, err := c.request("device/get", map[string]interface{}{
+	rawRes, err := c.request("getDevice", map[string]interface{}{
 		"deviceId": deviceId,
 	})
 
@@ -240,7 +240,12 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, &deviceResponse{Device: device})
+	var parseErr error
+	if c.tsp.IsWS() {
+		parseErr = json.Unmarshal(rawRes, &deviceResponse{Device: device})
+	} else {
+		parseErr = json.Unmarshal(rawRes, device)
+	}
 
 	if parseErr != nil {
 		return nil, newJSONErr()
@@ -278,7 +283,7 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 		device.IsBlocked = isBlocked
 	}
 
-	_, _, err = c.request("device/save", map[string]interface{}{
+	_, err = c.request("putDevice", map[string]interface{}{
 		"deviceId": deviceId,
 		"device":   device,
 	})

@@ -14,6 +14,10 @@ const (
 )
 
 func newHTTP(addr string) (tsp *httpTsp, err error) {
+	if addr[len(addr) - 1:] != "/" {
+		addr += "/"
+	}
+
 	u, err := url.Parse(addr)
 
 	if err != nil {
@@ -31,23 +35,42 @@ type httpTsp struct {
 	url    *url.URL
 }
 
-func (t *httpTsp) Request(resource string, data devicehiveData, timeout time.Duration) (rawRes []byte, err *Error) {
-	t.setTimeout(timeout)
-	method := t.getRequestMethod(data)
+func (t *httpTsp) IsHTTP() bool {
+	return true
+}
 
-	reqDataReader, err := t.createRequestDataReader(data)
+func (t *httpTsp) IsWS() bool {
+	return false
+}
+
+func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) (rawRes []byte, err *Error) {
+	addr, err := t.createRequestAddr(resource)
 	if err != nil {
 		return nil, err
 	}
 
-	addr, err := t.createRequestAddr(data)
-	if err != nil {
-		return
+	t.setTimeout(timeout)
+	method := t.getRequestMethod(params)
+
+	var req *http.Request
+	var reqErr error
+	if method != "GET" {
+		reqDataReader, err := t.createRequestDataReader(params)
+		if err != nil {
+			return nil, err
+		}
+
+		req, reqErr = http.NewRequest(method, addr, reqDataReader)
+	} else {
+		req, reqErr = http.NewRequest(method, addr, nil)
 	}
 
-	req, reqErr := http.NewRequest(method, addr, reqDataReader)
 	if reqErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
+	}
+
+	if params != nil && params.AccessToken != "" {
+		req.Header.Add("Authorization", "Bearer " + params.AccessToken)
 	}
 
 	return t.doRequest(req)
@@ -61,28 +84,20 @@ func (t *httpTsp) setTimeout(timeout time.Duration) {
 	t.client.Timeout = timeout
 }
 
-func (t *httpTsp) getRequestMethod(data devicehiveData) string {
-	if data == nil {
+func (t *httpTsp) getRequestMethod(params *RequestParams) string {
+	if params == nil || params.Method == "" {
 		return defaultHTTPMethod
 	}
 
-	if _, ok := data["method"]; !ok {
-		return defaultHTTPMethod
-	}
-
-	if m, ok := data["method"].(string); ok {
-		return m
-	}
-
-	return defaultHTTPMethod
+	return params.Method
 }
 
-func (t *httpTsp) createRequestDataReader(data devicehiveData) (dataReader *bytes.Reader, err *Error) {
+func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *bytes.Reader, err *Error) {
 	var rawReqData []byte
 
-	if reqData, ok := data["request"]; ok {
+	if params != nil && params.Data != nil {
 		var err error
-		rawReqData, err = json.Marshal(reqData)
+		rawReqData, err = json.Marshal(params.Data)
 
 		if err != nil {
 			return nil, &Error{name: InvalidRequestErr, reason: err.Error()}
@@ -94,10 +109,10 @@ func (t *httpTsp) createRequestDataReader(data devicehiveData) (dataReader *byte
 	return bytes.NewReader(rawReqData), nil
 }
 
-func (t *httpTsp) createRequestAddr(data devicehiveData) (addr string, err *Error) {
+func (t *httpTsp) createRequestAddr(resource string) (addr string, err *Error) {
 	u := t.url
 
-	if resource, ok := data["resource"].(string); ok {
+	if resource != "" {
 		var urlErr error
 		u, urlErr = t.url.Parse(resource)
 

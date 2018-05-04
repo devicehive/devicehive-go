@@ -11,28 +11,26 @@ type token struct {
 }
 
 func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) (accessToken, refreshToken string, err *Error) {
-	payload := map[string]interface{}{
+	data := map[string]interface{}{
 		"userId": userId,
 	}
 
 	if actions != nil {
-		payload["actions"] = actions
+		data["actions"] = actions
 	}
 	if networkIds != nil {
-		payload["networkIds"] = networkIds
+		data["networkIds"] = networkIds
 	}
 	if deviceTypeIds != nil {
-		payload["deviceTypeIds"] = deviceTypeIds
+		data["deviceTypeIds"] = deviceTypeIds
 	}
 	if expiration.Unix() > 0 {
-		payload["expiration"] = expiration.UTC().Format(timestampLayout)
+		data["expiration"] = expiration.UTC().Format(timestampLayout)
 	}
 
-	data := map[string]interface{}{
-		"payload": payload,
-	}
-
-	return c.tokenRequest("token/create", data)
+	return c.tokenRequest("tokenCreate", map[string]interface{} {
+		"payload": data,
+	})
 }
 
 func (c *Client) RefreshToken() (accessToken string, err *Error) {
@@ -45,7 +43,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 }
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	_, resBytes, err := c.request("token/refresh", map[string]interface{}{
+	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
 		"refreshToken": c.refreshToken,
 	})
 
@@ -54,7 +52,7 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 	}
 
 	tok := &token{}
-	parseErr := json.Unmarshal(resBytes, tok)
+	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
 		return "", newJSONErr()
@@ -64,21 +62,21 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 }
 
 func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	return c.tokenRequest("token", map[string]interface{}{
+	return c.tokenRequest("tokenByCreds", map[string]interface{}{
 		"login":    login,
 		"password": pass,
 	})
 }
 
-func (c *Client) tokenRequest(resource string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	_, resBytes, err := c.request(resource, data)
+func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
+	rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return "", "", err
 	}
 
 	tok := &token{}
-	parseErr := json.Unmarshal(resBytes, tok)
+	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
 		return "", "", newJSONErr()

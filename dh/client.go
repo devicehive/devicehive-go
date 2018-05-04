@@ -10,24 +10,30 @@ import (
 
 type Client struct {
 	tsp          transport.Transporter
+	accessToken  string
 	refreshToken string
 	login        string
 	password     string
 }
 
-func (c *Client) Authenticate(token string) (result bool, err *Error) {
-	res, _, err := c.request("authenticate", map[string]interface{}{
-		"token": token,
-	})
+func (c *Client) authenticate(token string) (result bool, err *Error) {
+	if c.tsp.IsHTTP() {
+		c.accessToken = token
+		return true, nil
+	} else {
+		_, err := c.request("auth", map[string]interface{}{
+			"token": token,
+		})
 
-	if err != nil {
-		return false, err
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
-
-	return res.Status == "success", nil
 }
 
-func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
+func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
@@ -38,7 +44,7 @@ func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan ch
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	_, rawRes, err := c.request(resource, data)
+	rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return nil, "", err
@@ -60,8 +66,8 @@ func (c *Client) subscribe(resource string, params *SubscribeParams) (tspChan ch
 	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
 }
 
-func (c *Client) unsubscribe(resource, subscriptionId string) *Error {
-	_, _, err := c.request(resource, map[string]interface{}{
+func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
+	_, err := c.request(resourceName, map[string]interface{}{
 		"subscriptionId": subscriptionId,
 	})
 
@@ -74,31 +80,79 @@ func (c *Client) unsubscribe(resource, subscriptionId string) *Error {
 	return nil
 }
 
-func (c *Client) request(resource string, data map[string]interface{}) (res *response, resBytes []byte, err *Error) {
-	resBytes, tspErr := c.tsp.Request(resource, data, Timeout)
-	res, err = c.handleResponse(resBytes, tspErr)
+func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
+	resource, method := c.resolveResource(resourceName, data)
 
-	return res, resBytes, err
-}
+	if resource == "" {
+		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
+	}
 
-func (c *Client) handleResponse(resBytes []byte, tspErr *transport.Error) (res *response, err *Error) {
+	reqData := c.buildRequestData(resourceName, data)
+	tspReqParams := c.createRequestParams(method, reqData)
+
+	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
+
 	if tspErr != nil {
 		return nil, newTransportErr(tspErr)
 	}
 
-	res = &response{}
-	parseErr := json.Unmarshal(resBytes, res)
+	err = c.handleResponse(resBytes)
 
-	if parseErr != nil {
-		return nil, newJSONErr()
+	return resBytes, err
+}
+
+func (c *Client) handleResponse(resBytes []byte) (err *Error) {
+	// @TODO Refactor this conditions
+	if c.tsp.IsWS() {
+		res := &response{}
+		parseErr := json.Unmarshal(resBytes, res)
+
+		if parseErr != nil {
+			return newJSONErr()
+		}
+
+		if res.Status == "error" {
+			errMsg := strings.ToLower(res.Error)
+			errCode := res.Code
+			r := fmt.Sprintf("%d %s", errCode, errMsg)
+			return &Error{name: ServiceErr, reason: r}
+		}
+	} else {
+		if len(resBytes) == 0 {
+			return nil
+		}
+
+		res := &httpResponse{}
+
+		parseErr := json.Unmarshal(resBytes, res)
+
+		if parseErr != nil {
+			return newJSONErr()
+		}
+
+		if res.Error >= 400 {
+			errMsg := strings.ToLower(res.Message)
+			errCode := res.Error
+			r := fmt.Sprintf("%d %s", errCode, errMsg)
+			return &Error{name: ServiceErr, reason: r}
+		}
 	}
 
-	if res.Status == "error" {
-		errMsg := strings.ToLower(res.Error)
-		errCode := res.Code
-		r := fmt.Sprintf("%d %s", errCode, errMsg)
-		return nil, &Error{name: ServiceErr, reason: r}
+	return nil
+}
+
+func (c *Client) createRequestParams(method string, data interface{}) *transport.RequestParams {
+	tspReqParams := &transport.RequestParams{
+		Data: data,
 	}
 
-	return res, nil
+	if c.tsp.IsHTTP() {
+		if method != "" {
+			tspReqParams.Method = method
+		}
+
+		tspReqParams.AccessToken = c.accessToken
+	}
+
+	return tspReqParams
 }
