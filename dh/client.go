@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"strconv"
 	"strings"
 )
 
@@ -44,26 +43,19 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	rawRes, err := c.request(resourceName, data)
+	resource, tspReqParams := c.prepareRequestData(resourceName, data)
 
-	if err != nil {
-		return nil, "", err
+	if resource == "" {
+		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	id := &subsId{}
+	tspChan, subscriptionId, tspErr := c.tsp.Subscribe(resource, tspReqParams, Timeout)
 
-	parseErr := json.Unmarshal(rawRes, id)
-
-	if parseErr != nil {
-		return nil, "", newJSONErr()
+	if tspErr != nil {
+		return nil, "", newTransportErr(tspErr)
 	}
 
-	subscriptionId = strconv.FormatInt(id.Value, 10)
-
-	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
+	return tspChan, subscriptionId, nil
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
@@ -81,14 +73,11 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
-	resource, method := c.resolveResource(resourceName, data)
+	resource, tspReqParams := c.prepareRequestData(resourceName, data)
 
 	if resource == "" {
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
-
-	reqData := c.buildRequestData(resourceName, data)
-	tspReqParams := c.createRequestParams(method, reqData)
 
 	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
 
@@ -137,6 +126,14 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 	}
 
 	return nil
+}
+
+func (c *Client) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+	resource, method := c.resolveResource(resourceName, data)
+	reqData := c.buildRequestData(resourceName, data)
+	reqParams = c.createRequestParams(method, reqData)
+
+	return resource, reqParams
 }
 
 func (c *Client) createRequestParams(method string, data interface{}) *transport.RequestParams {

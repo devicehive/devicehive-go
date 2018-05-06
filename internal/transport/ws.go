@@ -78,7 +78,27 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 }
 
-func (t *ws) Subscribe(subscriptionId string) (eventChan chan []byte) {
+func (t *ws) Subscribe(resource string, params *RequestParams, timeout time.Duration) (eventChan chan []byte, subscriptionId string, err *Error) {
+	res, err := t.Request(resource, params, timeout)
+	if err != nil {
+		return nil, "", err
+	}
+
+	type subsId struct {
+		Value int64 `json:"subscriptionId"`
+	}
+	id := &subsId{}
+
+	parseErr := json.Unmarshal(res, id)
+	if parseErr != nil {
+		return nil, "", &Error{name: InvalidResponseErr, reason: parseErr.Error()}
+	}
+	subscriptionId = strconv.FormatInt(id.Value, 10)
+
+	return t.subscribe(subscriptionId), subscriptionId, nil
+}
+
+func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
 	if _, ok := t.subscriptions.get(subscriptionId); ok {
 		return nil
 	}

@@ -145,8 +145,8 @@ func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 	return rawRes, nil
 }
 
-func (t *httpTsp) Subscribe(subscriptionId string) (eventChan chan []byte) {
-	return nil
+func (t *httpTsp) Subscribe(resource string, params *RequestParams, timeout time.Duration) (eventChan chan []byte, subscriptionId string, err *Error) {
+	return nil, "", nil
 }
 
 func (t *httpTsp) Unsubscribe(subscriptionId string) {}

@@ -11,7 +11,7 @@ const (
 
 type Transporter interface {
 	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(subscriptionId string) (eventChan chan []byte)
+	Subscribe(resource string, params *RequestParams, timeout time.Duration) (eventChan chan []byte, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
 	IsHTTP() bool
 	IsWS() bool

@@ -1,12 +1,10 @@
 package transport_test
 
 import (
-	"encoding/json"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -113,21 +111,11 @@ func TestWSSubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
-
+	tspChan, _, tspErr := wsTsp.Subscribe("notification/subscribe", nil, 0)
 	if tspErr != nil {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
 		return
 	}
-
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	sid := &subsId{}
-
-	json.Unmarshal(res, sid)
-
-	tspChan := wsTsp.Subscribe(strconv.FormatInt(sid.Value, 10))
 
 	select {
 	case rawNotif, ok := <-tspChan:
@@ -148,23 +136,11 @@ func TestWSUnsubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
-
+	_, subsId, tspErr := wsTsp.Subscribe("notification/subscribe", nil, 0)
 	if tspErr != nil {
 		t.Errorf("%s: %v", tspErr.Name(), tspErr)
 		return
 	}
 
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	sid := &subsId{}
-
-	json.Unmarshal(res, sid)
-
-	sidStr := strconv.FormatInt(sid.Value, 10)
-
-	wsTsp.Subscribe(sidStr)
-
-	wsTsp.Unsubscribe(sidStr)
+	wsTsp.Unsubscribe(subsId)
 }
