@@ -10,7 +10,7 @@ import (
 func TestProperty(t *testing.T) {
 	is := is.New(t)
 
-	name := "go-test"+strconv.FormatInt(time.Now().Unix(), 10)
+	name := "go-test" + strconv.FormatInt(time.Now().Unix(), 10)
 	val := "go-sdk-test"
 
 	entityVersion, dhErr := client.SetProperty(name, val)

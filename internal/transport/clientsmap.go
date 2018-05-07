@@ -9,8 +9,9 @@ var mu = sync.Mutex{}
 type clientsMap map[string]*client
 
 type client struct {
-	data chan []byte
-	err  chan *Error
+	data   chan []byte
+	err    chan *Error
+	signal chan struct{}
 }
 
 func (c *client) close() {
@@ -42,15 +43,18 @@ func (m clientsMap) create(key string, isErrChan bool) (req *client) {
 
 	var c *client
 	res := make(chan []byte)
+	signal := make(chan struct{})
 	if isErrChan {
 		err := make(chan *Error)
 		c = &client{
-			data: res,
-			err:  err,
+			data:   res,
+			err:    err,
+			signal: signal,
 		}
 	} else {
 		c = &client{
-			data: res,
+			data:   res,
+			signal: signal,
 		}
 	}
 

@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -14,7 +17,7 @@ const (
 )
 
 func newHTTP(addr string) (tsp *httpTsp, err error) {
-	if addr[len(addr) - 1:] != "/" {
+	if addr[len(addr)-1:] != "/" {
 		addr += "/"
 	}
 
@@ -25,14 +28,16 @@ func newHTTP(addr string) (tsp *httpTsp, err error) {
 	}
 
 	return &httpTsp{
-		client: &http.Client{},
-		url:    u,
+		client:        &http.Client{},
+		url:           u,
+		subscriptions: make(clientsMap),
 	}, nil
 }
 
 type httpTsp struct {
-	client *http.Client
-	url    *url.URL
+	client        *http.Client
+	url           *url.URL
+	subscriptions clientsMap
 }
 
 func (t *httpTsp) IsHTTP() bool {
@@ -70,7 +75,7 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	}
 
 	if params != nil && params.AccessToken != "" {
-		req.Header.Add("Authorization", "Bearer " + params.AccessToken)
+		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
 	}
 
 	return t.doRequest(req)
@@ -145,8 +150,60 @@ func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 	return rawRes, nil
 }
 
-func (t *httpTsp) Subscribe(resource string, params *RequestParams, timeout time.Duration) (eventChan chan []byte, subscriptionId string, err *Error) {
-	return nil, "", nil
+func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
+	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
+
+	subs := t.subscriptions.createSubscriber(subscriptionId)
+
+	go func() {
+		done := make(chan struct{})
+		resChan := t.poll(resource, params, done)
+
+		loop:
+			for {
+				select {
+				case res := <-resChan:
+					subs.data <- res
+				case <-subs.signal:
+					close(done)
+					subs.close()
+					t.subscriptions.delete(subscriptionId)
+					break loop
+				}
+			}
+	}()
+
+	return subs.data, subscriptionId, nil
+}
+
+func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte) {
+	resChan = make(chan []byte)
+
+	var waitTimeout time.Duration
+	if params == nil {
+		waitTimeout = 30
+	} else {
+		waitTimeout = params.WaitTimeout
+	}
+
+	go func() {
+	loop:
+		for {
+			res, err := t.Request(resource, params, waitTimeout*time.Second)
+			if err != nil {
+				log.Printf("Subscribtion poll request failed for resource: %s, error: %s", resource, err)
+				continue
+			}
+
+			select {
+			case <-done:
+				break loop
+			case resChan <- res:
+			}
+		}
+	}()
+
+	return resChan
 }
 
 func (t *httpTsp) Unsubscribe(subscriptionId string) {}

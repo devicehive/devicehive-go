@@ -70,7 +70,7 @@ func TestDeviceCommands(t *testing.T) {
 	}
 
 	is.True(len(list) > 0)
-	is.Equal(list[len(list) - 1].Status, "updated")
+	is.Equal(list[len(list)-1].Status, "updated")
 
 	err = device.Remove()
 	if err != nil {

@@ -59,12 +59,14 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	_, err := c.request(resourceName, map[string]interface{}{
-		"subscriptionId": subscriptionId,
-	})
+	if c.tsp.IsWS() {
+		_, err := c.request(resourceName, map[string]interface{}{
+			"subscriptionId": subscriptionId,
+		})
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	c.tsp.Unsubscribe(subscriptionId)

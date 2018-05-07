@@ -28,7 +28,7 @@ func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkI
 		data["expiration"] = expiration.UTC().Format(timestampLayout)
 	}
 
-	return c.tokenRequest("tokenCreate", map[string]interface{} {
+	return c.tokenRequest("tokenCreate", map[string]interface{}{
 		"payload": data,
 	})
 }

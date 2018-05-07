@@ -17,14 +17,14 @@ func (c *Client) buildRequestData(resourceName string, rawData map[string]interf
 	return rawData
 }
 
-var wsRequestPayloadBuilder = map[string]func(map[string]interface{}) interface{} {}
+var wsRequestPayloadBuilder = map[string]func(map[string]interface{}) interface{}{}
 
-var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interface{} {
+var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interface{}{
 	"tokenCreate": func(data map[string]interface{}) interface{} {
 		return data["payload"]
 	},
 	"putConfig": func(data map[string]interface{}) interface{} {
-		return map[string]interface{} {
+		return map[string]interface{}{
 			"value": data["value"],
 		}
 	},

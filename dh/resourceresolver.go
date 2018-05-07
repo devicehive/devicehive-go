@@ -1,8 +1,8 @@
 package dh
 
 import (
-	"text/template"
 	"bytes"
+	"text/template"
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
@@ -42,43 +42,43 @@ func prepareHttpResource(resourceTemplate string, data map[string]interface{}) s
 }
 
 var wsResources = map[string]string{
-	"auth":        "authenticate",
-	"tokenCreate": "token/create",
-	"tokenRefresh": "token/refresh",
-	"tokenByCreds": "token",
-	"apiInfo": "server/info",
-	"apiInfoCluster": "cluster/info",
-	"putConfig": "configuration/put",
-	"getConfig": "configuration/get",
-	"deleteConfig": "configuration/delete",
-	"putDevice": "device/save",
-	"getDevice": "device/get",
-	"deleteDevice": "device/delete",
-	"insertCommand": "command/insert",
-	"listCommands": "command/list",
-	"updateCommand": "command/update",
+	"auth":               "authenticate",
+	"tokenCreate":        "token/create",
+	"tokenRefresh":       "token/refresh",
+	"tokenByCreds":       "token",
+	"apiInfo":            "server/info",
+	"apiInfoCluster":     "cluster/info",
+	"putConfig":          "configuration/put",
+	"getConfig":          "configuration/get",
+	"deleteConfig":       "configuration/delete",
+	"putDevice":          "device/save",
+	"getDevice":          "device/get",
+	"deleteDevice":       "device/delete",
+	"insertCommand":      "command/insert",
+	"listCommands":       "command/list",
+	"updateCommand":      "command/update",
 	"insertNotification": "notification/insert",
-	"listNotifications": "notification/list",
+	"listNotifications":  "notification/list",
 }
 
 var httpResources = map[string][2]string{
-	"tokenCreate": { "token/create", "POST" },
-	"tokenRefresh": { "token/refresh", "POST" },
-	"tokenByCreds": { "token", "POST" },
-	"apiInfo": { "info" },
-	"apiInfoCluster": { "info/config/cluster" },
-	"putConfig": { "configuration/{{.name}}", "PUT" },
-	"getConfig": { "configuration/{{.name}}" },
-	"deleteConfig": { "configuration/{{.name}}", "DELETE" },
-	"putDevice": { "device/{{.deviceId}}", "PUT" },
-	"getDevice": { "device/{{.deviceId}}" },
-	"deleteDevice": { "device/{{.deviceId}}", "DELETE" },
-	"insertCommand": { "device/{{.deviceId}}/command", "POST" },
+	"tokenCreate":    {"token/create", "POST"},
+	"tokenRefresh":   {"token/refresh", "POST"},
+	"tokenByCreds":   {"token", "POST"},
+	"apiInfo":        {"info"},
+	"apiInfoCluster": {"info/config/cluster"},
+	"putConfig":      {"configuration/{{.name}}", "PUT"},
+	"getConfig":      {"configuration/{{.name}}"},
+	"deleteConfig":   {"configuration/{{.name}}", "DELETE"},
+	"putDevice":      {"device/{{.deviceId}}", "PUT"},
+	"getDevice":      {"device/{{.deviceId}}"},
+	"deleteDevice":   {"device/{{.deviceId}}", "DELETE"},
+	"insertCommand":  {"device/{{.deviceId}}/command", "POST"},
 	"listCommands": {
 		`device/{{.deviceId}}/command?start={{or .start ""}}&end={{or .end ""}}&command={{or .command ""}}&status={{or .status ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
-	"updateCommand": { "device/{{.deviceId}}/command/{{.commandId}}", "PUT" },
-	"insertNotification": { "device/{{.deviceId}}/notification", "POST" },
+	"updateCommand":      {"device/{{.deviceId}}/command/{{.commandId}}", "PUT"},
+	"insertNotification": {"device/{{.deviceId}}/notification", "POST"},
 	"listNotifications": {
 		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
