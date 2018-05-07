@@ -166,8 +166,6 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan c
 					subs.data <- res
 				case <-subs.signal:
 					close(done)
-					subs.close()
-					t.subscriptions.delete(subscriptionId)
 					break loop
 				}
 			}
@@ -191,7 +189,7 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 		for {
 			res, err := t.Request(resource, params, waitTimeout*time.Second)
 			if err != nil {
-				log.Printf("Subscribtion poll request failed for resource: %s, error: %s", resource, err)
+				log.Printf("Subscription poll request failed for resource: %s, error: %s", resource, err)
 				continue
 			}
 
@@ -206,4 +204,11 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 	return resChan
 }
 
-func (t *httpTsp) Unsubscribe(subscriptionId string) {}
+func (t *httpTsp) Unsubscribe(subscriptionId string) {
+	subscriber, ok := t.subscriptions.get(subscriptionId)
+
+	if ok {
+		subscriber.close()
+		t.subscriptions.delete(subscriptionId)
+	}
+}

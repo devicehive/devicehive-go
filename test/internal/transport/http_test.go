@@ -58,15 +58,23 @@ func TestHTTPTimeout(t *testing.T) {
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }
 
-func TestHTTPSubscribe(t *testing.T) {
+func TestHTTPSubscription(t *testing.T) {
 	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
 	defer srvClose()
 
 	is := is.New(t)
 
+	pollRequestsCount := 0
+	const allowedPollRequestsCount = 3
 	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+		if pollRequestsCount >= allowedPollRequestsCount {
+			t.Error("HTTP transport must stop polling after unsubscribe")
+			return
+		}
+
 		<-time.After(testWSTimeout + 1*time.Second)
 		rw.Write([]byte(`[{"id": 1,"command": "command 1"},{"id": 2,"command": "command 2"}]`))
+		pollRequestsCount++
 	})
 
 	httpTsp, err := transport.Create(addr)
@@ -95,4 +103,6 @@ func TestHTTPSubscribe(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Error("subscription event timeout")
 	}
+
+	httpTsp.Unsubscribe(subscriptionId)
 }

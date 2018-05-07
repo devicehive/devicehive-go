@@ -16,6 +16,7 @@ type client struct {
 
 func (c *client) close() {
 	close(c.data)
+	close(c.signal)
 
 	if c.err != nil {
 		close(c.err)
