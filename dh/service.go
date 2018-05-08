@@ -6,12 +6,14 @@ import (
 )
 
 const (
-	NotificationType = "notification"
-	CommandType      = "command"
-	Timeout          = 5 * time.Second
+	NotificationType          = "notification"
+	CommandType               = "command"
+	Timeout                 = 5 * time.Second
 )
 
-var client = &Client{}
+var client = &Client{
+	PollingWaitTimeoutSeconds: 30,
+}
 
 func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
 	client, err = connect(url)

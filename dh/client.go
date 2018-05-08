@@ -13,6 +13,7 @@ type Client struct {
 	refreshToken string
 	login        string
 	password     string
+	PollingWaitTimeoutSeconds int
 }
 
 func (c *Client) authenticate(token string) (result bool, err *Error) {
@@ -49,7 +50,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	tspChan, subscriptionId, tspErr := c.tsp.Subscribe(resource, tspReqParams, Timeout)
+	tspChan, subscriptionId, tspErr := c.tsp.Subscribe(resource, tspReqParams)
 
 	if tspErr != nil {
 		return nil, "", newTransportErr(tspErr)
@@ -113,15 +114,29 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 			return nil
 		}
 
-		res := &httpResponse{}
-		parseErr := json.Unmarshal(resBytes, res)
+		res := make(map[string]interface{})
+		parseErr := json.Unmarshal(resBytes, &res)
+
 		if parseErr != nil {
+			return &Error{name: InvalidResponseErr, reason: parseErr.Error()}
+		}
+
+		if _, ok := res["message"]; !ok {
 			return nil
 		}
 
-		if res.Error >= 400 {
-			errMsg := strings.ToLower(res.Message)
-			errCode := res.Error
+		httpRes := &httpResponse{
+			Message: res["message"].(string),
+		}
+		if e, ok := res["error"].(float64); ok {
+			httpRes.Status = int(e)
+		} else {
+			httpRes.Status = int(res["status"].(float64))
+		}
+
+		if httpRes.Status >= 400 {
+			errMsg := strings.ToLower(httpRes.Message)
+			errCode := httpRes.Status
 			r := fmt.Sprintf("%d %s", errCode, errMsg)
 			return &Error{name: ServiceErr, reason: r}
 		}
@@ -149,6 +164,7 @@ func (c *Client) createRequestParams(method string, data interface{}) *transport
 		}
 
 		tspReqParams.AccessToken = c.accessToken
+		tspReqParams.WaitTimeoutSeconds = c.PollingWaitTimeoutSeconds
 	}
 
 	return tspReqParams

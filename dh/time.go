@@ -13,7 +13,7 @@ type ISO8601Time struct {
 	time.Time
 }
 
-func (t *ISO8601Time) FormatISO8601() string {
+func (t *ISO8601Time) String() string {
 	return t.Time.Format(timestampLayout)
 }
 
@@ -39,5 +39,5 @@ func (t *ISO8601Time) MarshalJSON() (b []byte, err error) {
 		return []byte("\"\""), nil
 	}
 
-	return []byte("\"" + t.FormatISO8601() + "\""), nil
+	return []byte("\"" + t.String() + "\""), nil
 }

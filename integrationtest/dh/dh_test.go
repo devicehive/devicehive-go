@@ -11,8 +11,8 @@ const serverAddr = "playground-dev.devicehive.com/api"
 const wsServerAddr = "ws://" + serverAddr + "/websocket"
 const httpServerAddr = "http://" + serverAddr + "/rest"
 
-var dhLogin = flag.String("dhLogin", "dhadmin", "Your username")
-var dhPass = flag.String("dhPassword", "dhadmin_#911", "Your password")
+var accessToken = flag.String("accessToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTI1ODAzNDcwNDIwLCJ0IjoxLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.sFoOhUb11tXqw3GXIAPGsmvwsxuwlLOq36UL0GyBKag", "Your access token")
+var refreshToken = flag.String("refreshToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTQxNTI2NDcwNDIwLCJ0IjowLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.jOoOgUIY2pWMNZ0fsPsfhgCy2-7o1fcCtwBHCzY5ZJE", "Your refresh token")
 
 var client *dh.Client
 
@@ -20,11 +20,13 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	var err *dh.Error
-	client, err = dh.ConnectWithCreds(wsServerAddr, *dhLogin, *dhPass)
+	client, err = dh.ConnectWithToken(wsServerAddr, *accessToken, *refreshToken)
 
 	if err != nil {
 		panic(err)
 	}
+
+	client.PollingWaitTimeoutSeconds = 7
 
 	res := m.Run()
 	os.Exit(res)

@@ -177,17 +177,17 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan c
 func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte) {
 	resChan = make(chan []byte)
 
-	var waitTimeout time.Duration
-	if params == nil {
-		waitTimeout = 30
+	var timeout time.Duration
+	if params == nil || params.WaitTimeoutSeconds == 0 {
+		timeout = DefaultTimeout
 	} else {
-		waitTimeout = params.WaitTimeout
+		timeout = time.Duration(params.WaitTimeoutSeconds) * time.Second * 2
 	}
 
 	go func() {
 	loop:
 		for {
-			res, err := t.Request(resource, params, waitTimeout*time.Second)
+			res, err := t.Request(resource, params, timeout)
 			if err != nil {
 				log.Printf("Subscription poll request failed for resource: %s, error: %s", resource, err)
 				continue

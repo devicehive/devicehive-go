@@ -193,53 +193,52 @@ func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (s
 }
 
 func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
-	s, err := d.subscribe(&SubscribeParams{
+	tspChan, subsId, err := d.subscribe(&SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
-	}, "command/subscribe")
-
-	if err != nil || s == nil {
-		return nil, err
-	}
-
-	return s.(*CommandSubscription), nil
-
-}
-
-func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
-	s, err := d.subscribe(&SubscribeParams{
-		Names:     names,
-		Timestamp: timestamp,
-	}, "notification/subscribe")
-
-	if err != nil || s == nil {
-		return nil, err
-	}
-
-	return s.(*NotificationSubscription), nil
-}
-
-func (d *Device) subscribe(params *SubscribeParams, resourceName string) (subs interface{}, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{}
-	}
-
-	params.DeviceId = d.Id
-
-	tspChan, subsId, err := d.client.subscribe(resourceName, params)
+	}, "subscribeCommands")
 
 	if err != nil || tspChan == nil {
 		return nil, err
 	}
 
-	if resourceName == "notification/subscribe" {
-		subs = newNotificationSubscription(subsId, tspChan, d.client)
-	} else if resourceName == "command/subscribe" {
-		subs = newCommandSubscription(subsId, tspChan, d.client)
-	}
+	subs = newCommandSubscription(subsId, tspChan, d.client)
 
 	return subs, nil
+
+}
+
+func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+		Names:     names,
+		Timestamp: timestamp,
+	}, "subscribeNotifications")
+
+	if err != nil || tspChan == nil {
+		return nil, err
+	}
+
+	subs = newNotificationSubscription(subsId, tspChan, d.client)
+
+	return subs, nil
+}
+
+func (d *Device) subscribe(params *SubscribeParams, resourceName string) (tspChan chan []byte, subscriptionId string, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.DeviceId = d.Id
+	params.WaitTimeout = d.client.PollingWaitTimeoutSeconds
+
+	tspChan, subsId, err := d.client.subscribe(resourceName, params)
+
+	if err != nil || tspChan == nil {
+		return nil, "", err
+	}
+
+	return tspChan, subsId, nil
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {

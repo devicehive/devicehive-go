@@ -3,6 +3,8 @@ package dh
 import (
 	"bytes"
 	"text/template"
+	"log"
+	"strings"
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
@@ -27,14 +29,18 @@ func (c *Client) resolveResource(resourceName string, data map[string]interface{
 }
 
 func prepareHttpResource(resourceTemplate string, data map[string]interface{}) string {
-	t, err := template.New("resource").Parse(resourceTemplate)
+	t := template.New("resource")
+
+	t, err := t.Funcs(template.FuncMap{"Join": strings.Join}).Parse(resourceTemplate)
 	if err != nil {
+		log.Printf("Error while parsing template: %s", err)
 		return ""
 	}
 
 	var resource bytes.Buffer
 	err = t.Execute(&resource, data)
 	if err != nil {
+		log.Printf("Error while executing template: %s", err)
 		return ""
 	}
 
@@ -59,6 +65,8 @@ var wsResources = map[string]string{
 	"updateCommand":      "command/update",
 	"insertNotification": "notification/insert",
 	"listNotifications":  "notification/list",
+	"subscribeCommands":  "command/subscribe",
+	"subscribeNotifications": "notification/subscribe",
 }
 
 var httpResources = map[string][2]string{
@@ -82,4 +90,6 @@ var httpResources = map[string][2]string{
 	"listNotifications": {
 		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
+	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{.waitTimeout}}`},
+	"subscribeNotifications": {""},
 }

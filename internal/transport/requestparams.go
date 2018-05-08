@@ -8,11 +8,11 @@ import (
 )
 
 type RequestParams struct {
-	Data        interface{}
-	Method      string
-	RequestId   string
-	AccessToken string
-	WaitTimeout time.Duration
+	Data        	   interface{}
+	Method      	   string
+	RequestId   	   string
+	AccessToken 	   string
+	WaitTimeoutSeconds int
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))

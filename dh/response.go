@@ -8,5 +8,5 @@ type response struct {
 
 type httpResponse struct {
 	Message string `json:"message"`
-	Error   int    `json:"error"`
+	Status  int    `json:"status"`
 }

@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DefaultTimeout = 3 * time.Second
+	DefaultTimeout = 5 * time.Second
 )
 
 type Transporter interface {

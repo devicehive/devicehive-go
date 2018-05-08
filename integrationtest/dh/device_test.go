@@ -4,6 +4,8 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
+	"strconv"
+	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestDevice(t *testing.T) {
@@ -108,6 +110,8 @@ func TestDeviceNotifications(t *testing.T) {
 }
 
 func TestDeviceSubscribeInsertCommands(t *testing.T) {
+	waitTimeout := time.Duration(client.PollingWaitTimeoutSeconds+10) * time.Second
+
 	is := is.New(t)
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
@@ -115,37 +119,44 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
-
-	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
-	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
-	}
-
-	go func() {
-		select {
-		case comm, ok := <-commChan.CommandsChan:
-			is.True(ok)
-			is.True(comm != nil)
-			is.Equal(comm.Command, "go test command")
-		case <-time.After(1 * time.Second):
-			t.Error("command insert event timeout")
+	defer func() {
+		err := device.Remove()
+		if err != nil {
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
+	}()
 
-		err = device.Remove()
+	var lastCommand *dh.Command
+	for i := int64(0); i < 5; i++ {
+		lastCommand, err = device.SendCommand("go test command "+strconv.FormatInt(i, 10), nil, 120, time.Time{}, "", nil)
 		if err != nil {
 			t.Errorf("%s: %v", err.Name(), err)
 			return
 		}
-	}()
+	}
 
-	_, err = device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
+	commSubs, err := device.SubscribeInsertCommands(nil, lastCommand.Timestamp.Add(-3*time.Second))
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
 		return
 	}
+	defer func() {
+		err := commSubs.Remove()
+		if err != nil {
+			t.Fatalf("%s: %v", err.Name(), err)
+		}
+	}()
 
-	<-time.After(1 * time.Second)
+	for i := int64(0); i < 5; i++ {
+		select {
+		case comm, ok := <-commSubs.CommandsChan:
+			is.True(ok)
+			is.True(comm != nil)
+			is.Equal(comm.Command, "go test command "+strconv.FormatInt(i, 10))
+		case <-time.After(waitTimeout):
+			t.Error("command insert event timeout")
+		}
+	}
 }
 
 func TestDeviceSubscribeUpdateCommands(t *testing.T) {
