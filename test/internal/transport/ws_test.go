@@ -113,8 +113,7 @@ func TestWSSubscribe(t *testing.T) {
 
 	tspChan, _, tspErr := wsTsp.Subscribe("notification/subscribe", nil)
 	if tspErr != nil {
-		t.Errorf("%s: %v", tspErr.Name(), tspErr)
-		return
+		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
 	}
 
 	select {
@@ -138,8 +137,7 @@ func TestWSUnsubscribe(t *testing.T) {
 
 	_, subsId, tspErr := wsTsp.Subscribe("notification/subscribe", nil)
 	if tspErr != nil {
-		t.Errorf("%s: %v", tspErr.Name(), tspErr)
-		return
+		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
 	}
 
 	wsTsp.Unsubscribe(subsId)

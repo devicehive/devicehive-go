@@ -82,8 +82,7 @@ func TestHTTPSubscription(t *testing.T) {
 
 	tspChan, subscriptionId, tspErr := httpTsp.Subscribe("device/command/poll?deviceId=device-1", nil)
 	if tspErr != nil {
-		t.Errorf("%s: %v", tspErr.Name(), tspErr)
-		return
+		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
 	}
 
 	is.True(subscriptionId != "")

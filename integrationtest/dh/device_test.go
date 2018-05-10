@@ -13,21 +13,18 @@ func TestDevice(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	device.Name = "updated name"
 	err = device.Save()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	device, err = client.GetDevice(device.Id)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(device != nil)
@@ -35,8 +32,7 @@ func TestDevice(t *testing.T) {
 
 	err = device.Remove()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 }
 
@@ -45,14 +41,12 @@ func TestDeviceCommands(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	comm, err := device.SendCommand("test command", nil, 5, time.Time{}, "", nil)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(comm != nil)
@@ -61,14 +55,12 @@ func TestDeviceCommands(t *testing.T) {
 
 	err = comm.Save()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	list, err := device.ListCommands(nil)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(len(list) > 0)
@@ -76,8 +68,7 @@ func TestDeviceCommands(t *testing.T) {
 
 	err = device.Remove()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 }
 
@@ -86,14 +77,12 @@ func TestDeviceNotifications(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	notif, err := device.SendNotification("test notif", nil, time.Time{})
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(notif != nil)
@@ -104,8 +93,7 @@ func TestDeviceNotifications(t *testing.T) {
 
 	err = device.Remove()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 }
 
@@ -116,8 +104,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 	defer func() {
 		err := device.Remove()
@@ -130,15 +117,13 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	for i := int64(0); i < 5; i++ {
 		lastCommand, err = device.SendCommand("go test command "+strconv.FormatInt(i, 10), nil, 120, time.Time{}, "", nil)
 		if err != nil {
-			t.Errorf("%s: %v", err.Name(), err)
-			return
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}
 
 	commSubs, err := device.SubscribeInsertCommands(nil, lastCommand.Timestamp.Add(-3*time.Second))
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 	defer func() {
 		err := commSubs.Remove()
@@ -164,14 +149,12 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	commUpdChan, err := device.SubscribeUpdateCommands(nil, time.Time{})
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	go func() {
@@ -181,28 +164,25 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 			is.True(comm != nil)
 			is.Equal(comm.Status, "updated")
 		case <-time.After(1 * time.Second):
-			t.Error("command update event timeout")
+			t.Fatal("command update event timeout")
 		}
 
 		err = device.Remove()
 		if err != nil {
-			t.Errorf("%s: %v", err.Name(), err)
-			return
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}()
 
 	comm, err := device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	comm.Status = "updated"
 
 	err = comm.Save()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	<-time.After(1 * time.Second)
@@ -213,8 +193,7 @@ func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
@@ -225,13 +204,12 @@ func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 			is.True(!ok)
 			is.True(comm == nil)
 		case <-time.After(300 * time.Millisecond):
-			t.Error("command unsubscribe timeout")
+			t.Fatalf("command unsubscribe timeout")
 		}
 
 		err = device.Remove()
 		if err != nil {
-			t.Errorf("%s: %v", err.Name(), err)
-			return
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}()
 
@@ -245,8 +223,7 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	notifChan, err := device.SubscribeNotifications(nil, time.Time{})
@@ -263,15 +240,13 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 
 		err = device.Remove()
 		if err != nil {
-			t.Errorf("%s: %v", err.Name(), err)
-			return
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}()
 
 	_, err = device.SendNotification("go test notification", nil, time.Time{})
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	<-time.After(1 * time.Second)
@@ -282,8 +257,7 @@ func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
 
 	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	subs, err := device.SubscribeNotifications(nil, time.Time{})
@@ -294,13 +268,12 @@ func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
 			is.True(!ok)
 			is.True(comm == nil)
 		case <-time.After(300 * time.Millisecond):
-			t.Error("notification unsubscribe timeout")
+			t.Fatalf("notification unsubscribe timeout")
 		}
 
 		err = device.Remove()
 		if err != nil {
-			t.Errorf("%s: %v", err.Name(), err)
-			return
+			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}()
 
