@@ -10,7 +10,7 @@ func TestCreateToken(t *testing.T) {
 	is := is.New(t)
 
 	expiration := time.Now().Add(1 * time.Second)
-	accTok, refTok, err := client.CreateToken(1, expiration, nil, nil, nil)
+	accTok, refTok, err := client.CreateToken(37876, expiration, nil, nil, nil)
 
 	if err != nil {
 		t.Errorf("%s: %v", err.Name(), err)
