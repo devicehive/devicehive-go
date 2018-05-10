@@ -28,6 +28,7 @@ func TestClusterInfo(t *testing.T) {
 		t.Errorf("%s: %v", err.Name(), err)
 	}
 
+	is.True(info != nil)
 	is.True(info.BootstrapServers != "")
 	is.True(info.ZookeeperConnect != "")
 }
