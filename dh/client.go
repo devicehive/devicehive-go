@@ -114,6 +114,10 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 			return nil
 		}
 
+		if isJSONArray(resBytes) {
+			return nil
+		}
+
 		res := make(map[string]interface{})
 		parseErr := json.Unmarshal(resBytes, &res)
 
@@ -168,4 +172,8 @@ func (c *Client) createRequestParams(method string, data interface{}) *transport
 	}
 
 	return tspReqParams
+}
+
+func isJSONArray(b []byte) bool {
+	return json.Unmarshal(b, &[]interface{}{}) == nil
 }

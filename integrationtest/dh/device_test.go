@@ -4,6 +4,7 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
+	"github.com/devicehive/devicehive-go/dh"
 )
 
 const commandsToSend = 5
@@ -59,7 +60,9 @@ func TestDeviceCommands(t *testing.T) {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
-	list, err := device.ListCommands(nil)
+	list, err := device.ListCommands(&dh.ListParams{
+		Start: comm.Timestamp.Time.Add(-1 * time.Millisecond),
+	})
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -112,10 +115,15 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
+	var firstValidCommand *dh.Command
 	for i := 0; i < commandsToSend; i++ {
-		_, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
+		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
+		}
+
+		if firstValidCommand == nil {
+			firstValidCommand = comm
 		}
 
 		_, err = device.SendCommand("go test command to omit", nil, 120, time.Time{}, "", nil)
@@ -124,7 +132,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}
 
-	commSubs, err := device.SubscribeInsertCommands([]string{ "go test command" }, serverTimestamp.Add(-3*time.Second))
+	commSubs, err := device.SubscribeInsertCommands([]string{ "go test command" }, firstValidCommand.Timestamp.Add(-1*time.Millisecond))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -161,6 +169,7 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 		}
 	}()
 
+	var firstValidCommand *dh.Command
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
 		if err != nil {
@@ -173,9 +182,13 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
+
+		if firstValidCommand == nil {
+			firstValidCommand = comm
+		}
 	}
 
-	commUpdSubs, err := device.SubscribeUpdateCommands(nil, serverTimestamp.Add(-3 * time.Second))
+	commUpdSubs, err := device.SubscribeUpdateCommands(nil, firstValidCommand.Timestamp.Add(-1 * time.Millisecond))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -242,14 +255,19 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
+	var firstValidNotif *dh.Notification
 	for i := 0; i < notificationsToSend; i++ {
-		_, err = device.SendNotification("go test notification", nil, time.Time{})
+		notif, err := device.SendNotification("go test notification", nil, time.Time{})
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
+
+		if firstValidNotif == nil {
+			firstValidNotif = notif
+		}
 	}
 
-	notifSubs, err := device.SubscribeNotifications(nil, serverTimestamp.Add(-3 * time.Second))
+	notifSubs, err := device.SubscribeNotifications(nil, firstValidNotif.Timestamp.Add(-1 * time.Millisecond))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

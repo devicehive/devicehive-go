@@ -41,14 +41,30 @@ func prepareHttpResource(resourceTemplate string, data map[string]interface{}) s
 		return ""
 	}
 
+	queryParams := prepareQueryParams(data)
+
 	var resource bytes.Buffer
-	err = t.Execute(&resource, data)
+	err = t.Execute(&resource, queryParams)
 	if err != nil {
 		log.Printf("Error while executing template: %s", err)
 		return ""
 	}
 
 	return resource.String()
+}
+
+func prepareQueryParams(data map[string]interface{}) map[string]interface{} {
+	preparedData := make(map[string]interface{})
+
+	for k, v := range data {
+		if vs, ok := v.(string); ok {
+			preparedData[k] = url.QueryEscape(vs)
+		} else {
+			preparedData[k] = v
+		}
+	}
+
+	return preparedData
 }
 
 var wsResources = map[string]string{
@@ -94,6 +110,6 @@ var httpResources = map[string][2]string{
 	"listNotifications": {
 		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
-	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&networkIds={{Join .networkIds ","}}&deviceTypeIds={{Join .deviceTypeIds ","}}&names={{Join .names ","}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
-	"subscribeNotifications": {`device/notification/poll?deviceId={{or .deviceId ""}}&networkIds={{Join .networkIds ","}}&deviceTypeIds={{Join .deviceTypeIds ","}}&names={{Join .names ","}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
+	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
+	"subscribeNotifications": {`device/notification/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
 }

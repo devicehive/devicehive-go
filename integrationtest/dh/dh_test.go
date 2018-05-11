@@ -13,8 +13,8 @@ const serverAddr = "playground-dev.devicehive.com/api"
 const wsServerAddr = "ws://" + serverAddr + "/websocket"
 const httpServerAddr = "http://" + serverAddr + "/rest"
 
-var accessToken = flag.String("accessToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTI2MDQ0NjM5ODE2LCJ0IjoxLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.K-1V1wADgNIKKyHj68XgYWd05Ncx6EUqFE24uLtD8Z0", "Your access token")
-var refreshToken = flag.String("refreshToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTQxNzY3NjM5ODE3LCJ0IjowLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.n0GqHZnkk-qDgYM2xhKfKwMvrQXXGJ4ygcyY_SG4a5Y", "Your refresh token")
+var accessToken = flag.String("accessToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTI2MDUwNDM5NDkzLCJ0IjoxLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.SN9LoD4WXz3_KPXlifhRSYNaFPu7RgAZMlTSDEdl3IY", "Your access token")
+var refreshToken = flag.String("refreshToken", "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7ImEiOlsyLDMsNCw1LDYsNyw4LDksMTAsMTEsMTIsMTUsMTYsMTddLCJlIjoxNTQxNzczNDM5NDk0LCJ0IjowLCJ1IjozNzg3NiwibiI6WyI0MTY5MSJdLCJkdCI6WyIqIl19fQ.qhOH0W1HYBLE8tWNKUy1VjKT3xWHXdDaOLXA4oX_m1k", "Your refresh token")
 var userId = flag.Int("userId", 0, "DH user ID")
 
 var client *dh.Client
