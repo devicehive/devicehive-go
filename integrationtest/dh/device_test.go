@@ -4,7 +4,6 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestDevice(t *testing.T) {
@@ -113,15 +112,14 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	var comm *dh.Command
-	for i := int64(0); i < commandsCount; i++ {
-		comm, err = device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
+	for i := 0; i < commandsCount; i++ {
+		_, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}
 
-	commSubs, err := device.SubscribeInsertCommands(nil, comm.Timestamp.Add(-3*time.Second))
+	commSubs, err := device.SubscribeInsertCommands(nil, serverTimestamp.Add(-3*time.Second))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -132,7 +130,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	for i := int64(0); i < commandsCount; i++ {
+	for i := 0; i < commandsCount; i++ {
 		select {
 		case comm, ok := <-commSubs.CommandsChan:
 			is.True(ok)
@@ -161,9 +159,8 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 		}
 	}()
 
-	var comm *dh.Command
 	for i := 0; i < commandsCount; i++ {
-		comm, err = device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
+		comm, err := device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
@@ -176,7 +173,7 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 		}
 	}
 
-	commUpdSubs, err := device.SubscribeUpdateCommands(nil, comm.Timestamp.Add(-3 * time.Second))
+	commUpdSubs, err := device.SubscribeUpdateCommands(nil, serverTimestamp.Add(-3 * time.Second))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -206,27 +203,27 @@ func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
-
-	commChan, err := device.SubscribeInsertCommands(nil, time.Time{})
-
-	go func() {
-		select {
-		case comm, ok := <-commChan.CommandsChan:
-			is.True(!ok)
-			is.True(comm == nil)
-		case <-time.After(300 * time.Millisecond):
-			t.Fatalf("command unsubscribe timeout")
-		}
-
-		err = device.Remove()
+	defer func() {
+		err := device.Remove()
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
 	}()
 
-	commChan.Remove()
+	commSubs, err := device.SubscribeInsertCommands(nil, time.Time{})
 
-	<-time.After(300 * time.Millisecond)
+	err = commSubs.Remove()
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
+	}
+
+	select {
+	case comm, ok := <-commSubs.CommandsChan:
+		is.True(!ok)
+		is.True(comm == nil)
+	case <-time.After(300 * time.Millisecond):
+		t.Fatalf("command unsubscribe timeout")
+	}
 }
 
 func TestDeviceSubscribeNotifications(t *testing.T) {
