@@ -4,7 +4,6 @@ import (
 	"github.com/matryer/is"
 	"testing"
 	"time"
-	"strconv"
 	"github.com/devicehive/devicehive-go/dh"
 )
 
@@ -115,7 +114,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 
 	var lastCommand *dh.Command
 	for i := int64(0); i < 5; i++ {
-		lastCommand, err = device.SendCommand("go test command "+strconv.FormatInt(i, 10), nil, 120, time.Time{}, "", nil)
+		lastCommand, err = device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
@@ -137,7 +136,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		case comm, ok := <-commSubs.CommandsChan:
 			is.True(ok)
 			is.True(comm != nil)
-			is.Equal(comm.Command, "go test command "+strconv.FormatInt(i, 10))
+			is.Equal(comm.Command, "go test command")
 		case <-time.After(waitTimeout):
 			t.Error("command insert event timeout")
 		}
