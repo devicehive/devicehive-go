@@ -38,15 +38,29 @@ func newNotificationSubscription(subsId string, tspChan chan []byte, client *Cli
 
 	go func() {
 		for rawNotif := range tspChan {
-			notif := &Notification{}
-			err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
+			if client.tsp.IsWS() {
+				notif := &Notification{}
+				err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
 
-			if err != nil {
-				log.Println("couldn't unmarshal notification insert event data:", err)
-				continue
+				if err != nil {
+					log.Println("couldn't unmarshal notification insert event data:", err)
+					continue
+				}
+
+				subs.NotificationChan <- notif
+			} else {
+				var notifs []*Notification
+				err := json.Unmarshal(rawNotif, &notifs)
+
+				if err != nil {
+					log.Println("couldn't unmarshal array of notification data in subscription:", err)
+					continue
+				}
+
+				for _, notif := range notifs {
+					subs.NotificationChan <- notif
+				}
 			}
-
-			subs.NotificationChan <- notif
 		}
 
 		close(subs.NotificationChan)

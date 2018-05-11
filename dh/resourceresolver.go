@@ -5,6 +5,7 @@ import (
 	"text/template"
 	"log"
 	"strings"
+	"net/url"
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
@@ -31,7 +32,10 @@ func (c *Client) resolveResource(resourceName string, data map[string]interface{
 func prepareHttpResource(resourceTemplate string, data map[string]interface{}) string {
 	t := template.New("resource")
 
-	t, err := t.Funcs(template.FuncMap{"Join": strings.Join}).Parse(resourceTemplate)
+	t, err := t.Funcs(template.FuncMap{"Join": func(s []string, sep string) string {
+		str := strings.Join(s, sep)
+		return url.QueryEscape(str)
+	}}).Parse(resourceTemplate)
 	if err != nil {
 		log.Printf("Error while parsing template: %s", err)
 		return ""
@@ -90,6 +94,6 @@ var httpResources = map[string][2]string{
 	"listNotifications": {
 		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
 	},
-	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{.waitTimeout}}`},
-	"subscribeNotifications": {""},
+	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&networkIds={{Join .networkIds ","}}&deviceTypeIds={{Join .deviceTypeIds ","}}&names={{Join .names ","}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
+	"subscribeNotifications": {`device/notification/poll?deviceId={{or .deviceId ""}}&networkIds={{Join .networkIds ","}}&deviceTypeIds={{Join .deviceTypeIds ","}}&names={{Join .names ","}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
 }
