@@ -43,12 +43,12 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 				comm := &Command{}
 				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
 
-				fmt.Println(comm)
-
 				if err != nil {
 					log.Println("couldn't unmarshal command data in subscription:", err)
 					continue
 				}
+
+				fmt.Println("HANDLED:", comm)
 
 				subs.CommandsChan <- comm
 			} else {

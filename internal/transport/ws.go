@@ -93,8 +93,6 @@ func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan [
 	}
 	subscriptionId = strconv.FormatInt(id.Subscription, 10)
 
-	fmt.Println("Subscribed ", subscriptionId)
-
 	return t.subscribe(subscriptionId), subscriptionId, nil
 }
 
@@ -146,8 +144,12 @@ func (t *ws) resolveReceiver(msg []byte) {
 	ids := &ids{}
 	err := json.Unmarshal(msg, ids)
 
-	fmt.Println(ids.Request, ids.Subscription)
-	fmt.Println(string(msg))
+	fmt.Println("RAW DATA:", string(msg))
+	if ids.Subscription != 0 {
+		fmt.Println("Subscription id", ids.Subscription)
+	} else if ids.Request != "" {
+		fmt.Println("Request id", ids.Request)
+	}
 
 	if err != nil {
 		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(msg))
@@ -159,7 +161,7 @@ func (t *ws) resolveReceiver(msg []byte) {
 		client.close()
 		t.requests.delete(ids.Request)
 	} else if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
-		fmt.Println("Sending to data chan...")
+		fmt.Println("Sending raw data thru transport channel...")
 		client.data <- msg
 	}
 }

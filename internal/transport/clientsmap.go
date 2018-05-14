@@ -2,6 +2,7 @@ package transport
 
 import (
 	"sync"
+	"fmt"
 )
 
 var mu = sync.Mutex{}
@@ -68,7 +69,16 @@ func (m clientsMap) get(key string) (client *client, ok bool) {
 	mu.Lock()
 	defer mu.Unlock()
 
+	fmt.Println("Getting by key:", key)
+
 	req, ok := m[key]
+
+	if ok {
+		fmt.Println("OK")
+	} else {
+		fmt.Println("BAD")
+	}
+
 	return req, ok
 }
 

@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 	"github.com/devicehive/devicehive-go/dh"
+	"fmt"
 )
 
 const commandsToSend = 1
 const notificationsToSend = 1
 
-const subscriptionTimestampOffset = -10 * time.Minute
+const subscriptionTimestampOffset = -1 * time.Second
 
 func TestDevice(t *testing.T) {
 	is := is.New(t)
@@ -148,6 +149,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	for i := 0; i < commandsToSend; i++ {
 		select {
 		case comm, ok := <-commSubs.CommandsChan:
+			fmt.Println("RECEIVED:", comm)
 			is.True(ok)
 			is.True(comm != nil)
 			is.Equal(comm.Command, "go test command")
