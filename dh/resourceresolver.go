@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"net/url"
+	"fmt"
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
@@ -16,8 +17,15 @@ func (c *Client) resolveResource(resourceName string, data map[string]interface{
 			return resourceName, ""
 		}
 
-		resource := prepareHttpResource(rsrc[0], data)
+		queryParams := prepareQueryParams(data)
+
+		resource := prepareHttpResource(rsrc[0], queryParams)
 		method := rsrc[1]
+
+		queryString := createQueryString(resourceName, queryParams)
+		if queryString != "" {
+			resource += "?" + queryString
+		}
 
 		return resource, method
 	}
@@ -29,19 +37,14 @@ func (c *Client) resolveResource(resourceName string, data map[string]interface{
 	return wsResources[resourceName], ""
 }
 
-func prepareHttpResource(resourceTemplate string, data map[string]interface{}) string {
+func prepareHttpResource(resourceTemplate string, queryParams map[string]interface{}) string {
 	t := template.New("resource")
 
-	t, err := t.Funcs(template.FuncMap{"Join": func(s []string, sep string) string {
-		str := strings.Join(s, sep)
-		return url.QueryEscape(str)
-	}}).Parse(resourceTemplate)
+	t, err := t.Parse(resourceTemplate)
 	if err != nil {
 		log.Printf("Error while parsing template: %s", err)
 		return ""
 	}
-
-	queryParams := prepareQueryParams(data)
 
 	var resource bytes.Buffer
 	err = t.Execute(&resource, queryParams)
@@ -57,14 +60,33 @@ func prepareQueryParams(data map[string]interface{}) map[string]interface{} {
 	preparedData := make(map[string]interface{})
 
 	for k, v := range data {
-		if vs, ok := v.(string); ok {
-			preparedData[k] = url.QueryEscape(vs)
+		if s, ok := v.(string); ok {
+			preparedData[k] = url.QueryEscape(s)
+		} else if s, ok := v.([]string); ok {
+			preparedData[k] = url.QueryEscape(strings.Join(s, ","))
 		} else {
 			preparedData[k] = v
 		}
 	}
 
 	return preparedData
+}
+
+func createQueryString(resourceName string, queryParams map[string]interface{}) string {
+	var params []string
+	paramNames, ok := httpResourcesQueryParams[resourceName]
+
+	if !ok {
+		return ""
+	}
+
+	for _, p := range paramNames {
+		if paramVal, ok := queryParams[p]; ok {
+			params = append(params, fmt.Sprintf("%s=%v", p, paramVal))
+		}
+	}
+
+	return strings.Join(params, "&")
 }
 
 var wsResources = map[string]string{
@@ -102,14 +124,17 @@ var httpResources = map[string][2]string{
 	"getDevice":      {"device/{{.deviceId}}"},
 	"deleteDevice":   {"device/{{.deviceId}}", "DELETE"},
 	"insertCommand":  {"device/{{.deviceId}}/command", "POST"},
-	"listCommands": {
-		`device/{{.deviceId}}/command?start={{or .start ""}}&end={{or .end ""}}&command={{or .command ""}}&status={{or .status ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
-	},
+	"listCommands":   {`device/{{.deviceId}}/command`},
 	"updateCommand":      {"device/{{.deviceId}}/command/{{.commandId}}", "PUT"},
 	"insertNotification": {"device/{{.deviceId}}/notification", "POST"},
-	"listNotifications": {
-		`device/{{.deviceId}}/notification?start={{or .start ""}}&end={{or .end ""}}&notification={{or .notification ""}}&sortField={{or .sortField ""}}&sortOrder={{or .sortOrder ""}}&take={{or .take ""}}&skip={{or .skip ""}}`,
-	},
-	"subscribeCommands": {`device/command/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
-	"subscribeNotifications": {`device/notification/poll?deviceId={{or .deviceId ""}}&timestamp={{or .timestamp ""}}&waitTimeout={{or .waitTimeout 0}}`},
+	"listNotifications": {`device/{{.deviceId}}/notification`},
+	"subscribeCommands": {`device/command/poll`},
+	"subscribeNotifications": {`device/notification/poll`},
+}
+
+var httpResourcesQueryParams = map[string][]string{
+	"listCommands": { "start", "end", "command", "status", "sortField", "sortOrder", "take", "skip" },
+	"listNotifications": { "start", "end", "notification", "sortField", "sortOrder", "take", "skip" },
+	"subscribeCommands": { "deviceId", "timestamp", "waitTimeout", "names" },
+	"subscribeNotifications": { "deviceId", "timestamp", "waitTimeout", "names" },
 }
