@@ -9,10 +9,7 @@ import (
 	"time"
 )
 
-const serverAddr = "playground-dev.devicehive.com/api"
-const wsServerAddr = "ws://" + serverAddr + "/websocket"
-const httpServerAddr = "http://" + serverAddr + "/rest"
-
+var serverAddr = flag.String("serverAddress", "ws://localhost/api/websocket", "Server address without trailing slash")
 var accessToken = flag.String("accessToken", "", "Your access token")
 var refreshToken = flag.String("refreshToken", "", "Your refresh token")
 var userId = flag.Int("userId", 0, "DH user ID")
@@ -24,8 +21,13 @@ var waitTimeout time.Duration
 func TestMain(m *testing.M) {
 	flag.Parse()
 
+	if *accessToken == "" || *refreshToken == "" || *userId == 0 {
+		fmt.Println("Please provide accessToken, refreshToken and userId")
+		os.Exit(1)
+	}
+
 	var err *dh.Error
-	client, err = dh.ConnectWithToken(wsServerAddr, *accessToken, *refreshToken)
+	client, err = dh.ConnectWithToken(*serverAddr, *accessToken, *refreshToken)
 
 	if err != nil {
 		fmt.Println(err)
@@ -34,7 +36,7 @@ func TestMain(m *testing.M) {
 
 	client.PollingWaitTimeoutSeconds = 7
 
-	waitTimeout = time.Duration(client.PollingWaitTimeoutSeconds+10) * time.Second
+	waitTimeout = time.Duration(client.PollingWaitTimeoutSeconds+1) * time.Second
 
 	res := m.Run()
 	os.Exit(res)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+	"fmt"
 )
 
 var commandSubsMutex = sync.Mutex{}
@@ -41,6 +42,8 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 			if client.tsp.IsWS() {
 				comm := &Command{}
 				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
+
+				fmt.Println(comm)
 
 				if err != nil {
 					log.Println("couldn't unmarshal command data in subscription:", err)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+	"fmt"
 )
 
 var notifSubsMutex = sync.Mutex{}
@@ -41,6 +42,8 @@ func newNotificationSubscription(subsId string, tspChan chan []byte, client *Cli
 			if client.tsp.IsWS() {
 				notif := &Notification{}
 				err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
+
+				fmt.Println(notif)
 
 				if err != nil {
 					log.Println("couldn't unmarshal notification insert event data:", err)
