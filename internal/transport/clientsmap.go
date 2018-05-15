@@ -7,13 +7,13 @@ import (
 func newClientsMap() *clientsMap {
 	return &clientsMap{
 		clients: make(map[string]*client),
-		mu: sync.Mutex{},
+		mu:      sync.Mutex{},
 	}
 }
 
 type clientsMap struct {
 	clients map[string]*client
-	mu sync.Mutex
+	mu      sync.Mutex
 }
 
 type client struct {

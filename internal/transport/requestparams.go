@@ -8,10 +8,10 @@ import (
 )
 
 type RequestParams struct {
-	Data        	   interface{}
-	Method      	   string
-	RequestId   	   string
-	AccessToken 	   string
+	Data               interface{}
+	Method             string
+	RequestId          string
+	AccessToken        string
 	WaitTimeoutSeconds int
 }
 

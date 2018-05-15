@@ -3,21 +3,21 @@ package transport
 import (
 	"encoding/json"
 	"strconv"
-	"time"
 	"sync"
+	"time"
 )
 
 func newWSSubscriptionsBuffer(clients *clientsMap) *wsSubscriptions {
 	return &wsSubscriptions{
 		clientsMap: clients,
-		mu: sync.Mutex{},
+		mu:         sync.Mutex{},
 	}
 }
 
 type wsSubscriptions struct {
 	*clientsMap
-	buffer  [][]byte
-	mu sync.Mutex
+	buffer [][]byte
+	mu     sync.Mutex
 }
 
 func (s *wsSubscriptions) BufferPut(b []byte) {

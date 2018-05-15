@@ -159,16 +159,16 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan c
 		done := make(chan struct{})
 		resChan := t.poll(resource, params, done)
 
-		loop:
-			for {
-				select {
-				case res := <-resChan:
-					subs.data <- res
-				case <-subs.signal:
-					close(done)
-					break loop
-				}
+	loop:
+		for {
+			select {
+			case res := <-resChan:
+				subs.data <- res
+			case <-subs.signal:
+				close(done)
+				break loop
 			}
+		}
 	}()
 
 	return subs.data, subscriptionId, nil

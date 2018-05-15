@@ -8,11 +8,11 @@ import (
 )
 
 type Client struct {
-	tsp          transport.Transporter
-	accessToken  string
-	refreshToken string
-	login        string
-	password     string
+	tsp                       transport.Transporter
+	accessToken               string
+	refreshToken              string
+	login                     string
+	password                  string
 	PollingWaitTimeoutSeconds int
 }
 

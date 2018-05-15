@@ -2,11 +2,11 @@ package dh
 
 import (
 	"bytes"
-	"text/template"
-	"log"
-	"strings"
-	"net/url"
 	"fmt"
+	"log"
+	"net/url"
+	"strings"
+	"text/template"
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
@@ -90,51 +90,51 @@ func createQueryString(resourceName string, queryParams map[string]interface{}) 
 }
 
 var wsResources = map[string]string{
-	"auth":               "authenticate",
-	"tokenCreate":        "token/create",
-	"tokenRefresh":       "token/refresh",
-	"tokenByCreds":       "token",
-	"apiInfo":            "server/info",
-	"apiInfoCluster":     "cluster/info",
-	"putConfig":          "configuration/put",
-	"getConfig":          "configuration/get",
-	"deleteConfig":       "configuration/delete",
-	"putDevice":          "device/save",
-	"getDevice":          "device/get",
-	"deleteDevice":       "device/delete",
-	"insertCommand":      "command/insert",
-	"listCommands":       "command/list",
-	"updateCommand":      "command/update",
-	"insertNotification": "notification/insert",
-	"listNotifications":  "notification/list",
-	"subscribeCommands":  "command/subscribe",
+	"auth":                   "authenticate",
+	"tokenCreate":            "token/create",
+	"tokenRefresh":           "token/refresh",
+	"tokenByCreds":           "token",
+	"apiInfo":                "server/info",
+	"apiInfoCluster":         "cluster/info",
+	"putConfig":              "configuration/put",
+	"getConfig":              "configuration/get",
+	"deleteConfig":           "configuration/delete",
+	"putDevice":              "device/save",
+	"getDevice":              "device/get",
+	"deleteDevice":           "device/delete",
+	"insertCommand":          "command/insert",
+	"listCommands":           "command/list",
+	"updateCommand":          "command/update",
+	"insertNotification":     "notification/insert",
+	"listNotifications":      "notification/list",
+	"subscribeCommands":      "command/subscribe",
 	"subscribeNotifications": "notification/subscribe",
 }
 
 var httpResources = map[string][2]string{
-	"tokenCreate":    {"token/create", "POST"},
-	"tokenRefresh":   {"token/refresh", "POST"},
-	"tokenByCreds":   {"token", "POST"},
-	"apiInfo":        {"info"},
-	"apiInfoCluster": {"info/config/cluster"},
-	"putConfig":      {"configuration/{{.name}}", "PUT"},
-	"getConfig":      {"configuration/{{.name}}"},
-	"deleteConfig":   {"configuration/{{.name}}", "DELETE"},
-	"putDevice":      {"device/{{.deviceId}}", "PUT"},
-	"getDevice":      {"device/{{.deviceId}}"},
-	"deleteDevice":   {"device/{{.deviceId}}", "DELETE"},
-	"insertCommand":  {"device/{{.deviceId}}/command", "POST"},
-	"listCommands":   {`device/{{.deviceId}}/command`},
-	"updateCommand":      {"device/{{.deviceId}}/command/{{.commandId}}", "PUT"},
-	"insertNotification": {"device/{{.deviceId}}/notification", "POST"},
-	"listNotifications": {`device/{{.deviceId}}/notification`},
-	"subscribeCommands": {`device/command/poll`},
+	"tokenCreate":            {"token/create", "POST"},
+	"tokenRefresh":           {"token/refresh", "POST"},
+	"tokenByCreds":           {"token", "POST"},
+	"apiInfo":                {"info"},
+	"apiInfoCluster":         {"info/config/cluster"},
+	"putConfig":              {"configuration/{{.name}}", "PUT"},
+	"getConfig":              {"configuration/{{.name}}"},
+	"deleteConfig":           {"configuration/{{.name}}", "DELETE"},
+	"putDevice":              {"device/{{.deviceId}}", "PUT"},
+	"getDevice":              {"device/{{.deviceId}}"},
+	"deleteDevice":           {"device/{{.deviceId}}", "DELETE"},
+	"insertCommand":          {"device/{{.deviceId}}/command", "POST"},
+	"listCommands":           {`device/{{.deviceId}}/command`},
+	"updateCommand":          {"device/{{.deviceId}}/command/{{.commandId}}", "PUT"},
+	"insertNotification":     {"device/{{.deviceId}}/notification", "POST"},
+	"listNotifications":      {`device/{{.deviceId}}/notification`},
+	"subscribeCommands":      {`device/command/poll`},
 	"subscribeNotifications": {`device/notification/poll`},
 }
 
 var httpResourcesQueryParams = map[string][]string{
-	"listCommands": { "start", "end", "command", "status", "sortField", "sortOrder", "take", "skip" },
-	"listNotifications": { "start", "end", "notification", "sortField", "sortOrder", "take", "skip" },
-	"subscribeCommands": { "deviceId", "timestamp", "waitTimeout", "names" },
-	"subscribeNotifications": { "deviceId", "timestamp", "waitTimeout", "names" },
+	"listCommands":           {"start", "end", "command", "status", "sortField", "sortOrder", "take", "skip"},
+	"listNotifications":      {"start", "end", "notification", "sortField", "sortOrder", "take", "skip"},
+	"subscribeCommands":      {"deviceId", "timestamp", "waitTimeout", "names"},
+	"subscribeNotifications": {"deviceId", "timestamp", "waitTimeout", "names"},
 }

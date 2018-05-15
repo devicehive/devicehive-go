@@ -1,10 +1,10 @@
 package dh_test
 
 import (
+	"github.com/devicehive/devicehive-go/dh"
 	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/devicehive/devicehive-go/dh"
 )
 
 const commandsToSend = 1
@@ -134,7 +134,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}
 
-	commSubs, err := device.SubscribeInsertCommands([]string{ "go test command" }, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
+	commSubs, err := device.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

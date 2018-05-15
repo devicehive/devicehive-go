@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	NotificationType          = "notification"
-	CommandType               = "command"
-	Timeout                 = 5 * time.Second
+	NotificationType = "notification"
+	CommandType      = "command"
+	Timeout          = 5 * time.Second
 )
 
 var client = &Client{
