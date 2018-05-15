@@ -52,13 +52,9 @@ func (m *clientsMap) createSubscriber(key string) (req *client) {
 	return m.create(key, false)
 }
 
-func (m *clientsMap) nonlockCreateSubscriber(key string) (req *client) {
-	return m.create(key, false)
-}
-
 func (m *clientsMap) create(key string, isErrChan bool) (req *client) {
 	var c *client
-	res := make(chan []byte)
+	res := make(chan []byte, 16)
 	signal := make(chan struct{})
 	if isErrChan {
 		err := make(chan *Error)
@@ -83,10 +79,6 @@ func (m *clientsMap) get(key string) (client *client, ok bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	return m.nonlockGet(key)
-}
-
-func (m *clientsMap) nonlockGet(key string) (client *client, ok bool) {
 	req, ok := m.clients[key]
 	return req, ok
 }

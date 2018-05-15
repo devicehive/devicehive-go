@@ -18,10 +18,11 @@ func newWS(addr string) (tsp *ws, err error) {
 	tsp = &ws{
 		conn:          conn,
 		requests:      newClientsMap(),
-		subscriptions: newClientsMap(),
+		subscriptions: newWSSubscriptionsBuffer(newClientsMap()),
 	}
 
 	go tsp.handleServerMessages()
+	go tsp.subscriptions.CleanupBufferByTimeout(1 * time.Second)
 
 	return tsp, nil
 }
@@ -29,7 +30,7 @@ func newWS(addr string) (tsp *ws, err error) {
 type ws struct {
 	conn          *websocket.Conn
 	requests      *clientsMap
-	subscriptions *clientsMap
+	subscriptions *wsSubscriptions
 }
 
 func (t *ws) IsHTTP() bool {
@@ -38,11 +39,6 @@ func (t *ws) IsHTTP() bool {
 
 func (t *ws) IsWS() bool {
 	return true
-}
-
-type ids struct {
-	Request      string `json:"requestId"`
-	Subscription int64  `json:"subscriptionId"`
 }
 
 func (t *ws) Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error) {
@@ -79,9 +75,6 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 }
 
 func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
-	t.subscriptions.mu.Lock()
-	defer t.subscriptions.mu.Unlock()
-
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -99,11 +92,11 @@ func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan [
 }
 
 func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
-	if _, ok := t.subscriptions.nonlockGet(subscriptionId); ok {
+	if _, ok := t.subscriptions.get(subscriptionId); ok {
 		return nil
 	}
 
-	client := t.subscriptions.nonlockCreateSubscriber(subscriptionId)
+	client := t.subscriptions.createSubscriber(subscriptionId)
 	return client.data
 }
 
@@ -155,7 +148,11 @@ func (t *ws) resolveReceiver(msg []byte) {
 		client.data <- msg
 		client.close()
 		t.requests.delete(ids.Request)
-	} else if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
-		client.data <- msg
+	} else {
+		if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
+			client.data <- msg
+		} else {
+			t.subscriptions.BufferPut(msg)
+		}
 	}
 }

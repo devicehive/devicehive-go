@@ -102,6 +102,7 @@ func TestWSSubscribe(t *testing.T) {
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		res := stubs.ResponseStub.Respond(reqData)
 
+		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 		c.WriteJSON(res)
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 	})
@@ -120,7 +121,15 @@ func TestWSSubscribe(t *testing.T) {
 		is.True(ok)
 		is.True(rawNotif != nil)
 	case <-time.After(1 * time.Second):
-		t.Error("subscription event timeout")
+		t.Fatal("subscription event timeout")
+	}
+
+	select {
+	case rawNotif, ok := <-tspChan:
+		is.True(ok)
+		is.True(rawNotif != nil)
+	case <-time.After(1 * time.Second):
+		t.Fatal("subscription event timeout")
 	}
 }
 
