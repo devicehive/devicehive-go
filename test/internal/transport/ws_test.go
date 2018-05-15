@@ -103,7 +103,6 @@ func TestWSSubscribe(t *testing.T) {
 		res := stubs.ResponseStub.Respond(reqData)
 
 		c.WriteJSON(res)
-		<-time.After(500 * time.Millisecond)
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 	})
 

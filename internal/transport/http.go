@@ -30,14 +30,14 @@ func newHTTP(addr string) (tsp *httpTsp, err error) {
 	return &httpTsp{
 		client:        &http.Client{},
 		url:           u,
-		subscriptions: make(clientsMap),
+		subscriptions: newClientsMap(),
 	}, nil
 }
 
 type httpTsp struct {
 	client        *http.Client
 	url           *url.URL
-	subscriptions clientsMap
+	subscriptions *clientsMap
 }
 
 func (t *httpTsp) IsHTTP() bool {

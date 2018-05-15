@@ -2,12 +2,19 @@ package transport
 
 import (
 	"sync"
-	"fmt"
 )
 
-var mu = sync.Mutex{}
+func newClientsMap() *clientsMap {
+	return &clientsMap{
+		clients: make(map[string]*client),
+		mu: sync.Mutex{},
+	}
+}
 
-type clientsMap map[string]*client
+type clientsMap struct {
+	clients map[string]*client
+	mu sync.Mutex
+}
 
 type client struct {
 	data   chan []byte
@@ -24,25 +31,32 @@ func (c *client) close() {
 	}
 }
 
-func (m clientsMap) delete(key string) {
-	mu.Lock()
-	defer mu.Unlock()
+func (m *clientsMap) delete(key string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	delete(m, key)
+	delete(m.clients, key)
 }
 
-func (m clientsMap) createClient(key string) (req *client) {
+func (m *clientsMap) createClient(key string) (req *client) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	return m.create(key, true)
 }
 
-func (m clientsMap) createSubscriber(key string) (req *client) {
+func (m *clientsMap) createSubscriber(key string) (req *client) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	return m.create(key, false)
 }
 
-func (m clientsMap) create(key string, isErrChan bool) (req *client) {
-	mu.Lock()
-	defer mu.Unlock()
+func (m *clientsMap) nonlockCreateSubscriber(key string) (req *client) {
+	return m.create(key, false)
+}
 
+func (m *clientsMap) create(key string, isErrChan bool) (req *client) {
 	var c *client
 	res := make(chan []byte)
 	signal := make(chan struct{})
@@ -60,33 +74,28 @@ func (m clientsMap) create(key string, isErrChan bool) (req *client) {
 		}
 	}
 
-	m[key] = c
+	m.clients[key] = c
 
 	return c
 }
 
-func (m clientsMap) get(key string) (client *client, ok bool) {
-	mu.Lock()
-	defer mu.Unlock()
+func (m *clientsMap) get(key string) (client *client, ok bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	fmt.Println("Getting by key:", key)
+	return m.nonlockGet(key)
+}
 
-	req, ok := m[key]
-
-	if ok {
-		fmt.Println("OK")
-	} else {
-		fmt.Println("BAD")
-	}
-
+func (m *clientsMap) nonlockGet(key string) (client *client, ok bool) {
+	req, ok := m.clients[key]
 	return req, ok
 }
 
-func (m clientsMap) forEach(f func(req *client)) {
-	mu.Lock()
-	defer mu.Unlock()
+func (m *clientsMap) forEach(f func(req *client)) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	for _, req := range m {
+	for _, req := range m.clients {
 		f(req)
 	}
 }
