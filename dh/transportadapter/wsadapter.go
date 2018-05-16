@@ -31,3 +31,11 @@ func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
 
 	return nil
 }
+
+func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{}) (resource, method string) {
+	if wsResources[resName] == "" {
+		return resName, ""
+	}
+
+	return wsResources[resName], ""
+}

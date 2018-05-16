@@ -63,6 +63,22 @@ func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (httpRes *httpResponse, 
 	return httpRes, nil
 }
 
-func isJSONArray(b []byte) bool {
-	return json.Unmarshal(b, &[]interface{}{}) == nil
+func (a *HTTPAdapter) ResolveResource(resName string, data map[string]interface{}) (resource, method string) {
+	rsrc, ok := httpResources[resName]
+
+	if !ok {
+		return resName, ""
+	}
+
+	queryParams := prepareQueryParams(data)
+
+	resource = prepareHttpResource(rsrc[0], queryParams)
+	method = rsrc[1]
+
+	queryString := createQueryString(httpResourcesQueryParams, resName, queryParams)
+	if queryString != "" {
+		resource += "?" + queryString
+	}
+
+	return resource, method
 }
