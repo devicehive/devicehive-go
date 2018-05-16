@@ -1,14 +1,13 @@
 package dh
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"strings"
+	"github.com/devicehive/devicehive-go/dh/transportadapter"
 )
 
 type Client struct {
-	tsp                       transport.Transporter
+	transport                 transport.Transporter
+	transportAdapter          transportadapter.TransportAdapter
 	accessToken               string
 	refreshToken              string
 	login                     string
@@ -17,7 +16,7 @@ type Client struct {
 }
 
 func (c *Client) authenticate(token string) (result bool, err *Error) {
-	if c.tsp.IsHTTP() {
+	if c.transport.IsHTTP() {
 		c.accessToken = token
 		return true, nil
 	} else {
@@ -50,7 +49,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	tspChan, subscriptionId, tspErr := c.tsp.Subscribe(resource, tspReqParams)
+	tspChan, subscriptionId, tspErr := c.transport.Subscribe(resource, tspReqParams)
 
 	if tspErr != nil {
 		return nil, "", newTransportErr(tspErr)
@@ -60,7 +59,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		_, err := c.request(resourceName, map[string]interface{}{
 			"subscriptionId": subscriptionId,
 		})
@@ -70,7 +69,7 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 		}
 	}
 
-	c.tsp.Unsubscribe(subscriptionId)
+	c.transport.Unsubscribe(subscriptionId)
 
 	return nil
 }
@@ -82,7 +81,7 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
+	resBytes, tspErr := c.transport.Request(resource, tspReqParams, Timeout)
 
 	if tspErr != nil {
 		return nil, newTransportErr(tspErr)
@@ -94,56 +93,9 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 }
 
 func (c *Client) handleResponse(resBytes []byte) (err *Error) {
-	// @TODO Refactor this conditions
-	if c.tsp.IsWS() {
-		res := &response{}
-		parseErr := json.Unmarshal(resBytes, res)
-
-		if parseErr != nil {
-			return newJSONErr()
-		}
-
-		if res.Status == "error" {
-			errMsg := strings.ToLower(res.Error)
-			errCode := res.Code
-			r := fmt.Sprintf("%d %s", errCode, errMsg)
-			return &Error{name: ServiceErr, reason: r}
-		}
-	} else {
-		if len(resBytes) == 0 {
-			return nil
-		}
-
-		if isJSONArray(resBytes) {
-			return nil
-		}
-
-		res := make(map[string]interface{})
-		parseErr := json.Unmarshal(resBytes, &res)
-
-		if parseErr != nil {
-			return &Error{name: InvalidResponseErr, reason: parseErr.Error()}
-		}
-
-		if _, ok := res["message"]; !ok {
-			return nil
-		}
-
-		httpRes := &httpResponse{
-			Message: res["message"].(string),
-		}
-		if e, ok := res["error"].(float64); ok {
-			httpRes.Status = int(e)
-		} else {
-			httpRes.Status = int(res["status"].(float64))
-		}
-
-		if httpRes.Status >= 400 {
-			errMsg := strings.ToLower(httpRes.Message)
-			errCode := httpRes.Status
-			r := fmt.Sprintf("%d %s", errCode, errMsg)
-			return &Error{name: ServiceErr, reason: r}
-		}
+	rawErr := c.transportAdapter.HandleResponseError(resBytes)
+	if rawErr != nil {
+		return &Error{ServiceErr, rawErr.Error()}
 	}
 
 	return nil
@@ -162,7 +114,7 @@ func (c *Client) createRequestParams(method string, data interface{}) *transport
 		Data: data,
 	}
 
-	if c.tsp.IsHTTP() {
+	if c.transport.IsHTTP() {
 		if method != "" {
 			tspReqParams.Method = method
 		}
@@ -172,8 +124,4 @@ func (c *Client) createRequestParams(method string, data interface{}) *transport
 	}
 
 	return tspReqParams
-}
-
-func isJSONArray(b []byte) bool {
-	return json.Unmarshal(b, &[]interface{}{}) == nil
 }

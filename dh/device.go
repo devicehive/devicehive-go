@@ -53,7 +53,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, err
 	}
 
-	if d.client.tsp.IsWS() {
+	if d.client.transport.IsWS() {
 		pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
 	} else {
 		pErr = json.Unmarshal(rawRes, &list)
@@ -104,7 +104,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	}
 
 	var parseErr error
-	if d.client.tsp.IsWS() {
+	if d.client.transport.IsWS() {
 		parseErr = json.Unmarshal(rawRes, &commandResponse{Command: comm})
 	} else {
 		parseErr = json.Unmarshal(rawRes, comm)
@@ -136,7 +136,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 		return nil, err
 	}
 
-	if d.client.tsp.IsWS() {
+	if d.client.transport.IsWS() {
 		pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
 	} else {
 		pErr = json.Unmarshal(rawRes, &list)
@@ -171,7 +171,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 	}
 
 	var pErr error
-	if d.client.tsp.IsWS() {
+	if d.client.transport.IsWS() {
 		pErr = json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
 	} else {
 		pErr = json.Unmarshal(rawRes, notif)
@@ -254,7 +254,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 		client: c,
 	}
 	var parseErr error
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		parseErr = json.Unmarshal(rawRes, &deviceResponse{Device: device})
 	} else {
 		parseErr = json.Unmarshal(rawRes, device)

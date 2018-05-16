@@ -62,7 +62,7 @@ func (c *Client) DeleteProperty(name string) *Error {
 func (c *Client) handlePropertyResponse(res []byte) (conf *Configuration, err error) {
 	conf = &Configuration{}
 	var parseErr error
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		parseErr = json.Unmarshal(res, &configuration{Value: conf})
 	} else {
 		parseErr = json.Unmarshal(res, conf)

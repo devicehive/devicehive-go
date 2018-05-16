@@ -38,7 +38,7 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 
 	go func() {
 		for rawComm := range tspChan {
-			if client.tsp.IsWS() {
+			if client.transport.IsWS() {
 				comm := &Command{}
 				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
 

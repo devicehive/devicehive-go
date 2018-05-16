@@ -33,7 +33,7 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 
 	info = &ServerInfo{}
 	var parseErr error
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		parseErr = json.Unmarshal(rawRes, &serverInfo{info})
 	} else {
 		parseErr = json.Unmarshal(rawRes, info)
@@ -55,7 +55,7 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 
 	info = &ClusterInfo{}
 	var parseErr error
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		parseErr = json.Unmarshal(rawRes, &clusterInfo{info})
 	} else {
 		parseErr = json.Unmarshal(rawRes, info)

@@ -2,7 +2,7 @@ package dh
 
 func (c *Client) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
 	var builders map[string]func(map[string]interface{}) interface{}
-	if c.tsp.IsWS() {
+	if c.transport.IsWS() {
 		builders = wsRequestPayloadBuilder
 	} else {
 		builders = httpRequestPayloadBuilders

@@ -10,7 +10,7 @@ import (
 )
 
 func (c *Client) resolveResource(resourceName string, data map[string]interface{}) (resource, method string) {
-	if c.tsp.IsHTTP() {
+	if c.transport.IsHTTP() {
 		rsrc, ok := httpResources[resourceName]
 
 		if !ok {

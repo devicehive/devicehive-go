@@ -38,7 +38,7 @@ func newNotificationSubscription(subsId string, tspChan chan []byte, client *Cli
 
 	go func() {
 		for rawNotif := range tspChan {
-			if client.tsp.IsWS() {
+			if client.transport.IsWS() {
 				notif := &Notification{}
 				err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
 
