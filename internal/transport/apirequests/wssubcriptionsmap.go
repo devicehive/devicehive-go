@@ -32,7 +32,7 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 
 	client := s.PendingRequestsMap.CreateSubscription(key)
 
-	subsData, newBuffer := s.getSubscriberData(key)
+	subsData, newBuffer := s.extractSubscriberData(key)
 
 	for _, b := range subsData {
 		client.Data <- b
@@ -43,7 +43,7 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	return client
 }
 
-func (s *WSSubscriptionsMap) getSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
+func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
 	for _, b := range s.buffer {
 		ids, err := utils.ParseIDs(b)
 		if err != nil {
