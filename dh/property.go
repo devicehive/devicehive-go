@@ -4,10 +4,6 @@ import (
 	"encoding/json"
 )
 
-type configuration struct {
-	Value *Configuration `json:"configuration"`
-}
-
 type Configuration struct {
 	Name          string `json:"name"`
 	Value         string `json:"value"`
@@ -63,7 +59,10 @@ func (c *Client) handlePropertyResponse(res []byte) (conf *Configuration, err er
 	conf = &Configuration{}
 	var parseErr error
 	if c.transport.IsWS() {
-		parseErr = json.Unmarshal(res, &configuration{Value: conf})
+		payload := &struct{ Conf *Configuration `json:"configuration"` }{
+			Conf: conf,
+		}
+		parseErr = json.Unmarshal(res, payload)
 	} else {
 		parseErr = json.Unmarshal(res, conf)
 	}

@@ -38,19 +38,18 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 	}
 
 	data, jsonErr := params.Map()
-
 	if jsonErr != nil {
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
 	resource, tspReqParams := c.prepareRequestData(resourceName, data)
-
 	if resource == "" {
 		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	tspChan, subscriptionId, tspErr := c.transport.Subscribe(resource, tspReqParams)
+	tspReqParams.WaitTimeoutSeconds = c.PollingWaitTimeoutSeconds
 
+	tspChan, subscriptionId, tspErr := c.transport.Subscribe(resource, tspReqParams)
 	if tspErr != nil {
 		return nil, "", newTransportErr(tspErr)
 	}
@@ -87,12 +86,12 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 		return nil, newTransportErr(tspErr)
 	}
 
-	err = c.handleResponse(resBytes)
+	err = c.handleResponseError(resBytes)
 
 	return resBytes, err
 }
 
-func (c *Client) handleResponse(resBytes []byte) (err *Error) {
+func (c *Client) handleResponseError(resBytes []byte) (err *Error) {
 	rawErr := c.transportAdapter.HandleResponseError(resBytes)
 	if rawErr != nil {
 		return &Error{ServiceErr, rawErr.Error()}
@@ -109,9 +108,9 @@ func (c *Client) prepareRequestData(resourceName string, data map[string]interfa
 	return resource, reqParams
 }
 
-func (c *Client) createRequestParams(method string, data interface{}) *transport.RequestParams {
+func (c *Client) createRequestParams(method string, reqData interface{}) *transport.RequestParams {
 	tspReqParams := &transport.RequestParams{
-		Data: data,
+		Data: reqData,
 	}
 
 	if c.transport.IsHTTP() {
@@ -120,7 +119,6 @@ func (c *Client) createRequestParams(method string, data interface{}) *transport
 		}
 
 		tspReqParams.AccessToken = c.accessToken
-		tspReqParams.WaitTimeoutSeconds = c.PollingWaitTimeoutSeconds
 	}
 
 	return tspReqParams
