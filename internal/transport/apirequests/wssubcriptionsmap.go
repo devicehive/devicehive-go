@@ -1,41 +1,41 @@
-package transport
+package apirequests
 
 import (
-	"encoding/json"
 	"strconv"
 	"sync"
 	"time"
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
-func newWSSubscriptionsBuffer(clients *clientsMap) *wsSubscriptions {
-	return &wsSubscriptions{
-		clientsMap: clients,
-		mu:         sync.Mutex{},
+func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
+	return &WSSubscriptionsMap{
+		PendingRequestsMap: clients,
+		mu:                 sync.Mutex{},
 	}
 }
 
-type wsSubscriptions struct {
-	*clientsMap
+type WSSubscriptionsMap struct {
+	*PendingRequestsMap
 	buffer [][]byte
 	mu     sync.Mutex
 }
 
-func (s *wsSubscriptions) BufferPut(b []byte) {
+func (s *WSSubscriptionsMap) BufferPut(b []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.buffer = append(s.buffer, b)
 }
 
-func (s *wsSubscriptions) createSubscriber(key string) *client {
+func (s *WSSubscriptionsMap) CreateSubscriber(key string) *PendingRequest {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	client := s.clientsMap.createSubscriber(key)
+	client := s.PendingRequestsMap.CreateSubscriber(key)
 
 	subsData, newBuffer := s.getSubscriberData(key)
 
 	for _, b := range subsData {
-		client.data <- b
+		client.Data <- b
 	}
 
 	s.buffer = newBuffer
@@ -43,10 +43,9 @@ func (s *wsSubscriptions) createSubscriber(key string) *client {
 	return client
 }
 
-func (s *wsSubscriptions) getSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
-	ids := &ids{}
+func (s *WSSubscriptionsMap) getSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
 	for _, b := range s.buffer {
-		err := json.Unmarshal(b, ids)
+		ids, err := utils.ParseIDs(b)
 		if err != nil {
 			continue
 		}
@@ -63,7 +62,7 @@ func (s *wsSubscriptions) getSubscriberData(subsId string) (subsData [][]byte, n
 	return subsData, newBuffer
 }
 
-func (s *wsSubscriptions) CleanupBufferByTimeout(timeout time.Duration) {
+func (s *WSSubscriptionsMap) CleanupBufferByTimeout(timeout time.Duration) {
 	for {
 		time.Sleep(timeout)
 

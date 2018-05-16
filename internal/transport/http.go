@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
 const (
@@ -30,14 +31,14 @@ func newHTTP(addr string) (tsp *httpTsp, err error) {
 	return &httpTsp{
 		client:        &http.Client{},
 		url:           u,
-		subscriptions: newClientsMap(),
+		subscriptions: apirequests.NewClientsMap(),
 	}, nil
 }
 
 type httpTsp struct {
 	client        *http.Client
 	url           *url.URL
-	subscriptions *clientsMap
+	subscriptions *apirequests.PendingRequestsMap
 }
 
 func (t *httpTsp) IsHTTP() bool {
@@ -71,7 +72,7 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	}
 
 	if reqErr != nil {
-		return nil, &Error{name: InvalidRequestErr, reason: reqErr.Error()}
+		return nil, NewError(InvalidRequestErr, reqErr.Error())
 	}
 
 	if params != nil && params.AccessToken != "" {
@@ -105,7 +106,7 @@ func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *by
 		rawReqData, err = json.Marshal(params.Data)
 
 		if err != nil {
-			return nil, &Error{name: InvalidRequestErr, reason: err.Error()}
+			return nil, NewError(InvalidRequestErr, err.Error())
 		}
 	} else {
 		rawReqData = []byte("{}")
@@ -122,7 +123,7 @@ func (t *httpTsp) createRequestAddr(resource string) (addr string, err *Error) {
 		u, urlErr = t.url.Parse(resource)
 
 		if urlErr != nil {
-			return "", &Error{name: InvalidRequestErr, reason: urlErr.Error()}
+			return "", NewError(InvalidRequestErr, urlErr.Error())
 		}
 	}
 
@@ -134,17 +135,17 @@ func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 
 	if resErr != nil {
 		if isTimeoutErr(resErr) {
-			return nil, &Error{name: TimeoutErr, reason: resErr.Error()}
+			return nil, NewError(TimeoutErr, resErr.Error())
 		}
 
-		return nil, &Error{name: InvalidRequestErr, reason: resErr.Error()}
+		return nil, NewError(InvalidRequestErr, resErr.Error())
 	}
 	defer res.Body.Close()
 
 	rawRes, rErr := ioutil.ReadAll(res.Body)
 
 	if rErr != nil {
-		return nil, &Error{name: InvalidResponseErr, reason: rErr.Error()}
+		return nil, NewError(InvalidResponseErr, rErr.Error())
 	}
 
 	return rawRes, nil
@@ -153,7 +154,7 @@ func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
-	subs := t.subscriptions.createSubscriber(subscriptionId)
+	subs := t.subscriptions.CreateSubscriber(subscriptionId)
 
 	go func() {
 		done := make(chan struct{})
@@ -163,15 +164,15 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan c
 		for {
 			select {
 			case res := <-resChan:
-				subs.data <- res
-			case <-subs.signal:
+				subs.Data <- res
+			case <-subs.Signal:
 				close(done)
 				break loop
 			}
 		}
 	}()
 
-	return subs.data, subscriptionId, nil
+	return subs.Data, subscriptionId, nil
 }
 
 func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte) {
@@ -205,10 +206,10 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 }
 
 func (t *httpTsp) Unsubscribe(subscriptionId string) {
-	subscriber, ok := t.subscriptions.get(subscriptionId)
+	subscriber, ok := t.subscriptions.Get(subscriptionId)
 
 	if ok {
-		subscriber.close()
-		t.subscriptions.delete(subscriptionId)
+		subscriber.Close()
+		t.subscriptions.Delete(subscriptionId)
 	}
 }

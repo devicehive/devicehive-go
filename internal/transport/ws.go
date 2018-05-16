@@ -1,11 +1,12 @@
 package transport
 
 import (
-	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
 	"time"
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func newWS(addr string) (tsp *ws, err error) {
@@ -17,8 +18,8 @@ func newWS(addr string) (tsp *ws, err error) {
 
 	tsp = &ws{
 		conn:          conn,
-		requests:      newClientsMap(),
-		subscriptions: newWSSubscriptionsBuffer(newClientsMap()),
+		requests:      apirequests.NewClientsMap(),
+		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
 	}
 
 	go tsp.handleServerMessages()
@@ -29,8 +30,8 @@ func newWS(addr string) (tsp *ws, err error) {
 
 type ws struct {
 	conn          *websocket.Conn
-	requests      *clientsMap
-	subscriptions *wsSubscriptions
+	requests      *apirequests.PendingRequestsMap
+	subscriptions *apirequests.WSSubscriptionsMap
 }
 
 func (t *ws) IsHTTP() bool {
@@ -51,7 +52,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	reqId := params.requestId()
-	client := t.requests.createClient(reqId)
+	client := t.requests.CreateClient(reqId)
 
 	data := params.mapData()
 	data["action"] = resource
@@ -59,18 +60,18 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 
 	wErr := t.conn.WriteJSON(data)
 	if wErr != nil {
-		return nil, &Error{name: InvalidRequestErr, reason: wErr.Error()}
+		return nil, NewError(InvalidRequestErr, wErr.Error())
 	}
 
 	select {
-	case res = <-client.data:
+	case res = <-client.Data:
 		return res, nil
-	case err := <-client.err:
-		return nil, err
+	case err := <-client.Err:
+		return nil, NewError(ConnClosedErr, err.Error())
 	case <-time.After(timeout):
-		client.close()
-		t.requests.delete(reqId)
-		return nil, &Error{name: TimeoutErr, reason: "response timeout"}
+		client.Close()
+		t.requests.Delete(reqId)
+		return nil, NewError(TimeoutErr, "response timeout")
 	}
 }
 
@@ -80,32 +81,30 @@ func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan [
 		return nil, "", err
 	}
 
-	id := &ids{}
-
-	parseErr := json.Unmarshal(res, id)
+	ids, parseErr := utils.ParseIDs(res)
 	if parseErr != nil {
-		return nil, "", &Error{name: InvalidResponseErr, reason: parseErr.Error()}
+		return nil, "", NewError(InvalidResponseErr, parseErr.Error())
 	}
-	subscriptionId = strconv.FormatInt(id.Subscription, 10)
+	subscriptionId = strconv.FormatInt(ids.Subscription, 10)
 
 	return t.subscribe(subscriptionId), subscriptionId, nil
 }
 
 func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
-	if _, ok := t.subscriptions.get(subscriptionId); ok {
+	if _, ok := t.subscriptions.Get(subscriptionId); ok {
 		return nil
 	}
 
-	client := t.subscriptions.createSubscriber(subscriptionId)
-	return client.data
+	client := t.subscriptions.CreateSubscriber(subscriptionId)
+	return client.Data
 }
 
 func (t *ws) Unsubscribe(subscriptionId string) {
-	client, ok := t.subscriptions.get(subscriptionId)
+	client, ok := t.subscriptions.Get(subscriptionId)
 
 	if ok {
-		client.close()
-		t.subscriptions.delete(subscriptionId)
+		client.Close()
+		t.subscriptions.Delete(subscriptionId)
 	}
 }
 
@@ -115,7 +114,7 @@ func (t *ws) handleServerMessages() {
 
 		connClosed := mt == websocket.CloseMessage || mt == -1
 		if connClosed {
-			t.terminateClients(ConnClosedErr, err)
+			t.terminateClients(err)
 			return
 		}
 
@@ -123,34 +122,32 @@ func (t *ws) handleServerMessages() {
 	}
 }
 
-func (t *ws) terminateClients(errMsg string, err error) {
-	tspErr := &Error{name: errMsg, reason: err.Error()}
-	t.requests.forEach(func(c *client) {
-		c.err <- tspErr
-		c.close()
+func (t *ws) terminateClients(err error) {
+	t.requests.ForEach(func(c *apirequests.PendingRequest) {
+		c.Err <- err
+		c.Close()
 	})
 
-	t.subscriptions.forEach(func(c *client) {
-		c.close()
+	t.subscriptions.ForEach(func(c *apirequests.PendingRequest) {
+		c.Close()
 	})
 }
 
 func (t *ws) resolveReceiver(msg []byte) {
-	ids := &ids{}
-	err := json.Unmarshal(msg, ids)
+	ids, err := utils.ParseIDs(msg)
 
 	if err != nil {
 		log.Printf("request is not JSON or requestId/subscriptionId is not valid: %s", string(msg))
 		return
 	}
 
-	if client, ok := t.requests.get(ids.Request); ok {
-		client.data <- msg
-		client.close()
-		t.requests.delete(ids.Request)
+	if client, ok := t.requests.Get(ids.Request); ok {
+		client.Data <- msg
+		client.Close()
+		t.requests.Delete(ids.Request)
 	} else {
-		if client, ok := t.subscriptions.get(strconv.FormatInt(ids.Subscription, 10)); ok {
-			client.data <- msg
+		if client, ok := t.subscriptions.Get(strconv.FormatInt(ids.Subscription, 10)); ok {
+			client.Data <- msg
 		} else {
 			t.subscriptions.BufferPut(msg)
 		}
