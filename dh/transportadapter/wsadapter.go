@@ -39,3 +39,7 @@ func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{})
 
 	return wsResources[resName], ""
 }
+
+func (a *WSAdapter) BuildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
+	return rawData
+}

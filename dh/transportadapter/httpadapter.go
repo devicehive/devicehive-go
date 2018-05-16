@@ -82,3 +82,13 @@ func (a *HTTPAdapter) ResolveResource(resName string, data map[string]interface{
 
 	return resource, method
 }
+
+func (a *HTTPAdapter) BuildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
+	payloadBuilder, ok := httpRequestPayloadBuilders[resourceName]
+
+	if ok {
+		return payloadBuilder(rawData)
+	}
+
+	return rawData
+}

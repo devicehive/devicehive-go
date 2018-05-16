@@ -1,23 +1,4 @@
-package dh
-
-func (c *Client) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
-	var builders map[string]func(map[string]interface{}) interface{}
-	if c.transport.IsWS() {
-		builders = wsRequestPayloadBuilder
-	} else {
-		builders = httpRequestPayloadBuilders
-	}
-
-	payloadBuilder, ok := builders[resourceName]
-
-	if ok {
-		return payloadBuilder(rawData)
-	}
-
-	return rawData
-}
-
-var wsRequestPayloadBuilder = map[string]func(map[string]interface{}) interface{}{}
+package transportadapter
 
 var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interface{}{
 	"tokenCreate": func(data map[string]interface{}) interface{} {

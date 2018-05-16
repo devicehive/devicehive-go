@@ -103,7 +103,7 @@ func (c *Client) handleResponse(resBytes []byte) (err *Error) {
 
 func (c *Client) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
 	resource, method := c.transportAdapter.ResolveResource(resourceName, data)
-	reqData := c.buildRequestData(resourceName, data)
+	reqData := c.transportAdapter.BuildRequestData(resourceName, data)
 	reqParams = c.createRequestParams(method, reqData)
 
 	return resource, reqParams
