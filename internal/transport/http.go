@@ -56,28 +56,14 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	}
 
 	t.setTimeout(timeout)
+
 	method := t.getRequestMethod(params)
-
-	var req *http.Request
-	var reqErr error
-	if method != "GET" {
-		reqDataReader, err := t.createRequestDataReader(params)
-		if err != nil {
-			return nil, err
-		}
-
-		req, reqErr = http.NewRequest(method, addr, reqDataReader)
-	} else {
-		req, reqErr = http.NewRequest(method, addr, nil)
-	}
-
+	req, reqErr := t.createRequest(method, addr, params)
 	if reqErr != nil {
 		return nil, NewError(InvalidRequestErr, reqErr.Error())
 	}
 
-	if params != nil && params.AccessToken != "" {
-		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
-	}
+	t.addRequestHeaders(req, params)
 
 	return t.doRequest(req)
 }
@@ -98,7 +84,20 @@ func (t *httpTsp) getRequestMethod(params *RequestParams) string {
 	return params.Method
 }
 
-func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *bytes.Reader, err *Error) {
+func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (req *http.Request, err error) {
+	if method == "GET" {
+		return http.NewRequest(method, addr, nil)
+	}
+
+	reqDataReader, err := t.createRequestDataReader(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequest(method, addr, reqDataReader)
+}
+
+func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *bytes.Reader, err error) {
 	var rawReqData []byte
 
 	if params != nil && params.Data != nil {
@@ -106,7 +105,7 @@ func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *by
 		rawReqData, err = json.Marshal(params.Data)
 
 		if err != nil {
-			return nil, NewError(InvalidRequestErr, err.Error())
+			return nil, err
 		}
 	} else {
 		rawReqData = []byte("{}")
@@ -128,6 +127,12 @@ func (t *httpTsp) createRequestAddr(resource string) (addr string, err *Error) {
 	}
 
 	return u.String(), nil
+}
+
+func (t *httpTsp) addRequestHeaders(req *http.Request, params *RequestParams) {
+	if params != nil && params.AccessToken != "" {
+		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
+	}
 }
 
 func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {

@@ -8,7 +8,10 @@ const (
 )
 
 func NewError(name, reason string) *Error {
-	return &Error{name, reason}
+	return &Error{
+		name: name,
+		reason: reason,
+	}
 }
 
 type Error struct {
