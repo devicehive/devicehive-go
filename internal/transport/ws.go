@@ -95,15 +95,15 @@ func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
 		return nil
 	}
 
-	client := t.subscriptions.CreateSubscriber(subscriptionId)
-	return client.Data
+	subscription := t.subscriptions.CreateSubscription(subscriptionId)
+	return subscription.Data
 }
 
 func (t *ws) Unsubscribe(subscriptionId string) {
-	client, ok := t.subscriptions.Get(subscriptionId)
+	subscription, ok := t.subscriptions.Get(subscriptionId)
 
 	if ok {
-		client.Close()
+		subscription.Close()
 		t.subscriptions.Delete(subscriptionId)
 	}
 }
@@ -114,7 +114,7 @@ func (t *ws) handleServerMessages() {
 
 		connClosed := mt == websocket.CloseMessage || mt == -1
 		if connClosed {
-			t.terminateClients(err)
+			t.terminateRequests(err)
 			return
 		}
 
@@ -122,14 +122,14 @@ func (t *ws) handleServerMessages() {
 	}
 }
 
-func (t *ws) terminateClients(err error) {
-	t.requests.ForEach(func(c *apirequests.PendingRequest) {
-		c.Err <- err
-		c.Close()
+func (t *ws) terminateRequests(err error) {
+	t.requests.ForEach(func(req *apirequests.PendingRequest) {
+		req.Err <- err
+		req.Close()
 	})
 
-	t.subscriptions.ForEach(func(c *apirequests.PendingRequest) {
-		c.Close()
+	t.subscriptions.ForEach(func(req *apirequests.PendingRequest) {
+		req.Close()
 	})
 }
 
@@ -141,13 +141,14 @@ func (t *ws) resolveReceiver(msg []byte) {
 		return
 	}
 
-	if client, ok := t.requests.Get(ids.Request); ok {
-		client.Data <- msg
-		client.Close()
+	if req, ok := t.requests.Get(ids.Request); ok {
+		req.Data <- msg
+		req.Close()
 		t.requests.Delete(ids.Request)
-	} else {
-		if client, ok := t.subscriptions.Get(strconv.FormatInt(ids.Subscription, 10)); ok {
-			client.Data <- msg
+	} else if ids.Subscription != 0 {
+		subsId := strconv.FormatInt(ids.Subscription, 10)
+		if subs, ok := t.subscriptions.Get(subsId); ok {
+			subs.Data <- msg
 		} else {
 			t.subscriptions.BufferPut(msg)
 		}

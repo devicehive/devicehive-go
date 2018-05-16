@@ -30,7 +30,7 @@ func (m *PendingRequestsMap) CreateClient(key string) (req *PendingRequest) {
 	return m.create(key, true)
 }
 
-func (m *PendingRequestsMap) CreateSubscriber(key string) (req *PendingRequest) {
+func (m *PendingRequestsMap) CreateSubscription(key string) (req *PendingRequest) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

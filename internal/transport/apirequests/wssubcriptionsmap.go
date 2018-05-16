@@ -26,11 +26,11 @@ func (s *WSSubscriptionsMap) BufferPut(b []byte) {
 	s.buffer = append(s.buffer, b)
 }
 
-func (s *WSSubscriptionsMap) CreateSubscriber(key string) *PendingRequest {
+func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	client := s.PendingRequestsMap.CreateSubscriber(key)
+	client := s.PendingRequestsMap.CreateSubscription(key)
 
 	subsData, newBuffer := s.getSubscriberData(key)
 

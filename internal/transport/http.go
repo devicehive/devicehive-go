@@ -154,7 +154,7 @@ func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
 func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
-	subs := t.subscriptions.CreateSubscriber(subscriptionId)
+	subs := t.subscriptions.CreateSubscription(subscriptionId)
 
 	go func() {
 		done := make(chan struct{})
