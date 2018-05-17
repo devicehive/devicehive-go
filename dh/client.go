@@ -87,8 +87,13 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 	}
 
 	err = c.handleResponseError(resBytes)
+	if err != nil {
+		return nil, err
+	}
 
-	return resBytes, err
+	resBytes = c.transportAdapter.ExtractResponsePayload(resourceName, resBytes)
+
+	return resBytes, nil
 }
 
 func (c *Client) handleResponseError(resBytes []byte) (err *Error) {

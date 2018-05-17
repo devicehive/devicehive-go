@@ -4,14 +4,6 @@ import (
 	"encoding/json"
 )
 
-type serverInfo struct {
-	Value *ServerInfo `json:"info"`
-}
-
-type clusterInfo struct {
-	Value *ClusterInfo `json:"clusterInfo"`
-}
-
 type ServerInfo struct {
 	APIVersion         string      `json:"apiVersion"`
 	ServerTimestamp    ISO8601Time `json:"serverTimestamp"`
@@ -32,13 +24,7 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 	}
 
 	info = &ServerInfo{}
-	var parseErr error
-	if c.transport.IsWS() {
-		parseErr = json.Unmarshal(rawRes, &serverInfo{info})
-	} else {
-		parseErr = json.Unmarshal(rawRes, info)
-	}
-
+	parseErr := json.Unmarshal(rawRes, info)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
@@ -54,13 +40,7 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 	}
 
 	info = &ClusterInfo{}
-	var parseErr error
-	if c.transport.IsWS() {
-		parseErr = json.Unmarshal(rawRes, &clusterInfo{info})
-	} else {
-		parseErr = json.Unmarshal(rawRes, info)
-	}
-
+	parseErr := json.Unmarshal(rawRes, info)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}

@@ -19,8 +19,8 @@ func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
 		return nil, err
 	}
 
-	conf, parseErr := c.handlePropertyResponse(rawRes)
-
+	conf = &Configuration{}
+	parseErr := json.Unmarshal(rawRes, conf)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
@@ -38,8 +38,8 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 		return -1, err
 	}
 
-	conf, parseErr := c.handlePropertyResponse(rawRes)
-
+	conf := &Configuration{}
+	parseErr := json.Unmarshal(rawRes, conf)
 	if parseErr != nil {
 		return -1, newJSONErr()
 	}
@@ -53,19 +53,4 @@ func (c *Client) DeleteProperty(name string) *Error {
 	})
 
 	return err
-}
-
-func (c *Client) handlePropertyResponse(res []byte) (conf *Configuration, err error) {
-	conf = &Configuration{}
-	var parseErr error
-	if c.transport.IsWS() {
-		payload := &struct{ Conf *Configuration `json:"configuration"` }{
-			Conf: conf,
-		}
-		parseErr = json.Unmarshal(res, payload)
-	} else {
-		parseErr = json.Unmarshal(res, conf)
-	}
-
-	return conf, parseErr
 }

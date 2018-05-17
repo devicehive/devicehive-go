@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-type deviceResponse struct {
-	Device *Device `json:"device"`
-}
-
 type Device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
@@ -53,12 +49,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, err
 	}
 
-	if d.client.transport.IsWS() {
-		pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
-	} else {
-		pErr = json.Unmarshal(rawRes, &list)
-	}
-
+	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -103,13 +94,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		return nil, err
 	}
 
-	var parseErr error
-	if d.client.transport.IsWS() {
-		parseErr = json.Unmarshal(rawRes, &commandResponse{Command: comm})
-	} else {
-		parseErr = json.Unmarshal(rawRes, comm)
-	}
-
+	parseErr := json.Unmarshal(rawRes, comm)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
@@ -136,12 +121,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 		return nil, err
 	}
 
-	if d.client.transport.IsWS() {
-		pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
-	} else {
-		pErr = json.Unmarshal(rawRes, &list)
-	}
-
+	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -170,13 +150,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		return nil, err
 	}
 
-	var pErr error
-	if d.client.transport.IsWS() {
-		pErr = json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
-	} else {
-		pErr = json.Unmarshal(rawRes, notif)
-	}
-
+	pErr := json.Unmarshal(rawRes, notif)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -253,13 +227,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
-	var parseErr error
-	if c.transport.IsWS() {
-		parseErr = json.Unmarshal(rawRes, &deviceResponse{Device: device})
-	} else {
-		parseErr = json.Unmarshal(rawRes, device)
-	}
-
+	parseErr := json.Unmarshal(rawRes, device)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}

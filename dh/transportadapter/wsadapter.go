@@ -5,9 +5,12 @@ import (
 	"strings"
 	"fmt"
 	"errors"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-type WSAdapter struct {}
+type WSAdapter struct {
+	transport transport.Transporter
+}
 
 type wsResponse struct {
 	Status string `json:"status"`
@@ -42,4 +45,31 @@ func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{})
 
 func (a *WSAdapter) BuildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
 	return rawData
+}
+
+func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) []byte {
+	payloadKey := wsResponsePayloads[resourceName]
+	if payloadKey == "" {
+		return rawRes
+	}
+
+	res := make(map[string]json.RawMessage)
+	json.Unmarshal(rawRes, &res)
+
+	return res[payloadKey]
+}
+
+var wsResponsePayloads = map[string]string{
+	"getConfig": "configuration",
+	"putConfig": "configuration",
+	"deleteConfig": "configuration",
+	"apiInfo": "info",
+	"apiInfoCluster": "clusterInfo",
+	"listCommands": "commands",
+	"insertCommand": "command",
+	"listNotifications": "notifications",
+	"insertNotification": "notification",
+	"getDevice": "device",
+	"commandEvent": "command",
+	"notificationEvent": "notification",
 }

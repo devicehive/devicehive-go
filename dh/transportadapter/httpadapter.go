@@ -5,9 +5,12 @@ import (
 	"strings"
 	"fmt"
 	"errors"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-type HTTPAdapter struct {}
+type HTTPAdapter struct {
+	transport transport.Transporter
+}
 
 type httpResponse struct {
 	Message string `json:"message"`
@@ -91,4 +94,8 @@ func (a *HTTPAdapter) BuildRequestData(resourceName string, rawData map[string]i
 	}
 
 	return rawData
+}
+
+func (a *HTTPAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) []byte {
+	return rawRes
 }

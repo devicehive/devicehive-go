@@ -1,9 +1,9 @@
 package dh
 
 import (
+	"sync"
 	"encoding/json"
 	"log"
-	"sync"
 )
 
 var commandSubsMutex = sync.Mutex{}
