@@ -23,7 +23,6 @@ func newWS(addr string) (tsp *ws, err error) {
 	}
 
 	go tsp.handleServerMessages()
-	go tsp.subscriptions.CleanupBufferByTimeout(1 * time.Second)
 
 	return tsp, nil
 }

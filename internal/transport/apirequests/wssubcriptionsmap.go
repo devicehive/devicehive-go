@@ -3,7 +3,6 @@ package apirequests
 import (
 	"strconv"
 	"sync"
-	"time"
 	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
@@ -60,21 +59,4 @@ func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]
 	}
 
 	return subsData, newBuffer
-}
-
-func (s *WSSubscriptionsMap) CleanupBufferByTimeout(timeout time.Duration) {
-	for {
-		time.Sleep(timeout)
-
-		s.mu.Lock()
-		l := len(s.buffer)
-		if l == 0 {
-			s.mu.Unlock()
-			continue
-		}
-
-		m := (l - 1) / 2
-		s.buffer = s.buffer[m:]
-		s.mu.Unlock()
-	}
 }
