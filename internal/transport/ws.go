@@ -51,7 +51,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	reqId := params.requestId()
-	client := t.requests.CreateClient(reqId)
+	client := t.requests.CreateRequest(reqId)
 
 	data := params.mapData()
 	data["action"] = resource
