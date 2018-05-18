@@ -12,6 +12,7 @@ var wsResources = map[string]string{
 	"deleteConfig":           "configuration/delete",
 	"putDevice":              "device/save",
 	"getDevice":              "device/get",
+	"listDevices":            "device/list",
 	"deleteDevice":           "device/delete",
 	"insertCommand":          "command/insert",
 	"listCommands":           "command/list",

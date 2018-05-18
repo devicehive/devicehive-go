@@ -275,3 +275,26 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 
 	return device, nil
 }
+
+func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	rawRes, err := c.request("listDevices", data)
+	if err != nil {
+		return nil, err
+	}
+
+	pErr = json.Unmarshal(rawRes, &list)
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}
