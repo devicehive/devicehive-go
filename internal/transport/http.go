@@ -29,14 +29,12 @@ func newHTTP(addr string) (tsp *httpTsp, err error) {
 	}
 
 	return &httpTsp{
-		client:        &http.Client{},
 		url:           u,
 		subscriptions: apirequests.NewClientsMap(),
 	}, nil
 }
 
 type httpTsp struct {
-	client        *http.Client
 	url           *url.URL
 	subscriptions *apirequests.PendingRequestsMap
 }
@@ -50,12 +48,16 @@ func (t *httpTsp) IsWS() bool {
 }
 
 func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) (rawRes []byte, err *Error) {
+	client := &http.Client{}
 	addr, err := t.createRequestAddr(resource)
 	if err != nil {
 		return nil, err
 	}
 
-	t.setTimeout(timeout)
+	if timeout == 0 {
+		timeout = DefaultTimeout
+	}
+	client.Timeout = timeout
 
 	method := t.getRequestMethod(params)
 	req, reqErr := t.createRequest(method, addr, params)
@@ -65,15 +67,7 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 
 	t.addRequestHeaders(req, params)
 
-	return t.doRequest(req)
-}
-
-func (t *httpTsp) setTimeout(timeout time.Duration) {
-	if timeout == 0 {
-		timeout = DefaultTimeout
-	}
-
-	t.client.Timeout = timeout
+	return t.doRequest(client, req)
 }
 
 func (t *httpTsp) getRequestMethod(params *RequestParams) string {
@@ -135,8 +129,8 @@ func (t *httpTsp) addRequestHeaders(req *http.Request, params *RequestParams) {
 	}
 }
 
-func (t *httpTsp) doRequest(req *http.Request) (rawRes []byte, err *Error) {
-	res, resErr := t.client.Do(req)
+func (t *httpTsp) doRequest(client *http.Client, req *http.Request) (rawRes []byte, err *Error) {
+	res, resErr := client.Do(req)
 
 	if resErr != nil {
 		if isTimeoutErr(resErr) {
