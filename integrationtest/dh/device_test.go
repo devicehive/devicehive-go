@@ -20,6 +20,15 @@ func TestDevice(t *testing.T) {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
+	list, err := client.ListDevices(&dh.ListParams{
+		DeviceNamePattern: "go-%-dev",
+	})
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
+	}
+
+	is.Equal(len(list), 1)
+
 	device.Name = "updated name"
 	err = device.Save()
 	if err != nil {
@@ -43,7 +52,7 @@ func TestDevice(t *testing.T) {
 func TestDeviceCommands(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	device, err := client.PutDevice("go-test-command", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -81,7 +90,7 @@ func TestDeviceCommands(t *testing.T) {
 func TestDeviceNotifications(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	device, err := client.PutDevice("go-test-notification", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -216,7 +225,7 @@ func TestDeviceSubscribeUpdateCommands(t *testing.T) {
 func TestDeviceCommandSubscriptionRemove(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	device, err := client.PutDevice("go-test-dev-subscription-rm", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -295,7 +304,7 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	device, err := client.PutDevice("go-test-dev-subscription-rm", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

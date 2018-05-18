@@ -11,6 +11,7 @@ var httpResources = map[string][2]string{
 	"deleteConfig":           {"configuration/{{.name}}", "DELETE"},
 	"putDevice":              {"device/{{.deviceId}}", "PUT"},
 	"getDevice":              {"device/{{.deviceId}}"},
+	"listDevices":            {"device"},
 	"deleteDevice":           {"device/{{.deviceId}}", "DELETE"},
 	"insertCommand":          {"device/{{.deviceId}}/command", "POST"},
 	"listCommands":           {`device/{{.deviceId}}/command`},
@@ -26,4 +27,5 @@ var httpResourcesQueryParams = map[string][]string{
 	"listNotifications":      {"start", "end", "notification", "sortField", "sortOrder", "take", "skip"},
 	"subscribeCommands":      {"deviceId", "timestamp", "waitTimeout", "names"},
 	"subscribeNotifications": {"deviceId", "timestamp", "waitTimeout", "names"},
+	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
 }
