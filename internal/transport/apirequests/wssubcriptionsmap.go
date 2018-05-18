@@ -29,17 +29,19 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	client := s.PendingRequestsMap.CreateSubscription(key)
+	subs := s.PendingRequestsMap.CreateSubscription(key)
 
 	subsData, newBuffer := s.extractSubscriberData(key)
 
-	for _, b := range subsData {
-		client.Data <- b
-	}
+	go func() {
+		for _, b := range subsData {
+			subs.Data <- b
+		}
+	}()
 
 	s.buffer = newBuffer
 
-	return client
+	return subs
 }
 
 func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
