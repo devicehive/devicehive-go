@@ -132,21 +132,3 @@ func TestWSSubscribe(t *testing.T) {
 		t.Fatal("subscription event timeout")
 	}
 }
-
-func TestWSUnsubscribe(t *testing.T) {
-	_, addr, srvClose := stubs.StartWSTestServer()
-	defer srvClose()
-
-	is := is.New(t)
-
-	wsTsp, err := transport.Create(addr)
-
-	is.NoErr(err)
-
-	_, subsId, tspErr := wsTsp.Subscribe("notification/subscribe", nil)
-	if tspErr != nil {
-		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
-	}
-
-	wsTsp.Unsubscribe(subsId)
-}
