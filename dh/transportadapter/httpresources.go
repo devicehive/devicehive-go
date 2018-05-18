@@ -20,6 +20,10 @@ var httpResources = map[string][2]string{
 	"listNotifications":      {`device/{{.deviceId}}/notification`},
 	"subscribeCommands":      {`device/command/poll`},
 	"subscribeNotifications": {`device/notification/poll`},
+	"insertNetwork":		  {"network", "POST"},
+	"deleteNetwork":		  {"network/{{.networkId}}", "DELETE"},
+	"updateNetwork":		  {"network/{{.networkId}}", "PUT"},
+	"getNetwork":			  {"network/{{.networkId}}"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
