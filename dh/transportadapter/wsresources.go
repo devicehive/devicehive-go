@@ -25,4 +25,5 @@ var wsResources = map[string]string{
 	"deleteNetwork":		  "network/delete",
 	"updateNetwork":		  "network/update",
 	"getNetwork":			  "network/get",
+	"listNetworks":			  "network/list",
 }

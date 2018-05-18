@@ -24,6 +24,7 @@ var httpResources = map[string][2]string{
 	"deleteNetwork":		  {"network/{{.networkId}}", "DELETE"},
 	"updateNetwork":		  {"network/{{.networkId}}", "PUT"},
 	"getNetwork":			  {"network/{{.networkId}}"},
+	"listNetworks":			  {"network"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
@@ -32,4 +33,5 @@ var httpResourcesQueryParams = map[string][]string{
 	"subscribeCommands":      {"deviceId", "timestamp", "waitTimeout", "names"},
 	"subscribeNotifications": {"deviceId", "timestamp", "waitTimeout", "names"},
 	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
+	"listNetworks":			  {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
 }

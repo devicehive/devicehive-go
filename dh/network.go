@@ -69,3 +69,26 @@ func (c *Client) GetNetwork(networkId int64) (network *Network, err *Error) {
 
 	return network, nil
 }
+
+func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	rawRes, err := c.request("listNetworks", data)
+	if err != nil {
+		return nil, err
+	}
+
+	pErr = json.Unmarshal(rawRes, &list)
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}
