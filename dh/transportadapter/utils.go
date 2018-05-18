@@ -1,12 +1,12 @@
 package transportadapter
 
 import (
-	"encoding/json"
-	"log"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/url"
 	"strings"
-	"fmt"
 	"text/template"
 )
 

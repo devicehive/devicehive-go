@@ -2,10 +2,10 @@ package transportadapter
 
 import (
 	"encoding/json"
-	"strings"
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"strings"
 )
 
 type WSAdapter struct {
@@ -60,16 +60,16 @@ func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) [
 }
 
 var wsResponsePayloads = map[string]string{
-	"getConfig": "configuration",
-	"putConfig": "configuration",
-	"deleteConfig": "configuration",
-	"apiInfo": "info",
-	"apiInfoCluster": "clusterInfo",
-	"listCommands": "commands",
-	"insertCommand": "command",
-	"listNotifications": "notifications",
+	"getConfig":          "configuration",
+	"putConfig":          "configuration",
+	"deleteConfig":       "configuration",
+	"apiInfo":            "info",
+	"apiInfoCluster":     "clusterInfo",
+	"listCommands":       "commands",
+	"insertCommand":      "command",
+	"listNotifications":  "notifications",
 	"insertNotification": "notification",
-	"getDevice": "device",
-	"commandEvent": "command",
-	"notificationEvent": "notification",
+	"getDevice":          "device",
+	"commandEvent":       "command",
+	"notificationEvent":  "notification",
 }

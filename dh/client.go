@@ -1,8 +1,8 @@
 package dh
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/dh/transportadapter"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
 type Client struct {

@@ -2,10 +2,10 @@ package transportadapter
 
 import (
 	"encoding/json"
-	"strings"
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"strings"
 )
 
 type HTTPAdapter struct {

@@ -1,9 +1,9 @@
 package dh_test
 
 import (
-	"testing"
 	"github.com/matryer/is"
 	"strconv"
+	"testing"
 	"time"
 )
 

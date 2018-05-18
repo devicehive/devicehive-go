@@ -3,6 +3,7 @@ package transport
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -10,7 +11,6 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
 const (

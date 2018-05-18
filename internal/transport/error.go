@@ -9,7 +9,7 @@ const (
 
 func NewError(name, reason string) *Error {
 	return &Error{
-		name: name,
+		name:   name,
 		reason: reason,
 	}
 }
@@ -26,7 +26,6 @@ func (e *Error) Name() string {
 func (e *Error) Error() string {
 	return e.reason
 }
-
 
 type httpTimeoutErr interface {
 	Timeout() bool

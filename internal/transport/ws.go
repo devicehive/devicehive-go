@@ -1,12 +1,12 @@
 package transport
 
 import (
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
 	"time"
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
-	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func newWS(addr string) (tsp *ws, err error) {
