@@ -18,8 +18,7 @@ func TestGetDevice(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(device != nil)
@@ -46,8 +45,7 @@ func TestPutDevice(t *testing.T) {
 	isBlocked := false
 	device, err := client.PutDevice("device-id", name, data, networkId, deviceTypeId, isBlocked)
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.Equal(device.Id, "device-id")
@@ -61,14 +59,12 @@ func TestDeviceRemove(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	err = device.Remove()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 }
 
@@ -80,16 +76,14 @@ func TestDeviceSave(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	device.Name = "updated name"
 
 	err = device.Save()
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 }
 
@@ -103,8 +97,7 @@ func TestDeviceListCommands(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	listReqParams := &dh.ListParams{
@@ -120,8 +113,7 @@ func TestDeviceListCommands(t *testing.T) {
 	list, err := device.ListCommands(listReqParams)
 
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(len(list) != 0)
@@ -137,15 +129,13 @@ func TestDeviceSendCommand(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	comm, err := device.SendCommand("command name", nil, 120, time.Now(), "created", nil)
 
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.Equal(comm.DeviceId, "device-id")
@@ -165,8 +155,7 @@ func TestDeviceListNotifications(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	listParams := &dh.ListParams{
@@ -181,8 +170,7 @@ func TestDeviceListNotifications(t *testing.T) {
 	list, err := device.ListNotifications(listParams)
 
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(len(list) > 0)
@@ -198,14 +186,12 @@ func TestDeviceSendNotification(t *testing.T) {
 
 	device, err := client.GetDevice("device-id")
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	notif, err := device.SendNotification("test notif", nil, time.Now())
 	if err != nil {
-		t.Errorf("%s: %v", err.Name(), err)
-		return
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	is.True(notif != nil)

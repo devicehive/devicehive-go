@@ -1,6 +1,7 @@
 package dh
 
 import (
+	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"time"
 )
@@ -11,7 +12,9 @@ const (
 	Timeout          = 5 * time.Second
 )
 
-var client = &Client{}
+var client = &Client{
+	PollingWaitTimeoutSeconds: 30,
+}
 
 func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
 	client, err = connect(url)
@@ -51,7 +54,8 @@ func connect(url string) (c *Client, err *Error) {
 		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}
 	}
 
-	client.tsp = tsp
+	client.transport = tsp
+	client.transportAdapter = transportadapter.New(client.transport)
 
 	return client, nil
 }

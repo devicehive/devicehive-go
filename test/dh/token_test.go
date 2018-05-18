@@ -23,8 +23,7 @@ func TestCreateToken(t *testing.T) {
 	accessToken, refreshToken, dhErr := client.CreateToken(userId, expiration, actions, networkIds, deviceTypeIds)
 
 	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-		return
+		t.Fatalf("%s: %v", dhErr.Name(), dhErr)
 	}
 
 	is.True(accessToken != "")
@@ -42,8 +41,7 @@ func TestRefreshToken(t *testing.T) {
 	accessToken, dhErr := client.RefreshToken()
 
 	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-		return
+		t.Fatalf("%s: %v", dhErr.Name(), dhErr)
 	}
 
 	is.True(accessToken != "")

@@ -10,21 +10,19 @@ import (
 func TestProperty(t *testing.T) {
 	is := is.New(t)
 
-	name := "go-test"+strconv.FormatInt(time.Now().Unix(), 10)
+	name := "go-test" + strconv.FormatInt(time.Now().Unix(), 10)
 	val := "go-sdk-test"
 
 	entityVersion, dhErr := client.SetProperty(name, val)
 	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-		return
+		t.Fatalf("%s: %v", dhErr.Name(), dhErr)
 	}
 
 	is.True(entityVersion >= 0)
 
 	prop, dhErr := client.GetProperty(name)
 	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-		return
+		t.Fatalf("%s: %v", dhErr.Name(), dhErr)
 	}
 
 	is.True(prop != nil)
@@ -34,7 +32,6 @@ func TestProperty(t *testing.T) {
 
 	dhErr = client.DeleteProperty(name)
 	if dhErr != nil {
-		t.Errorf("%s: %v", dhErr.Name(), dhErr)
-		return
+		t.Fatalf("%s: %v", dhErr.Name(), dhErr)
 	}
 }

@@ -1,18 +1,18 @@
 package transport
 
 import (
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"math/rand"
 	"strconv"
 	"time"
-	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 type RequestParams struct {
-	Action    string
-	Data      interface{}
-	Method    string
-	RequestId string
-	AccessToken string
+	Data               interface{}
+	Method             string
+	RequestId          string
+	AccessToken        string
+	WaitTimeoutSeconds int
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))

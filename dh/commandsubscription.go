@@ -38,15 +38,29 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 
 	go func() {
 		for rawComm := range tspChan {
-			comm := &Command{}
-			err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
+			if client.transport.IsWS() {
+				comm := &Command{}
+				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
 
-			if err != nil {
-				log.Println("couldn't unmarshal command data in subscription:", err)
-				continue
+				if err != nil {
+					log.Println("couldn't unmarshal command data in subscription:", err)
+					continue
+				}
+
+				subs.CommandsChan <- comm
+			} else {
+				var comms []*Command
+				err := json.Unmarshal(rawComm, &comms)
+
+				if err != nil {
+					log.Println("couldn't unmarshal array of command data in subscription:", err)
+					continue
+				}
+
+				for _, comm := range comms {
+					subs.CommandsChan <- comm
+				}
 			}
-
-			subs.CommandsChan <- comm
 		}
 
 		close(subs.CommandsChan)

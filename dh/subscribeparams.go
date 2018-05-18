@@ -14,6 +14,7 @@ type SubscribeParams struct {
 	Timestamp             time.Time `json:"timestamp,omitempty"`
 	ReturnUpdatedCommands bool      `json:"returnUpdatedCommands,omitempty"`
 	Limit                 int       `json:"limit,omitempty"`
+	WaitTimeout           int       `json:"waitTimeout,omitempty"`
 }
 
 func (p *SubscribeParams) Map() (m map[string]interface{}, err error) {

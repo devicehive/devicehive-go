@@ -1,23 +1,22 @@
 package dh
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"strconv"
-	"strings"
 )
 
 type Client struct {
-	tsp          transport.Transporter
-	accessToken  string
-	refreshToken string
-	login        string
-	password     string
+	transport                 transport.Transporter
+	transportAdapter          transportadapter.TransportAdapter
+	accessToken               string
+	refreshToken              string
+	login                     string
+	password                  string
+	PollingWaitTimeoutSeconds int
 }
 
 func (c *Client) authenticate(token string) (result bool, err *Error) {
-	if c.tsp.IsHTTP() {
+	if c.transport.IsHTTP() {
 		c.accessToken = token
 		return true, nil
 	} else {
@@ -39,114 +38,87 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 	}
 
 	data, jsonErr := params.Map()
-
 	if jsonErr != nil {
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	rawRes, err := c.request(resourceName, data)
-
-	if err != nil {
-		return nil, "", err
+	resource, tspReqParams := c.prepareRequestData(resourceName, data)
+	if resource == "" {
+		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	id := &subsId{}
+	tspReqParams.WaitTimeoutSeconds = c.PollingWaitTimeoutSeconds
 
-	parseErr := json.Unmarshal(rawRes, id)
-
-	if parseErr != nil {
-		return nil, "", newJSONErr()
+	tspChan, subscriptionId, tspErr := c.transport.Subscribe(resource, tspReqParams)
+	if tspErr != nil {
+		return nil, "", newTransportErr(tspErr)
 	}
 
-	subscriptionId = strconv.FormatInt(id.Value, 10)
-
-	return c.tsp.Subscribe(subscriptionId), subscriptionId, nil
+	return tspChan, subscriptionId, nil
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	_, err := c.request(resourceName, map[string]interface{}{
-		"subscriptionId": subscriptionId,
-	})
+	if c.transport.IsWS() {
+		_, err := c.request(resourceName, map[string]interface{}{
+			"subscriptionId": subscriptionId,
+		})
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
-	c.tsp.Unsubscribe(subscriptionId)
+	c.transport.Unsubscribe(subscriptionId)
 
 	return nil
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
-	resource, method := c.resolveResource(resourceName, data)
+	resource, tspReqParams := c.prepareRequestData(resourceName, data)
 
 	if resource == "" {
 		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
 	}
 
-	reqData := c.buildRequestData(resourceName, data)
-	tspReqParams := c.createRequestParams(method, reqData)
-
-	resBytes, tspErr := c.tsp.Request(resource, tspReqParams, Timeout)
+	resBytes, tspErr := c.transport.Request(resource, tspReqParams, Timeout)
 
 	if tspErr != nil {
 		return nil, newTransportErr(tspErr)
 	}
 
-	err = c.handleResponse(resBytes)
+	err = c.handleResponseError(resBytes)
+	if err != nil {
+		return nil, err
+	}
 
-	return resBytes, err
+	resBytes = c.transportAdapter.ExtractResponsePayload(resourceName, resBytes)
+
+	return resBytes, nil
 }
 
-func (c *Client) handleResponse(resBytes []byte) (err *Error) {
-	// @TODO Refactor this conditions
-	if c.tsp.IsWS() {
-		res := &response{}
-		parseErr := json.Unmarshal(resBytes, res)
-
-		if parseErr != nil {
-			return newJSONErr()
-		}
-
-		if res.Status == "error" {
-			errMsg := strings.ToLower(res.Error)
-			errCode := res.Code
-			r := fmt.Sprintf("%d %s", errCode, errMsg)
-			return &Error{name: ServiceErr, reason: r}
-		}
-	} else {
-		if len(resBytes) == 0 {
-			return nil
-		}
-
-		res := &httpResponse{}
-
-		parseErr := json.Unmarshal(resBytes, res)
-
-		if parseErr != nil {
-			return newJSONErr()
-		}
-
-		if res.Error >= 400 {
-			errMsg := strings.ToLower(res.Message)
-			errCode := res.Error
-			r := fmt.Sprintf("%d %s", errCode, errMsg)
-			return &Error{name: ServiceErr, reason: r}
-		}
+func (c *Client) handleResponseError(resBytes []byte) (err *Error) {
+	rawErr := c.transportAdapter.HandleResponseError(resBytes)
+	if rawErr != nil {
+		return &Error{ServiceErr, rawErr.Error()}
 	}
 
 	return nil
 }
 
-func (c *Client) createRequestParams(method string, data interface{}) *transport.RequestParams {
+func (c *Client) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+	resource, method := c.transportAdapter.ResolveResource(resourceName, data)
+	reqData := c.transportAdapter.BuildRequestData(resourceName, data)
+	reqParams = c.createRequestParams(method, reqData)
+
+	return resource, reqParams
+}
+
+func (c *Client) createRequestParams(method string, reqData interface{}) *transport.RequestParams {
 	tspReqParams := &transport.RequestParams{
-		Data: data,
+		Data: reqData,
 	}
 
-	if c.tsp.IsHTTP() {
+	if c.transport.IsHTTP() {
 		if method != "" {
 			tspReqParams.Method = method
 		}

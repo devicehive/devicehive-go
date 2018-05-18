@@ -7,6 +7,13 @@ const (
 	TimeoutErr         = "timeout"
 )
 
+func NewError(name, reason string) *Error {
+	return &Error{
+		name:   name,
+		reason: reason,
+	}
+}
+
 type Error struct {
 	name   string
 	reason string

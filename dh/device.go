@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-type deviceResponse struct {
-	Device *Device `json:"device"`
-}
-
 type Device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
@@ -44,19 +40,16 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 	params.DeviceId = d.Id
 
 	data, pErr := params.Map()
-
 	if pErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("command/list", data)
-
+	rawRes, err := d.client.request("listCommands", data)
 	if err != nil {
 		return nil, err
 	}
 
-	pErr = json.Unmarshal(rawRes, &commandResponse{List: &list})
-
+	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -92,7 +85,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		comm.Result = result
 	}
 
-	rawRes, err := d.client.request("command/insert", map[string]interface{}{
+	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
 		"deviceId": d.Id,
 		"command":  comm,
 	})
@@ -101,8 +94,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 		return nil, err
 	}
 
-	parseErr := json.Unmarshal(rawRes, &commandResponse{Command: comm})
-
+	parseErr := json.Unmarshal(rawRes, comm)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}
@@ -120,19 +112,16 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 	params.DeviceId = d.Id
 
 	data, pErr := params.Map()
-
 	if pErr != nil {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("notification/list", data)
-
+	rawRes, err := d.client.request("listNotifications", data)
 	if err != nil {
 		return nil, err
 	}
 
-	pErr = json.Unmarshal(rawRes, &notificationResponse{List: &list})
-
+	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -152,7 +141,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	rawRes, err := d.client.request("notification/insert", map[string]interface{}{
+	rawRes, err := d.client.request("insertNotification", map[string]interface{}{
 		"deviceId":     d.Id,
 		"notification": notif,
 	})
@@ -161,8 +150,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		return nil, err
 	}
 
-	pErr := json.Unmarshal(rawRes, &notificationResponse{Notification: notif})
-
+	pErr := json.Unmarshal(rawRes, notif)
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
@@ -179,53 +167,52 @@ func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (s
 }
 
 func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
-	s, err := d.subscribe(&SubscribeParams{
+	tspChan, subsId, err := d.subscribe(&SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
-	}, "command/subscribe")
-
-	if err != nil || s == nil {
-		return nil, err
-	}
-
-	return s.(*CommandSubscription), nil
-
-}
-
-func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
-	s, err := d.subscribe(&SubscribeParams{
-		Names:     names,
-		Timestamp: timestamp,
-	}, "notification/subscribe")
-
-	if err != nil || s == nil {
-		return nil, err
-	}
-
-	return s.(*NotificationSubscription), nil
-}
-
-func (d *Device) subscribe(params *SubscribeParams, resourceName string) (subs interface{}, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{}
-	}
-
-	params.DeviceId = d.Id
-
-	tspChan, subsId, err := d.client.subscribe(resourceName, params)
+	}, "subscribeCommands")
 
 	if err != nil || tspChan == nil {
 		return nil, err
 	}
 
-	if resourceName == "notification/subscribe" {
-		subs = newNotificationSubscription(subsId, tspChan, d.client)
-	} else if resourceName == "command/subscribe" {
-		subs = newCommandSubscription(subsId, tspChan, d.client)
-	}
+	subs = newCommandSubscription(subsId, tspChan, d.client)
 
 	return subs, nil
+
+}
+
+func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+		Names:     names,
+		Timestamp: timestamp,
+	}, "subscribeNotifications")
+
+	if err != nil || tspChan == nil {
+		return nil, err
+	}
+
+	subs = newNotificationSubscription(subsId, tspChan, d.client)
+
+	return subs, nil
+}
+
+func (d *Device) subscribe(params *SubscribeParams, resourceName string) (tspChan chan []byte, subscriptionId string, err *Error) {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	params.DeviceId = d.Id
+	params.WaitTimeout = d.client.PollingWaitTimeoutSeconds
+
+	tspChan, subsId, err := d.client.subscribe(resourceName, params)
+
+	if err != nil || tspChan == nil {
+		return nil, "", err
+	}
+
+	return tspChan, subsId, nil
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
@@ -240,13 +227,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
-	var parseErr error
-	if c.tsp.IsWS() {
-		parseErr = json.Unmarshal(rawRes, &deviceResponse{Device: device})
-	} else {
-		parseErr = json.Unmarshal(rawRes, device)
-	}
-
+	parseErr := json.Unmarshal(rawRes, device)
 	if parseErr != nil {
 		return nil, newJSONErr()
 	}

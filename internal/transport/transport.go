@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	DefaultTimeout = 3 * time.Second
+	DefaultTimeout = 5 * time.Second
 )
 
 type Transporter interface {
 	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(subscriptionId string) (eventChan chan []byte)
+	Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
 	IsHTTP() bool
 	IsWS() bool

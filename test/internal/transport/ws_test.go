@@ -1,12 +1,10 @@
 package transport_test
 
 import (
-	"encoding/json"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -104,8 +102,8 @@ func TestWSSubscribe(t *testing.T) {
 	wsTestSrv.SetRequestHandler(func(reqData map[string]interface{}, c *websocket.Conn) {
 		res := stubs.ResponseStub.Respond(reqData)
 
+		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 		c.WriteJSON(res)
-		<-time.After(500 * time.Millisecond)
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 	})
 
@@ -113,58 +111,24 @@ func TestWSSubscribe(t *testing.T) {
 
 	is.NoErr(err)
 
-	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
-
+	tspChan, _, tspErr := wsTsp.Subscribe("notification/subscribe", nil)
 	if tspErr != nil {
-		t.Errorf("%s: %v", tspErr.Name(), tspErr)
-		return
+		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
 	}
-
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
-	}
-	sid := &subsId{}
-
-	json.Unmarshal(res, sid)
-
-	tspChan := wsTsp.Subscribe(strconv.FormatInt(sid.Value, 10))
 
 	select {
 	case rawNotif, ok := <-tspChan:
 		is.True(ok)
 		is.True(rawNotif != nil)
 	case <-time.After(1 * time.Second):
-		t.Error("subscription event timeout")
-	}
-}
-
-func TestWSUnsubscribe(t *testing.T) {
-	_, addr, srvClose := stubs.StartWSTestServer()
-	defer srvClose()
-
-	is := is.New(t)
-
-	wsTsp, err := transport.Create(addr)
-
-	is.NoErr(err)
-
-	res, tspErr := wsTsp.Request("notification/subscribe", nil, 0)
-
-	if tspErr != nil {
-		t.Errorf("%s: %v", tspErr.Name(), tspErr)
-		return
+		t.Fatal("subscription event timeout")
 	}
 
-	type subsId struct {
-		Value int64 `json:"subscriptionId"`
+	select {
+	case rawNotif, ok := <-tspChan:
+		is.True(ok)
+		is.True(rawNotif != nil)
+	case <-time.After(1 * time.Second):
+		t.Fatal("subscription event timeout")
 	}
-	sid := &subsId{}
-
-	json.Unmarshal(res, sid)
-
-	sidStr := strconv.FormatInt(sid.Value, 10)
-
-	wsTsp.Subscribe(sidStr)
-
-	wsTsp.Unsubscribe(sidStr)
 }

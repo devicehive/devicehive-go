@@ -57,3 +57,51 @@ func TestHTTPTimeout(t *testing.T) {
 	is.True(res == nil)
 	is.Equal(tspErr.Name(), transport.TimeoutErr)
 }
+
+func TestHTTPSubscription(t *testing.T) {
+	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
+	defer srvClose()
+
+	is := is.New(t)
+
+	pollRequestsCount := 0
+	const allowedPollRequestsCount = 3
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+		if pollRequestsCount >= allowedPollRequestsCount {
+			t.Error("HTTP transport must stop polling after unsubscribe")
+			return
+		}
+
+		<-time.After(testWSTimeout + 1*time.Second)
+		rw.Write([]byte(`[{"id": 1,"command": "command 1"},{"id": 2,"command": "command 2"}]`))
+		pollRequestsCount++
+	})
+
+	httpTsp, err := transport.Create(addr)
+	is.NoErr(err)
+
+	tspChan, subscriptionId, tspErr := httpTsp.Subscribe("device/command/poll?deviceId=device-1", nil)
+	if tspErr != nil {
+		t.Fatalf("%s: %v", tspErr.Name(), tspErr)
+	}
+
+	is.True(subscriptionId != "")
+
+	select {
+	case data, ok := <-tspChan:
+		is.True(ok)
+		is.True(data != nil)
+	case <-time.After(2 * time.Second):
+		t.Error("subscription event timeout")
+	}
+
+	select {
+	case data, ok := <-tspChan:
+		is.True(ok)
+		is.True(data != nil)
+	case <-time.After(2 * time.Second):
+		t.Error("subscription event timeout")
+	}
+
+	httpTsp.Unsubscribe(subscriptionId)
+}
