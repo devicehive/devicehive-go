@@ -21,7 +21,7 @@ func TestDevice(t *testing.T) {
 	}
 
 	list, err := client.ListDevices(&dh.ListParams{
-		DeviceNamePattern: "go-%-dev",
+		NamePattern: "go-%-dev",
 	})
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)

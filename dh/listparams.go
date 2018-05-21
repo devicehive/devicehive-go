@@ -9,18 +9,18 @@ import (
 type ListParams struct {
 	DeviceId          string    `json:"deviceId,omitempty"`
 	Start             time.Time `json:"start,omitempty"`
-	End               time.Time `json:"end,omitempty"`
-	Notification      string    `json:"notification,omitempty"`
-	Command           string    `json:"command,omitempty"`
-	Status            string    `json:"status,omitempty"`
-	SortField         string    `json:"sortField,omitempty"`
-	SortOrder         string    `json:"sortOrder,omitempty"`
-	Take              int       `json:"take,omitempty"`
-	Skip              int       `json:"skip,omitempty"`
-	DeviceName        string    `json:"name,omitempty"`
-	DeviceNamePattern string    `json:"namePattern,omitempty"`
-	NetworkId         string    `json:"networkId,omitempty"`
-	NetworkName       string    `json:"networkName,omitempty"`
+	End          time.Time `json:"end,omitempty"`
+	Notification string    `json:"notification,omitempty"`
+	Command      string    `json:"command,omitempty"`
+	Status       string    `json:"status,omitempty"`
+	SortField    string    `json:"sortField,omitempty"`
+	SortOrder    string    `json:"sortOrder,omitempty"`
+	Take         int       `json:"take,omitempty"`
+	Skip         int       `json:"skip,omitempty"`
+	Name         string    `json:"name,omitempty"`
+	NamePattern  string    `json:"namePattern,omitempty"`
+	NetworkId    string    `json:"networkId,omitempty"`
+	NetworkName  string    `json:"networkName,omitempty"`
 }
 
 func (p *ListParams) Map() (m map[string]interface{}, err error) {

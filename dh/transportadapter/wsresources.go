@@ -21,4 +21,9 @@ var wsResources = map[string]string{
 	"listNotifications":      "notification/list",
 	"subscribeCommands":      "command/subscribe",
 	"subscribeNotifications": "notification/subscribe",
+	"insertNetwork":		  "network/insert",
+	"deleteNetwork":		  "network/delete",
+	"updateNetwork":		  "network/update",
+	"getNetwork":			  "network/get",
+	"listNetworks":			  "network/list",
 }
