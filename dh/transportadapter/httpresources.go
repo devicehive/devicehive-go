@@ -17,14 +17,19 @@ var httpResources = map[string][2]string{
 	"listCommands":           {`device/{{.deviceId}}/command`},
 	"updateCommand":          {"device/{{.deviceId}}/command/{{.commandId}}", "PUT"},
 	"insertNotification":     {"device/{{.deviceId}}/notification", "POST"},
-	"listNotifications":      {`device/{{.deviceId}}/notification`},
-	"subscribeCommands":      {`device/command/poll`},
-	"subscribeNotifications": {`device/notification/poll`},
+	"listNotifications":      {"device/{{.deviceId}}/notification"},
+	"subscribeCommands":      {"device/command/poll"},
+	"subscribeNotifications": {"device/notification/poll"},
 	"insertNetwork":		  {"network", "POST"},
 	"deleteNetwork":		  {"network/{{.networkId}}", "DELETE"},
 	"updateNetwork":		  {"network/{{.networkId}}", "PUT"},
 	"getNetwork":			  {"network/{{.networkId}}"},
 	"listNetworks":			  {"network"},
+	"insertDeviceType":		  {"devicetype", "POST"},
+	"updateDeviceType":		  {"devicetype/{{.deviceTypeId}}", "PUT"},
+	"deleteDeviceType":		  {"devicetype/{{.deviceTypeId}}", "DELETE"},
+	"getDeviceType":		  {"devicetype/{{.deviceTypeId}}"},
+	"listDeviceTypes":		  {"devicetype"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
@@ -34,4 +39,5 @@ var httpResourcesQueryParams = map[string][]string{
 	"subscribeNotifications": {"deviceId", "timestamp", "waitTimeout", "names"},
 	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
 	"listNetworks":			  {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
+	"listDeviceTypes":		  {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
 }
