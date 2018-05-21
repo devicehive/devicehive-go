@@ -73,7 +73,10 @@ var wsResponsePayloads = map[string]string{
 	"commandEvent":       "command",
 	"notificationEvent":  "notification",
 	"listDevices":        "devices",
-	"insertNetwork":	  "network",
-	"getNetwork":		  "network",
-	"listNetworks":		  "networks",
+	"insertNetwork":      "network",
+	"getNetwork":         "network",
+	"listNetworks":       "networks",
+	"insertDeviceType":   "deviceType",
+	"getDeviceType":      "deviceType",
+	"listDeviceTypes":    "deviceTypes",
 }

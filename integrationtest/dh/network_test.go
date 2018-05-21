@@ -1,9 +1,9 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/matryer/is"
+	"testing"
 )
 
 func TestNetwork(t *testing.T) {
@@ -13,6 +13,12 @@ func TestNetwork(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer func() {
+		err = network.Remove()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	is.True(network != nil)
 	is.True(network.Id != 0)
@@ -28,7 +34,7 @@ func TestNetwork(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	is.True(network != nil)
+	is.True(sameNetwork != nil)
 	is.Equal(sameNetwork.Name, "go-test-network")
 
 	list, err := client.ListNetworks(&dh.ListParams{
@@ -40,9 +46,4 @@ func TestNetwork(t *testing.T) {
 
 	is.Equal(len(list), 1)
 	is.Equal(list[0].Name, "go-test-network")
-
-	err = network.Remove()
-	if err != nil {
-		t.Fatal(err)
-	}
 }

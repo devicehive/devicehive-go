@@ -7,8 +7,8 @@ import (
 )
 
 type ListParams struct {
-	DeviceId          string    `json:"deviceId,omitempty"`
-	Start             time.Time `json:"start,omitempty"`
+	DeviceId     string    `json:"deviceId,omitempty"`
+	Start        time.Time `json:"start,omitempty"`
 	End          time.Time `json:"end,omitempty"`
 	Notification string    `json:"notification,omitempty"`
 	Command      string    `json:"command,omitempty"`

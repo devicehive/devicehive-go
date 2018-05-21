@@ -5,16 +5,16 @@ import (
 )
 
 type Network struct {
-	client *Client
-	Id int64 `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	client      *Client
+	Id          int64  `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
 func (n *Network) Save() *Error {
 	_, err := n.client.request("updateNetwork", map[string]interface{}{
 		"networkId": n.Id,
-		"network": n,
+		"network":   n,
 	})
 
 	return err
@@ -30,8 +30,8 @@ func (n *Network) Remove() *Error {
 
 func (c *Client) CreateNetwork(name, description string) (network *Network, err *Error) {
 	network = &Network{
-		client: c,
-		Name: name,
+		client:      c,
+		Name:        name,
 		Description: description,
 	}
 
