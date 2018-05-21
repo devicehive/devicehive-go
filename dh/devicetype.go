@@ -3,16 +3,16 @@ package dh
 import "encoding/json"
 
 type DeviceType struct {
-	client *Client
-	Id int64 `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	client      *Client
+	Id          int64  `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
 func (dt *DeviceType) Save() *Error {
 	_, err := dt.client.request("updateDeviceType", map[string]interface{}{
 		"deviceTypeId": dt.Id,
-		"deviceType": dt,
+		"deviceType":   dt,
 	})
 
 	return err
@@ -28,8 +28,8 @@ func (dt *DeviceType) Remove() *Error {
 
 func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType, err *Error) {
 	devType = &DeviceType{
-		client: c,
-		Name: name,
+		client:      c,
+		Name:        name,
 		Description: description,
 	}
 
