@@ -24,6 +24,15 @@ type User struct {
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
 }
 
+func (u *User) Save() *Error {
+	_, err := u.client.request("updateUser", map[string]interface{}{
+		"userId": u.Id,
+		"user": u,
+	})
+
+	return err
+}
+
 func (u *User) Remove() *Error {
 	_, err := u.client.request("deleteUser", map[string]interface{}{
 		"userId": u.Id,

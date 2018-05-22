@@ -35,6 +35,7 @@ var httpResources = map[string][2]string{
 	"getUser":                {"user/{{.userId}}"},
 	"getCurrentUser":         {"user/current"},
 	"listUsers":              {"user"},
+	"updateUser":			  {"user/{{.userId}}", "PUT"},
 }
 
 var httpResourcesQueryParams = map[string][]string{

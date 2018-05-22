@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestUser(t *testing.T) {
+func TestUserCreationAndObtaining(t *testing.T) {
 	is := is.New(t)
 
 	user, err := client.CreateUser("go-test", "go-test", 1, nil, false)
@@ -46,4 +46,26 @@ func TestUser(t *testing.T) {
 	}
 
 	is.True(len(list) > 0)
+}
+
+func TestUser(t *testing.T) {
+	user, err := client.CreateUser("go-test", "go-test", 1, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err = user.Remove()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	user.Data = map[string]interface{}{
+		"test": "test",
+	}
+
+	err = user.Save()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
