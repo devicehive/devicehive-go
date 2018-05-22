@@ -35,4 +35,5 @@ var wsResources = map[string]string{
 	"deleteUser":			  "user/delete",
 	"getUser":				  "user/get",
 	"getCurrentUser":		  "user/getCurrent",
+	"listUsers":			  "user/list",
 }

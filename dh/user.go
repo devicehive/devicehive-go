@@ -97,3 +97,26 @@ func (c *Client) GetCurrentUser() (user *User, err *Error) {
 
 	return user, nil
 }
+
+func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	rawRes, err := c.request("listUsers", data)
+	if err != nil {
+		return nil, err
+	}
+
+	pErr = json.Unmarshal(rawRes, &list)
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}

@@ -3,6 +3,7 @@ package dh_test
 import (
 	"testing"
 	"github.com/matryer/is"
+	"github.com/devicehive/devicehive-go/dh"
 )
 
 func TestUser(t *testing.T) {
@@ -36,4 +37,13 @@ func TestUser(t *testing.T) {
 
 	is.True(currentUser != nil)
 	is.Equal(currentUser.Id, int64(*userId))
+
+	list, err := client.ListUsers(&dh.ListParams{
+		UserStatus: 0,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.True(len(list) > 0)
 }

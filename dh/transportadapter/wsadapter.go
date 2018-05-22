@@ -82,4 +82,5 @@ var wsResponsePayloads = map[string]string{
 	"createUser":		  "user",
 	"getUser":			  "user",
 	"getCurrentUser":	  "current",
+	"listUsers":		  "users",
 }

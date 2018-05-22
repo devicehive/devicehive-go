@@ -34,6 +34,7 @@ var httpResources = map[string][2]string{
 	"deleteUser":			  {"user/{{.userId}}", "DELETE"},
 	"getUser":				  {"user/{{.userId}}"},
 	"getCurrentUser":		  {"user/current"},
+	"listUsers":			  {"user"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
@@ -44,4 +45,5 @@ var httpResourcesQueryParams = map[string][]string{
 	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
 	"listNetworks":           {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
 	"listDeviceTypes":        {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
+	"listUsers":        	  {"login", "loginPattern", "role", "status", "sortField", "sortOrder", "take", "skip"},
 }
