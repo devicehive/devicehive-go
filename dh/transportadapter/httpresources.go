@@ -41,6 +41,8 @@ var httpResources = map[string][2]string{
 	"assignDeviceType":       {"user/{{.userId}}/devicetype/{{.deviceTypeId}}", "PUT"},
 	"unassignDeviceType":     {"user/{{.userId}}/devicetype/{{.deviceTypeId}}", "DELETE"},
 	"getUserDeviceTypes":     {"user/{{.userId}}/devicetype"},
+	"allowAllDeviceTypes":    {"user/{{.userId}}/devicetype/all", "PUT"},
+	"disallowAllDeviceTypes": {"user/{{.userId}}/devicetype/all", "DELETE"},
 }
 
 var httpResourcesQueryParams = map[string][]string{

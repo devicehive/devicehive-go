@@ -42,4 +42,6 @@ var wsResources = map[string]string{
 	"assignDeviceType":       "user/assignDeviceType",
 	"unassignDeviceType":     "user/unassignDeviceType",
 	"getUserDeviceTypes":     "user/getDeviceTypes",
+	"allowAllDeviceTypes":    "user/allowAllDeviceTypes",
+	"disallowAllDeviceTypes": "user/disallowAllDeviceTypes",
 }

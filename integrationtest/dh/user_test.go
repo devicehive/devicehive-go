@@ -147,4 +147,18 @@ func TestUser(t *testing.T) {
 	}
 
 	is.Equal(len(devTypeList), 0)
+
+	err = user.AllowAllDeviceTypes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.True(user.AllDeviceTypesAvailable)
+
+	err = user.DisallowAllDeviceTypes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.Equal(user.AllDeviceTypesAvailable, false)
 }

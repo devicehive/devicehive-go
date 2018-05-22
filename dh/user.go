@@ -122,6 +122,30 @@ func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 	return list, nil
 }
 
+func (u *User) AllowAllDeviceTypes() *Error {
+	_, err := u.client.request("allowAllDeviceTypes", map[string]interface{}{
+		"userId": u.Id,
+	})
+	if err != nil {
+		return err
+	}
+
+	u.AllDeviceTypesAvailable = true
+	return nil
+}
+
+func (u *User) DisallowAllDeviceTypes() *Error {
+	_, err := u.client.request("disallowAllDeviceTypes", map[string]interface{}{
+		"userId": u.Id,
+	})
+	if err != nil {
+		return err
+	}
+
+	u.AllDeviceTypesAvailable = false
+	return nil
+}
+
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
 	user = &User{
 		client: c,
