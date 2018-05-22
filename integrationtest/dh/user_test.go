@@ -68,4 +68,9 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	err = user.UpdatePassword("brand_new_password")
+	if err != nil {
+		t.Fatal(err)
+	}
 }

@@ -41,6 +41,17 @@ func (u *User) Remove() *Error {
 	return err
 }
 
+func (u *User) UpdatePassword(password string) *Error {
+	_, err := u.client.request("updateUser", map[string]interface{}{
+		"userId": u.Id,
+		"user": map[string]interface{}{
+			"password": password,
+		},
+	})
+
+	return err
+}
+
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
 	user = &User{
 		client: c,
