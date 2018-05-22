@@ -38,5 +38,8 @@ var wsResources = map[string]string{
 	"listUsers":              "user/list",
 	"updateUser":             "user/update",
 	"assignNetwork":          "user/assignNetwork",
-	"unassignNetwork":		  "user/unassignNetwork",
+	"unassignNetwork":        "user/unassignNetwork",
+	"assignDeviceType":       "user/assignDeviceType",
+	"unassignDeviceType":     "user/unassignDeviceType",
+	"getUserDeviceTypes":     "user/getDeviceTypes",
 }

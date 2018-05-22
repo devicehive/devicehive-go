@@ -111,4 +111,40 @@ func TestUser(t *testing.T) {
 	}
 
 	is.Equal(len(networkList), 0)
+
+	devType, err := client.CreateDeviceType("go-test-user-device-type", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err = devType.Remove()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	err = user.AssignDeviceType(devType.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	devTypeList, err := user.ListDeviceTypes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.Equal(len(devTypeList), 1)
+	is.Equal(devTypeList[0].Name, "go-test-user-device-type")
+
+	err = user.UnassignDeviceType(devType.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	devTypeList, err = user.ListDeviceTypes()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.Equal(len(devTypeList), 0)
 }

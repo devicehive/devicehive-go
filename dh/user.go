@@ -63,8 +63,26 @@ func (u *User) AssignNetwork(networkId int64) *Error {
 
 func (u *User) UnassignNetwork(networkId int64) *Error {
 	_, err := u.client.request("unassignNetwork", map[string]interface{}{
-		"userId": u.Id,
+		"userId":    u.Id,
 		"networkId": networkId,
+	})
+
+	return err
+}
+
+func (u *User) AssignDeviceType(deviceTypeId int64) *Error {
+	_, err := u.client.request("assignDeviceType", map[string]interface{}{
+		"userId":       u.Id,
+		"deviceTypeId": deviceTypeId,
+	})
+
+	return err
+}
+
+func (u *User) UnassignDeviceType(deviceTypeId int64) *Error {
+	_, err := u.client.request("unassignDeviceType", map[string]interface{}{
+		"userId":       u.Id,
+		"deviceTypeId": deviceTypeId,
 	})
 
 	return err
@@ -88,6 +106,22 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 	return list, nil
 }
 
+func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
+	rawRes, err := u.client.request("getUserDeviceTypes", map[string]interface{}{
+		"userId": u.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pErr := json.Unmarshal(rawRes, &list)
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
+}
+
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
 	user = &User{
 		client: c,
@@ -104,6 +138,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 			"status":   UserStatusActive,
 			"password": password,
 			"data":     data,
+			"allDeviceTypesAvailable": allDevTypesAvail,
 		},
 	})
 	if err != nil {
