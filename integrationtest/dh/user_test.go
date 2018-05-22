@@ -28,4 +28,12 @@ func TestUser(t *testing.T) {
 	}
 
 	is.True(sameUser != nil)
+
+	currentUser, err := client.GetCurrentUser()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.True(currentUser != nil)
+	is.Equal(currentUser.Id, int64(*userId))
 }

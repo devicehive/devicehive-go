@@ -33,6 +33,7 @@ var httpResources = map[string][2]string{
 	"createUser":			  {"user", "POST"},
 	"deleteUser":			  {"user/{{.userId}}", "DELETE"},
 	"getUser":				  {"user/{{.userId}}"},
+	"getCurrentUser":		  {"user/current"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
