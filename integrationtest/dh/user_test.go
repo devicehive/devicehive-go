@@ -49,8 +49,6 @@ func TestUserCreationAndObtaining(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	is := is.New(t)
-
 	user, err := client.CreateUser("go-test", "go-test", 1, nil, false)
 	if err != nil {
 		t.Fatal(err)
@@ -75,6 +73,21 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestUserNetworks(t *testing.T) {
+	is := is.New(t)
+
+	user, err := client.CreateUser("go-test", "go-test", 1, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err = user.Remove()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	network, err := client.CreateNetwork("go-test-user-network", "test")
 	if err != nil {
@@ -111,6 +124,21 @@ func TestUser(t *testing.T) {
 	}
 
 	is.Equal(len(networkList), 0)
+}
+
+func TestUserDeviceTypes(t *testing.T) {
+	is := is.New(t)
+
+	user, err := client.CreateUser("go-test", "go-test", 1, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err = user.Remove()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	devType, err := client.CreateDeviceType("go-test-user-device-type", "test")
 	if err != nil {
