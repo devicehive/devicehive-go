@@ -36,6 +36,6 @@ var wsResources = map[string]string{
 	"getUser":                "user/get",
 	"getCurrentUser":         "user/getCurrent",
 	"listUsers":              "user/list",
-	"updateUser":			  "user/update",
-	"assignNetwork":		  "user/assignNetwork",
+	"updateUser":             "user/update",
+	"assignNetwork":          "user/assignNetwork",
 }

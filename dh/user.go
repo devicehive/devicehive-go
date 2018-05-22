@@ -27,7 +27,7 @@ type User struct {
 func (u *User) Save() *Error {
 	_, err := u.client.request("updateUser", map[string]interface{}{
 		"userId": u.Id,
-		"user": u,
+		"user":   u,
 	})
 
 	return err
@@ -54,11 +54,29 @@ func (u *User) UpdatePassword(password string) *Error {
 
 func (u *User) AssignNetwork(networkId int64) *Error {
 	_, err := u.client.request("assignNetwork", map[string]interface{}{
-		"userId": u.Id,
+		"userId":    u.Id,
 		"networkId": networkId,
 	})
 
 	return err
+}
+
+func (u *User) ListNetworks() (list []*Network, err *Error) {
+	rawRes, err := u.client.request("getUser", map[string]interface{}{
+		"userId": u.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pErr := json.Unmarshal(rawRes, &struct {
+		List *[]*Network `json:"networks"`
+	}{&list})
+	if pErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return list, nil
 }
 
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
