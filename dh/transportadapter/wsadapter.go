@@ -80,4 +80,5 @@ var wsResponsePayloads = map[string]string{
 	"getDeviceType":      "deviceType",
 	"listDeviceTypes":    "deviceTypes",
 	"createUser":		  "user",
+	"getUser":			  "user",
 }

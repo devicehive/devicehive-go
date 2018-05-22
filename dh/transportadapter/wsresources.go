@@ -33,4 +33,5 @@ var wsResources = map[string]string{
 	"listDeviceTypes":        "devicetype/list",
 	"createUser":			  "user/insert",
 	"deleteUser":			  "user/delete",
+	"getUser":				  "user/get",
 }

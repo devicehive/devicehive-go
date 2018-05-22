@@ -61,3 +61,23 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 
 	return user, nil
 }
+
+func (c *Client) GetUser(userId int64) (user *User, err *Error) {
+	rawRes, err := c.request("getUser", map[string]interface{}{
+		"userId": userId,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	user = &User{
+		client: c,
+	}
+	parseErr := json.Unmarshal(rawRes, user)
+	if parseErr != nil {
+		return nil, newJSONErr()
+	}
+
+	return user, nil
+}

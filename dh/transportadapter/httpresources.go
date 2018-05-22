@@ -32,6 +32,7 @@ var httpResources = map[string][2]string{
 	"listDeviceTypes":        {"devicetype"},
 	"createUser":			  {"user", "POST"},
 	"deleteUser":			  {"user/{{.userId}}", "DELETE"},
+	"getUser":				  {"user/{{.userId}}"},
 }
 
 var httpResourcesQueryParams = map[string][]string{

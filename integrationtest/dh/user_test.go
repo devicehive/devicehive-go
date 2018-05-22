@@ -20,4 +20,12 @@ func TestUser(t *testing.T) {
 	}()
 
 	is.True(user != nil)
+	is.True(user.Id != 0)
+
+	sameUser, err := client.GetUser(user.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.True(sameUser != nil)
 }
