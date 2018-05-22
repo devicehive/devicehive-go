@@ -37,6 +37,7 @@ var httpResources = map[string][2]string{
 	"listUsers":              {"user"},
 	"updateUser":             {"user/{{.userId}}", "PUT"},
 	"assignNetwork":          {"user/{{.userId}}/network/{{.networkId}}", "PUT"},
+	"unassignNetwork":        {"user/{{.userId}}/network/{{.networkId}}", "DELETE"},
 }
 
 var httpResourcesQueryParams = map[string][]string{

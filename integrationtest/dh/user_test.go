@@ -99,4 +99,16 @@ func TestUser(t *testing.T) {
 
 	is.Equal(len(networkList), 1)
 	is.Equal(networkList[0].Name, "go-test-user-network")
+
+	err = user.UnassignNetwork(network.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	networkList, err = user.ListNetworks()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	is.Equal(len(networkList), 0)
 }

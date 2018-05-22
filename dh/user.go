@@ -61,6 +61,15 @@ func (u *User) AssignNetwork(networkId int64) *Error {
 	return err
 }
 
+func (u *User) UnassignNetwork(networkId int64) *Error {
+	_, err := u.client.request("unassignNetwork", map[string]interface{}{
+		"userId": u.Id,
+		"networkId": networkId,
+	})
+
+	return err
+}
+
 func (u *User) ListNetworks() (list []*Network, err *Error) {
 	rawRes, err := u.client.request("getUser", map[string]interface{}{
 		"userId": u.Id,
