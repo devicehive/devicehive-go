@@ -34,6 +34,8 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	subsData, newBuffer := s.extractSubscriberData(key)
 
 	go func() {
+		subs.DataLocker.Lock()
+		defer subs.DataLocker.Unlock()
 		for _, b := range subsData {
 			subs.Data <- b
 		}
