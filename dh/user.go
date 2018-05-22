@@ -52,6 +52,15 @@ func (u *User) UpdatePassword(password string) *Error {
 	return err
 }
 
+func (u *User) AssignNetwork(networkId int64) *Error {
+	_, err := u.client.request("assignNetwork", map[string]interface{}{
+		"userId": u.Id,
+		"networkId": networkId,
+	})
+
+	return err
+}
+
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
 	user = &User{
 		client: c,
