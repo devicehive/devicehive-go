@@ -19,12 +19,12 @@ type ListParams struct {
 	Skip         int       `json:"skip,omitempty"`
 	Name         string    `json:"name,omitempty"`
 	NamePattern  string    `json:"namePattern,omitempty"`
-	Login		 string    `json:"login,omitempty"`
+	Login        string    `json:"login,omitempty"`
 	LoginPattern string    `json:"loginPattern,omitempty"`
 	NetworkId    string    `json:"networkId,omitempty"`
 	NetworkName  string    `json:"networkName,omitempty"`
-	UserRole	 int	   `json:"role,omitempty"`
-	UserStatus	 int	   `json:"status,omitempty"`
+	UserRole     int       `json:"role,omitempty"`
+	UserStatus   int       `json:"status,omitempty"`
 }
 
 func (p *ListParams) Map() (m map[string]interface{}, err error) {

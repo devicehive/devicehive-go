@@ -43,8 +43,8 @@ func (m *PendingRequestsMap) create(key string, isErrChan bool) (req *PendingReq
 	signal := make(chan struct{})
 
 	c = &PendingRequest{
-		Data:   data,
-		Signal: signal,
+		Data:       data,
+		Signal:     signal,
 		DataLocker: sync.Mutex{},
 	}
 	if isErrChan {

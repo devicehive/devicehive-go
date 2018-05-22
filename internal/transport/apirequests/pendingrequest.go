@@ -3,9 +3,9 @@ package apirequests
 import "sync"
 
 type PendingRequest struct {
-	Data   chan []byte
-	Err    chan error
-	Signal chan struct{}
+	Data       chan []byte
+	Err        chan error
+	Signal     chan struct{}
 	DataLocker sync.Mutex
 }
 

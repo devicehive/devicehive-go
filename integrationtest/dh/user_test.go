@@ -1,9 +1,9 @@
 package dh_test
 
 import (
-	"testing"
-	"github.com/matryer/is"
 	"github.com/devicehive/devicehive-go/dh"
+	"github.com/matryer/is"
+	"testing"
 )
 
 func TestUser(t *testing.T) {
