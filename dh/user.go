@@ -193,17 +193,13 @@ func (c *Client) GetUser(userId int64) (user *User, err *Error) {
 }
 
 func (c *Client) GetCurrentUser() (user *User, err *Error) {
-	rawRes, err := c.request("getCurrentUser", nil)
-	if err != nil {
-		return nil, err
-	}
-
 	user = &User{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, user)
-	if parseErr != nil {
-		return nil, newJSONErr()
+
+	err = c.getModel("getCurrentUser", user, nil)
+	if err != nil {
+		return nil, err
 	}
 
 	return user, nil
