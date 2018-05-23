@@ -11,18 +11,13 @@ type Configuration struct {
 }
 
 func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
-	rawRes, err := c.request("getConfig", map[string]interface{}{
+	conf = &Configuration{}
+
+	err = c.getModel("getConfig", conf, map[string]interface{}{
 		"name": name,
 	})
-
 	if err != nil {
 		return nil, err
-	}
-
-	conf = &Configuration{}
-	parseErr := json.Unmarshal(rawRes, conf)
-	if parseErr != nil {
-		return nil, newJSONErr()
 	}
 
 	return conf, nil

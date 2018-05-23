@@ -49,20 +49,15 @@ func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType
 }
 
 func (c *Client) GetDeviceType(deviceTypeId int64) (devType *DeviceType, err *Error) {
-	rawRes, err := c.request("getDeviceType", map[string]interface{}{
-		"deviceTypeId": deviceTypeId,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
 	devType = &DeviceType{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, devType)
-	if parseErr != nil {
-		return nil, newJSONErr()
+
+	err = c.getModel("getDeviceType", devType, map[string]interface{}{
+		"deviceTypeId": deviceTypeId,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return devType, nil
