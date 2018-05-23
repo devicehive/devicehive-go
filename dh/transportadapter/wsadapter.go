@@ -31,7 +31,7 @@ func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bo
 	return true, nil
 }
 
-func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
+func (a *WSAdapter) handleResponseError(rawRes []byte) error {
 	res := &wsResponse{}
 	parseErr := json.Unmarshal(rawRes, res)
 	if parseErr != nil {
@@ -48,7 +48,7 @@ func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
 	return nil
 }
 
-func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{}) (resource, method string) {
+func (a *WSAdapter) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
 	if wsResources[resName] == "" {
 		return resName, ""
 	}
@@ -56,11 +56,11 @@ func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{})
 	return wsResources[resName], ""
 }
 
-func (a *WSAdapter) BuildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
+func (a *WSAdapter) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
 	return rawData
 }
 
-func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) []byte {
+func (a *WSAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
 	payloadKey := wsResponsePayloads[resourceName]
 	if payloadKey == "" {
 		return rawRes
@@ -105,19 +105,19 @@ func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, ti
 		return nil, tspErr
 	}
 
-	err = a.HandleResponseError(resBytes)
+	err = a.handleResponseError(resBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	resBytes = a.ExtractResponsePayload(resourceName, resBytes)
+	resBytes = a.extractResponsePayload(resourceName, resBytes)
 
 	return resBytes, nil
 }
 
 func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
-	resource, _ = a.ResolveResource(resourceName, data)
-	reqData := a.BuildRequestData(resourceName, data)
+	resource, _ = a.resolveResource(resourceName, data)
+	reqData := a.buildRequestData(resourceName, data)
 	reqParams = &transport.RequestParams{
 		Data: reqData,
 	}
