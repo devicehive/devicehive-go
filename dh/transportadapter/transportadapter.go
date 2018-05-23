@@ -19,4 +19,6 @@ type TransportAdapter interface {
 	BuildRequestData(resourceName string, rawData map[string]interface{}) interface{}
 	ExtractResponsePayload(resourceName string, rawRes []byte) []byte
 	Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error)
+	Subscribe(resourceName, accessToken string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error)
+	Unsubscribe(resourceName, accessToken, subscriptionId string, timeout time.Duration) error
 }

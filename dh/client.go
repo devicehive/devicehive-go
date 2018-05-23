@@ -43,33 +43,25 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	resource, tspReqParams := c.prepareRequestData(resourceName, data)
-	if resource == "" {
-		return nil, "", &Error{name: InvalidRequestErr, reason: "unknown resource name"}
-	}
-
-	tspReqParams.WaitTimeoutSeconds = c.PollingWaitTimeoutSeconds
-
-	tspChan, subscriptionId, tspErr := c.transport.Subscribe(resource, tspReqParams)
-	if tspErr != nil {
-		return nil, "", newTransportErr(tspErr)
+	tspChan, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.accessToken, c.PollingWaitTimeoutSeconds, data)
+	if rawErr != nil {
+		return nil, "", newTransportErr(rawErr)
 	}
 
 	return tspChan, subscriptionId, nil
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	if c.transport.IsWS() {
-		_, err := c.request(resourceName, map[string]interface{}{
-			"subscriptionId": subscriptionId,
-		})
+	err := c.transportAdapter.Unsubscribe(resourceName, c.accessToken, subscriptionId, Timeout)
 
-		if err != nil {
-			return err
+	if err != nil {
+		switch err.(type) {
+		case *transport.Error:
+			return newTransportErr(err.(*transport.Error))
+		default:
+			return &Error{ServiceErr, err.Error()}
 		}
 	}
-
-	c.transport.Unsubscribe(subscriptionId)
 
 	return nil
 }
@@ -87,30 +79,6 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 	}
 
 	return resBytes, nil
-}
-
-func (c *Client) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
-	resource, method := c.transportAdapter.ResolveResource(resourceName, data)
-	reqData := c.transportAdapter.BuildRequestData(resourceName, data)
-	reqParams = c.createRequestParams(method, reqData)
-
-	return resource, reqParams
-}
-
-func (c *Client) createRequestParams(method string, reqData interface{}) *transport.RequestParams {
-	tspReqParams := &transport.RequestParams{
-		Data: reqData,
-	}
-
-	if c.transport.IsHTTP() {
-		if method != "" {
-			tspReqParams.Method = method
-		}
-
-		tspReqParams.AccessToken = c.accessToken
-	}
-
-	return tspReqParams
 }
 
 func (c *Client) getModel(resourceName string, model interface{}, data map[string]interface{}) *Error {

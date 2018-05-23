@@ -101,6 +101,24 @@ func (a *HTTPAdapter) ExtractResponsePayload(resourceName string, rawRes []byte)
 	return rawRes
 }
 
+func (a *HTTPAdapter) Subscribe(resourceName, accessToken string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, accessToken, params)
+
+	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
+
+	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	if tspErr != nil {
+		return nil, "", tspErr
+	}
+
+	return tspChan, subscriptionId, nil
+}
+
+func (a *HTTPAdapter) Unsubscribe(resourceName, accessToken, subscriptionId string, timeout time.Duration) error {
+	a.transport.Unsubscribe(subscriptionId)
+	return nil
+}
+
 func (a *HTTPAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, accessToken, data)
 

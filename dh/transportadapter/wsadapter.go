@@ -60,6 +60,31 @@ func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) [
 	return res[payloadKey]
 }
 
+func (a *WSAdapter) Subscribe(resourceName, accessToken string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, params)
+
+	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	if tspErr != nil {
+		return nil, "", tspErr
+	}
+
+	return tspChan, subscriptionId, nil
+}
+
+func (a *WSAdapter) Unsubscribe(resourceName, accessToken, subscriptionId string, timeout time.Duration) error {
+	_, err := a.Request(resourceName, accessToken, map[string]interface{}{
+		"subscriptionId": subscriptionId,
+	}, timeout)
+
+	if err != nil {
+		return err
+	}
+
+	a.transport.Unsubscribe(subscriptionId)
+
+	return nil
+}
+
 func (a *WSAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
