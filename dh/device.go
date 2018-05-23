@@ -216,20 +216,15 @@ func (d *Device) subscribe(params *SubscribeParams, resourceName string) (tspCha
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	rawRes, err := c.request("getDevice", map[string]interface{}{
-		"deviceId": deviceId,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
 	device = &Device{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, device)
-	if parseErr != nil {
-		return nil, newJSONErr()
+
+	err = c.getModel("getDevice", device, map[string]interface{}{
+		"deviceId": deviceId,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return device, nil

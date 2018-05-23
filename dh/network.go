@@ -51,20 +51,15 @@ func (c *Client) CreateNetwork(name, description string) (network *Network, err 
 }
 
 func (c *Client) GetNetwork(networkId int64) (network *Network, err *Error) {
-	rawRes, err := c.request("getNetwork", map[string]interface{}{
-		"networkId": networkId,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
 	network = &Network{
 		client: c,
 	}
-	parseErr := json.Unmarshal(rawRes, network)
-	if parseErr != nil {
-		return nil, newJSONErr()
+
+	err = c.getModel("getNetwork", network, map[string]interface{}{
+		"networkId": networkId,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return network, nil

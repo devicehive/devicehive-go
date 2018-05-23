@@ -3,6 +3,7 @@ package dh
 import (
 	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"encoding/json"
 )
 
 type Client struct {
@@ -127,4 +128,19 @@ func (c *Client) createRequestParams(method string, reqData interface{}) *transp
 	}
 
 	return tspReqParams
+}
+
+func (c *Client) getModel(resourceName string, model interface{}, data map[string]interface{}) *Error {
+	rawRes, err := c.request(resourceName, data)
+
+	if err != nil {
+		return err
+	}
+
+	parseErr := json.Unmarshal(rawRes, model)
+	if parseErr != nil {
+		return newJSONErr()
+	}
+
+	return nil
 }
