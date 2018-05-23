@@ -9,6 +9,19 @@ const (
 	ConnectionFailedErr = "connection failed"
 )
 
+func newError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	switch err.(type) {
+	case *transport.Error:
+		return newTransportErr(err.(*transport.Error))
+	default:
+		return &Error{ServiceErr, err.Error()}
+	}
+}
+
 func newJSONErr() *Error {
 	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string"}
 }

@@ -11,11 +11,17 @@ import (
 
 type HTTPAdapter struct {
 	transport transport.Transporter
+	accessToken string
 }
 
 type httpResponse struct {
 	Message string `json:"message"`
 	Status  int    `json:"status"`
+}
+
+func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
+	a.accessToken = token
+	return true, nil
 }
 
 func (a *HTTPAdapter) HandleResponseError(rawRes []byte) error {
@@ -101,8 +107,8 @@ func (a *HTTPAdapter) ExtractResponsePayload(resourceName string, rawRes []byte)
 	return rawRes
 }
 
-func (a *HTTPAdapter) Subscribe(resourceName, accessToken string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, accessToken, params)
+func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
 
@@ -114,13 +120,13 @@ func (a *HTTPAdapter) Subscribe(resourceName, accessToken string, pollingWaitTim
 	return tspChan, subscriptionId, nil
 }
 
-func (a *HTTPAdapter) Unsubscribe(resourceName, accessToken, subscriptionId string, timeout time.Duration) error {
+func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
 	a.transport.Unsubscribe(subscriptionId)
 	return nil
 }
 
-func (a *HTTPAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, accessToken, data)
+func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
 	if tspErr != nil {
@@ -137,13 +143,13 @@ func (a *HTTPAdapter) Request(resourceName, accessToken string, data map[string]
 	return resBytes, nil
 }
 
-func (a *HTTPAdapter) prepareRequestData(resourceName, accessToken string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
 	resource, method := a.ResolveResource(resourceName, data)
 	reqData := a.BuildRequestData(resourceName, data)
 	reqParams = &transport.RequestParams{
 		Data: reqData,
 		Method: method,
-		AccessToken: accessToken,
+		AccessToken: a.accessToken,
 	}
 
 	return resource, reqParams

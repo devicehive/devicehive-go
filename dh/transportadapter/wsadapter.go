@@ -19,6 +19,18 @@ type wsResponse struct {
 	Code   int    `json:"code"`
 }
 
+func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
+	_, err = a.Request("auth", map[string]interface{}{
+		"token": token,
+	}, timeout)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
 	res := &wsResponse{}
 	parseErr := json.Unmarshal(rawRes, res)
@@ -60,7 +72,7 @@ func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) [
 	return res[payloadKey]
 }
 
-func (a *WSAdapter) Subscribe(resourceName, accessToken string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
@@ -71,8 +83,8 @@ func (a *WSAdapter) Subscribe(resourceName, accessToken string, pollingWaitTimeo
 	return tspChan, subscriptionId, nil
 }
 
-func (a *WSAdapter) Unsubscribe(resourceName, accessToken, subscriptionId string, timeout time.Duration) error {
-	_, err := a.Request(resourceName, accessToken, map[string]interface{}{
+func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
+	_, err := a.Request(resourceName, map[string]interface{}{
 		"subscriptionId": subscriptionId,
 	}, timeout)
 
@@ -85,7 +97,7 @@ func (a *WSAdapter) Unsubscribe(resourceName, accessToken, subscriptionId string
 	return nil
 }
 
-func (a *WSAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)

@@ -9,7 +9,6 @@ import (
 type Client struct {
 	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter
-	accessToken               string
 	refreshToken              string
 	login                     string
 	password                  string
@@ -17,20 +16,13 @@ type Client struct {
 }
 
 func (c *Client) authenticate(token string) (result bool, err *Error) {
-	if c.transport.IsHTTP() {
-		c.accessToken = token
-		return true, nil
-	} else {
-		_, err := c.request("auth", map[string]interface{}{
-			"token": token,
-		})
+	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
 
-		if err != nil {
-			return false, err
-		}
-
-		return true, nil
+	if rawErr != nil {
+		return false, newError(rawErr)
 	}
+
+	return true, nil
 }
 
 func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
@@ -43,7 +35,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	tspChan, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.accessToken, c.PollingWaitTimeoutSeconds, data)
+	tspChan, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.PollingWaitTimeoutSeconds, data)
 	if rawErr != nil {
 		return nil, "", newTransportErr(rawErr)
 	}
@@ -52,30 +44,20 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	err := c.transportAdapter.Unsubscribe(resourceName, c.accessToken, subscriptionId, Timeout)
+	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
 
 	if err != nil {
-		switch err.(type) {
-		case *transport.Error:
-			return newTransportErr(err.(*transport.Error))
-		default:
-			return &Error{ServiceErr, err.Error()}
-		}
+		return newError(err)
 	}
 
 	return nil
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, c.accessToken, data, Timeout)
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
 
 	if rawErr != nil {
-		switch rawErr.(type) {
-		case *transport.Error:
-			return nil, newTransportErr(rawErr.(*transport.Error))
-		default:
-			return nil, &Error{ServiceErr, rawErr.Error()}
-		}
+		return nil, newError(rawErr)
 	}
 
 	return resBytes, nil
