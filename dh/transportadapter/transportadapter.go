@@ -1,6 +1,9 @@
 package transportadapter
 
-import "github.com/devicehive/devicehive-go/internal/transport"
+import (
+	"github.com/devicehive/devicehive-go/internal/transport"
+	"time"
+)
 
 func New(tsp transport.Transporter) TransportAdapter {
 	if tsp.IsWS() {
@@ -15,4 +18,5 @@ type TransportAdapter interface {
 	ResolveResource(resName string, data map[string]interface{}) (resource, method string)
 	BuildRequestData(resourceName string, rawData map[string]interface{}) interface{}
 	ExtractResponsePayload(resourceName string, rawRes []byte) []byte
+	Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error)
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
+	"time"
 )
 
 type WSAdapter struct {
@@ -57,6 +58,34 @@ func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) [
 	json.Unmarshal(rawRes, &res)
 
 	return res[payloadKey]
+}
+
+func (a *WSAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, data)
+
+	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
+	if tspErr != nil {
+		return nil, tspErr
+	}
+
+	err = a.HandleResponseError(resBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	resBytes = a.ExtractResponsePayload(resourceName, resBytes)
+
+	return resBytes, nil
+}
+
+func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+	resource, _ = a.ResolveResource(resourceName, data)
+	reqData := a.BuildRequestData(resourceName, data)
+	reqParams = &transport.RequestParams{
+		Data: reqData,
+	}
+
+	return resource, reqParams
 }
 
 var wsResponsePayloads = map[string]string{

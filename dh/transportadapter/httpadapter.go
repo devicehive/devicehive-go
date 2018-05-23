@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
+	"time"
 )
 
 type HTTPAdapter struct {
@@ -98,4 +99,34 @@ func (a *HTTPAdapter) BuildRequestData(resourceName string, rawData map[string]i
 
 func (a *HTTPAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) []byte {
 	return rawRes
+}
+
+func (a *HTTPAdapter) Request(resourceName, accessToken string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, accessToken, data)
+
+	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
+	if tspErr != nil {
+		return nil, tspErr
+	}
+
+	err = a.HandleResponseError(resBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	resBytes = a.ExtractResponsePayload(resourceName, resBytes)
+
+	return resBytes, nil
+}
+
+func (a *HTTPAdapter) prepareRequestData(resourceName, accessToken string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+	resource, method := a.ResolveResource(resourceName, data)
+	reqData := a.BuildRequestData(resourceName, data)
+	reqParams = &transport.RequestParams{
+		Data: reqData,
+		Method: method,
+		AccessToken: accessToken,
+	}
+
+	return resource, reqParams
 }

@@ -75,35 +75,18 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
-	resource, tspReqParams := c.prepareRequestData(resourceName, data)
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, c.accessToken, data, Timeout)
 
-	if resource == "" {
-		return nil, &Error{name: InvalidRequestErr, reason: "unknown resource name"}
+	if rawErr != nil {
+		switch rawErr.(type) {
+		case *transport.Error:
+			return nil, newTransportErr(rawErr.(*transport.Error))
+		default:
+			return nil, &Error{ServiceErr, rawErr.Error()}
+		}
 	}
-
-	resBytes, tspErr := c.transport.Request(resource, tspReqParams, Timeout)
-
-	if tspErr != nil {
-		return nil, newTransportErr(tspErr)
-	}
-
-	err = c.handleResponseError(resBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	resBytes = c.transportAdapter.ExtractResponsePayload(resourceName, resBytes)
 
 	return resBytes, nil
-}
-
-func (c *Client) handleResponseError(resBytes []byte) (err *Error) {
-	rawErr := c.transportAdapter.HandleResponseError(resBytes)
-	if rawErr != nil {
-		return &Error{ServiceErr, rawErr.Error()}
-	}
-
-	return nil
 }
 
 func (c *Client) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
