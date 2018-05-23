@@ -41,18 +41,14 @@ func (m *PendingRequestsMap) create(key string, isErrChan bool) (req *PendingReq
 	var c *PendingRequest
 	data := make(chan []byte, 16)
 	signal := make(chan struct{})
+
+	c = &PendingRequest{
+		Data:       data,
+		Signal:     signal,
+		DataLocker: sync.Mutex{},
+	}
 	if isErrChan {
-		err := make(chan error)
-		c = &PendingRequest{
-			Data:   data,
-			Err:    err,
-			Signal: signal,
-		}
-	} else {
-		c = &PendingRequest{
-			Data:   data,
-			Signal: signal,
-		}
+		c.Err = make(chan error)
 	}
 
 	m.clients[key] = c

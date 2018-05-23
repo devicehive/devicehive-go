@@ -30,6 +30,19 @@ var httpResources = map[string][2]string{
 	"deleteDeviceType":       {"devicetype/{{.deviceTypeId}}", "DELETE"},
 	"getDeviceType":          {"devicetype/{{.deviceTypeId}}"},
 	"listDeviceTypes":        {"devicetype"},
+	"createUser":             {"user", "POST"},
+	"deleteUser":             {"user/{{.userId}}", "DELETE"},
+	"getUser":                {"user/{{.userId}}"},
+	"getCurrentUser":         {"user/current"},
+	"listUsers":              {"user"},
+	"updateUser":             {"user/{{.userId}}", "PUT"},
+	"assignNetwork":          {"user/{{.userId}}/network/{{.networkId}}", "PUT"},
+	"unassignNetwork":        {"user/{{.userId}}/network/{{.networkId}}", "DELETE"},
+	"assignDeviceType":       {"user/{{.userId}}/devicetype/{{.deviceTypeId}}", "PUT"},
+	"unassignDeviceType":     {"user/{{.userId}}/devicetype/{{.deviceTypeId}}", "DELETE"},
+	"getUserDeviceTypes":     {"user/{{.userId}}/devicetype"},
+	"allowAllDeviceTypes":    {"user/{{.userId}}/devicetype/all", "PUT"},
+	"disallowAllDeviceTypes": {"user/{{.userId}}/devicetype/all", "DELETE"},
 }
 
 var httpResourcesQueryParams = map[string][]string{
@@ -40,4 +53,5 @@ var httpResourcesQueryParams = map[string][]string{
 	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
 	"listNetworks":           {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
 	"listDeviceTypes":        {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
+	"listUsers":              {"login", "loginPattern", "role", "status", "sortField", "sortOrder", "take", "skip"},
 }

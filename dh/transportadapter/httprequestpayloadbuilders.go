@@ -45,4 +45,10 @@ var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interfa
 	"updateDeviceType": func(data map[string]interface{}) interface{} {
 		return data["deviceType"]
 	},
+	"createUser": func(data map[string]interface{}) interface{} {
+		return data["user"]
+	},
+	"updateUser": func(data map[string]interface{}) interface{} {
+		return data["user"]
+	},
 }
