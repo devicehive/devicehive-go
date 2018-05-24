@@ -10,7 +10,7 @@ import (
 )
 
 type WSAdapter struct {
-	transport transport.Transporter
+	*Adapter
 }
 
 type wsResponse struct {
@@ -54,24 +54,6 @@ func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout tim
 	a.transport.Unsubscribe(subscriptionId)
 
 	return nil
-}
-
-func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, data)
-
-	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
-	if tspErr != nil {
-		return nil, tspErr
-	}
-
-	err = a.handleResponseError(resBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	resBytes = a.extractResponsePayload(resourceName, resBytes)
-
-	return resBytes, nil
 }
 
 func (a *WSAdapter) handleResponseError(rawRes []byte) error {

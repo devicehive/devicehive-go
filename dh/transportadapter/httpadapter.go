@@ -10,7 +10,7 @@ import (
 )
 
 type HTTPAdapter struct {
-	transport transport.Transporter
+	*Adapter
 	accessToken string
 }
 
@@ -40,24 +40,6 @@ func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds i
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
 	a.transport.Unsubscribe(subscriptionId)
 	return nil
-}
-
-func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, data)
-
-	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
-	if tspErr != nil {
-		return nil, tspErr
-	}
-
-	err = a.handleResponseError(resBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	resBytes = a.extractResponsePayload(resourceName, resBytes)
-
-	return resBytes, nil
 }
 
 func (a *HTTPAdapter) handleResponseError(rawRes []byte) error {

@@ -6,15 +6,22 @@ import (
 )
 
 func New(tsp transport.Transporter) TransportAdapter {
-	if tsp.IsWS() {
-		return &WSAdapter{
-			transport: tsp,
-		}
-	}
-
-	return &HTTPAdapter{
+	adapter := &Adapter{
 		transport: tsp,
 	}
+	if tsp.IsWS() {
+		ws := &WSAdapter{
+			Adapter: adapter,
+		}
+		adapter.adapter = ws
+		return ws
+	}
+
+	http := &HTTPAdapter{
+		Adapter: adapter,
+	}
+	adapter.adapter = http
+	return http
 }
 
 type TransportAdapter interface {
