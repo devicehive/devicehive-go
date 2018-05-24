@@ -1,9 +1,9 @@
 package dh
 
 import (
+	"encoding/json"
 	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"encoding/json"
 )
 
 type Client struct {

@@ -1,13 +1,13 @@
 package transportadapter
 
 import (
-	"time"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"time"
 )
 
 type Adapter struct {
 	transport transport.Transporter
-	adapter RequestResponseHandler
+	adapter   RequestResponseHandler
 }
 
 func (a *Adapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {

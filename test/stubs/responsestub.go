@@ -2,7 +2,7 @@ package stubs
 
 var ResponseStub = &responseStub{
 	actionRes: map[string]func(reqData map[string]interface{}) map[string]interface{}{
-		"notification/subscribe":   notificationSubscribe,
+		"notification/subscribe": notificationSubscribe,
 	},
 }
 
