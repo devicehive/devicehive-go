@@ -24,6 +24,42 @@ func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (result 
 	return true, nil
 }
 
+func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, params)
+
+	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
+
+	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	if tspErr != nil {
+		return nil, "", tspErr
+	}
+
+	return tspChan, subscriptionId, nil
+}
+
+func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
+	a.transport.Unsubscribe(subscriptionId)
+	return nil
+}
+
+func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, data)
+
+	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
+	if tspErr != nil {
+		return nil, tspErr
+	}
+
+	err = a.handleResponseError(resBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	resBytes = a.extractResponsePayload(resourceName, resBytes)
+
+	return resBytes, nil
+}
+
 func (a *HTTPAdapter) handleResponseError(rawRes []byte) error {
 	if len(rawRes) == 0 {
 		return nil
@@ -105,42 +141,6 @@ func (a *HTTPAdapter) buildRequestData(resourceName string, rawData map[string]i
 
 func (a *HTTPAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
 	return rawRes
-}
-
-func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, params)
-
-	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
-
-	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
-	if tspErr != nil {
-		return nil, "", tspErr
-	}
-
-	return tspChan, subscriptionId, nil
-}
-
-func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
-	a.transport.Unsubscribe(subscriptionId)
-	return nil
-}
-
-func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, data)
-
-	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
-	if tspErr != nil {
-		return nil, tspErr
-	}
-
-	err = a.handleResponseError(resBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	resBytes = a.extractResponsePayload(resourceName, resBytes)
-
-	return resBytes, nil
 }
 
 func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {

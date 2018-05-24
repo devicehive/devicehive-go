@@ -31,47 +31,6 @@ func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bo
 	return true, nil
 }
 
-func (a *WSAdapter) handleResponseError(rawRes []byte) error {
-	res := &wsResponse{}
-	parseErr := json.Unmarshal(rawRes, res)
-	if parseErr != nil {
-		return parseErr
-	}
-
-	if res.Status == "error" {
-		errMsg := strings.ToLower(res.Error)
-		errCode := res.Code
-		r := fmt.Sprintf("%d %s", errCode, errMsg)
-		return errors.New(r)
-	}
-
-	return nil
-}
-
-func (a *WSAdapter) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
-	if wsResources[resName] == "" {
-		return resName, ""
-	}
-
-	return wsResources[resName], ""
-}
-
-func (a *WSAdapter) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
-	return rawData
-}
-
-func (a *WSAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
-	payloadKey := wsResponsePayloads[resourceName]
-	if payloadKey == "" {
-		return rawRes
-	}
-
-	res := make(map[string]json.RawMessage)
-	json.Unmarshal(rawRes, &res)
-
-	return res[payloadKey]
-}
-
 func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
@@ -113,6 +72,47 @@ func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, ti
 	resBytes = a.extractResponsePayload(resourceName, resBytes)
 
 	return resBytes, nil
+}
+
+func (a *WSAdapter) handleResponseError(rawRes []byte) error {
+	res := &wsResponse{}
+	parseErr := json.Unmarshal(rawRes, res)
+	if parseErr != nil {
+		return parseErr
+	}
+
+	if res.Status == "error" {
+		errMsg := strings.ToLower(res.Error)
+		errCode := res.Code
+		r := fmt.Sprintf("%d %s", errCode, errMsg)
+		return errors.New(r)
+	}
+
+	return nil
+}
+
+func (a *WSAdapter) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
+	if wsResources[resName] == "" {
+		return resName, ""
+	}
+
+	return wsResources[resName], ""
+}
+
+func (a *WSAdapter) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
+	return rawData
+}
+
+func (a *WSAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
+	payloadKey := wsResponsePayloads[resourceName]
+	if payloadKey == "" {
+		return rawRes
+	}
+
+	res := make(map[string]json.RawMessage)
+	json.Unmarshal(rawRes, &res)
+
+	return res[payloadKey]
 }
 
 func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {

@@ -45,7 +45,6 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
-
 	if err != nil {
 		return newError(err)
 	}
@@ -55,7 +54,6 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
-
 	if rawErr != nil {
 		return nil, newError(rawErr)
 	}
