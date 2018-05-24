@@ -77,18 +77,3 @@ func (c *Client) getModel(resourceName string, model interface{}, data map[strin
 
 	return nil
 }
-
-func (c *Client) getModel(resourceName string, model interface{}, data map[string]interface{}) *Error {
-	rawRes, err := c.request(resourceName, data)
-
-	if err != nil {
-		return err
-	}
-
-	parseErr := json.Unmarshal(rawRes, model)
-	if parseErr != nil {
-		return newJSONErr()
-	}
-
-	return nil
-}
