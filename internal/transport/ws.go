@@ -51,7 +51,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	reqId := params.requestId()
-	client := t.requests.CreateRequest(reqId)
+	req := t.requests.CreateRequest(reqId)
 
 	data := params.mapData()
 	data["action"] = resource
@@ -63,12 +63,12 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	select {
-	case res = <-client.Data:
+	case res = <-req.Data:
 		return res, nil
-	case err := <-client.Err:
+	case err := <-req.Err:
 		return nil, NewError(ConnClosedErr, err.Error())
 	case <-time.After(timeout):
-		client.Close()
+		req.Close()
 		t.requests.Delete(reqId)
 		return nil, NewError(TimeoutErr, "response timeout")
 	}
