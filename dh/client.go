@@ -15,6 +15,28 @@ type Client struct {
 	PollingWaitTimeoutSeconds int
 }
 
+func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
+	tspChan, subsId, err := c.subscribe("subscribeNotifications", params)
+	if err != nil || tspChan == nil {
+		return nil, err
+	}
+
+	subs = newNotificationSubscription(subsId, tspChan, c)
+
+	return subs, nil
+}
+
+func (c *Client) SubscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+	tspChan, subsId, err := c.subscribe("subscribeCommands", params)
+	if err != nil || tspChan == nil {
+		return nil, err
+	}
+
+	subs = newCommandSubscription(subsId, tspChan, c)
+
+	return subs, nil
+}
+
 func (c *Client) authenticate(token string) (result bool, err *Error) {
 	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
 
@@ -29,6 +51,8 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 	if params == nil {
 		params = &SubscribeParams{}
 	}
+
+	params.WaitTimeout = c.PollingWaitTimeoutSeconds
 
 	data, jsonErr := params.Map()
 	if jsonErr != nil {
