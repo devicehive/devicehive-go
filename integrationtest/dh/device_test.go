@@ -166,92 +166,6 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	}
 }
 
-func TestDeviceSubscribeUpdateCommands(t *testing.T) {
-	is := is.New(t)
-
-	device, err := client.PutDevice("go-test-dev-comm-update", "", nil, 0, 0, false)
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-	defer func() {
-		err := device.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
-	var firstValidCommand *dh.Command
-	for i := 0; i < commandsToSend; i++ {
-		comm, err := device.SendCommand("go test command", nil, 5, time.Time{}, "", nil)
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-
-		comm.Status = "updated"
-
-		err = comm.Save()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-
-		if firstValidCommand == nil {
-			firstValidCommand = comm
-		}
-	}
-
-	commUpdSubs, err := device.SubscribeUpdateCommands(nil, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-	defer func() {
-		err := commUpdSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
-	for i := 0; i < commandsToSend; i++ {
-		select {
-		case comm, ok := <-commUpdSubs.CommandsChan:
-			is.True(ok)
-			is.True(comm != nil)
-			is.Equal(comm.Status, "updated")
-		case <-time.After(waitTimeout):
-			t.Fatal("command update event timeout")
-		}
-	}
-}
-
-func TestDeviceCommandSubscriptionRemove(t *testing.T) {
-	is := is.New(t)
-
-	device, err := client.PutDevice("go-test-dev-subscription-rm", "", nil, 0, 0, false)
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-	defer func() {
-		err := device.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
-	commSubs, err := device.SubscribeInsertCommands(nil, time.Time{})
-
-	err = commSubs.Remove()
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-
-	select {
-	case comm, ok := <-commSubs.CommandsChan:
-		is.True(!ok)
-		is.True(comm == nil)
-	case <-time.After(300 * time.Millisecond):
-		t.Fatalf("command unsubscribe timeout")
-	}
-}
-
 func TestDeviceSubscribeNotifications(t *testing.T) {
 	is := is.New(t)
 
@@ -298,35 +212,5 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 		case <-time.After(waitTimeout):
 			t.Error("notification insert event timeout")
 		}
-	}
-}
-
-func TestDeviceNotificationSubscriptionRemove(t *testing.T) {
-	is := is.New(t)
-
-	device, err := client.PutDevice("go-test-dev-subscription-rm", "", nil, 0, 0, false)
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-
-	subs, err := device.SubscribeNotifications(nil, time.Time{})
-	defer func() {
-		err = device.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
-	err = subs.Remove()
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-
-	select {
-	case comm, ok := <-subs.NotificationChan:
-		is.True(!ok)
-		is.True(comm == nil)
-	case <-time.After(300 * time.Millisecond):
-		t.Fatalf("notification unsubscribe timeout")
 	}
 }

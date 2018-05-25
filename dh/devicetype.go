@@ -1,6 +1,10 @@
 package dh
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+	"strconv"
+)
 
 type DeviceType struct {
 	client      *Client
@@ -84,4 +88,35 @@ func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *E
 	}
 
 	return list, nil
+}
+
+func (dt *DeviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+	return dt.subscribeCommands(names, timestamp, false)
+}
+
+func (dt *DeviceType) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+	return dt.subscribeCommands(names, timestamp, true)
+}
+
+func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+	id := []string{strconv.FormatInt(dt.Id, 10)}
+	params := &SubscribeParams{
+		Names:                 names,
+		Timestamp:             timestamp,
+		ReturnUpdatedCommands: isCommUpdatesSubscription,
+		DeviceTypeIds:         id,
+	}
+
+	return dt.client.SubscribeCommands(params)
+}
+
+func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+	id := []string{strconv.FormatInt(dt.Id, 10)}
+	params := &SubscribeParams{
+		Names:                 names,
+		Timestamp:             timestamp,
+		DeviceTypeIds:         id,
+	}
+
+	return dt.client.SubscribeNotifications(params)
 }
