@@ -48,8 +48,8 @@ var httpResources = map[string][2]string{
 var httpResourcesQueryParams = map[string][]string{
 	"listCommands":           {"start", "end", "command", "status", "sortField", "sortOrder", "take", "skip"},
 	"listNotifications":      {"start", "end", "notification", "sortField", "sortOrder", "take", "skip"},
-	"subscribeCommands":      {"deviceId", "timestamp", "waitTimeout", "names"},
-	"subscribeNotifications": {"deviceId", "timestamp", "waitTimeout", "names"},
+	"subscribeCommands":      {"deviceId", "networkIds", "deviceTypeIds", "timestamp", "waitTimeout", "names"},
+	"subscribeNotifications": {"deviceId", "networkIds", "deviceTypeIds", "timestamp", "waitTimeout", "names"},
 	"listDevices":            {"name", "namePattern", "networkId", "networkName", "sortField", "sortOrder", "take", "skip"},
 	"listNetworks":           {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},
 	"listDeviceTypes":        {"name", "namePattern", "sortField", "sortOrder", "take", "skip"},

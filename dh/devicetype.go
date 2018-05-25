@@ -2,8 +2,8 @@ package dh
 
 import (
 	"encoding/json"
-	"time"
 	"strconv"
+	"time"
 )
 
 type DeviceType struct {
@@ -113,9 +113,9 @@ func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isC
 func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	id := []string{strconv.FormatInt(dt.Id, 10)}
 	params := &SubscribeParams{
-		Names:                 names,
-		Timestamp:             timestamp,
-		DeviceTypeIds:         id,
+		Names:         names,
+		Timestamp:     timestamp,
+		DeviceTypeIds: id,
 	}
 
 	return dt.client.SubscribeNotifications(params)
