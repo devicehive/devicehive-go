@@ -167,52 +167,25 @@ func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (s
 }
 
 func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
-	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
-	}, "subscribeCommands")
-
-	if err != nil || tspChan == nil {
-		return nil, err
+		DeviceId:              d.Id,
 	}
 
-	subs = newCommandSubscription(subsId, tspChan, d.client)
-
-	return subs, nil
+	return d.client.SubscribeCommands(params)
 
 }
 
 func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
-	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+	params := &SubscribeParams{
 		Names:     names,
 		Timestamp: timestamp,
-	}, "subscribeNotifications")
-
-	if err != nil || tspChan == nil {
-		return nil, err
+		DeviceId:  d.Id,
 	}
 
-	subs = newNotificationSubscription(subsId, tspChan, d.client)
-
-	return subs, nil
-}
-
-func (d *Device) subscribe(params *SubscribeParams, resourceName string) (tspChan chan []byte, subscriptionId string, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{}
-	}
-
-	params.DeviceId = d.Id
-	params.WaitTimeout = d.client.PollingWaitTimeoutSeconds
-
-	tspChan, subsId, err := d.client.subscribe(resourceName, params)
-
-	if err != nil || tspChan == nil {
-		return nil, "", err
-	}
-
-	return tspChan, subsId, nil
+	return d.client.SubscribeNotifications(params)
 }
 
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
