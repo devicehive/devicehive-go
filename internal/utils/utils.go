@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"github.com/fatih/structs"
+	"strconv"
+	"strings"
 )
 
 func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
@@ -16,6 +18,18 @@ func ISliceToStrSlice(s []interface{}) (stringSlice []string, err error) {
 	}
 
 	return stringSlice, nil
+}
+
+func JoinIntSlice(i []int, sep string) string {
+	return strings.Join(IntSliceToStrSlice(i), sep)
+}
+
+func IntSliceToStrSlice(s []int) (stringSlice []string) {
+	for _, elem := range s {
+		stringSlice = append(stringSlice, strconv.FormatInt(int64(elem), 10))
+	}
+
+	return stringSlice
 }
 
 func StructToJSONMap(s interface{}) map[string]interface{} {

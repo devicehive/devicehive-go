@@ -141,7 +141,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	return device, nil
 }
 
-func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int64, isBlocked bool) (device *Device, err *Error) {
+func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int, isBlocked bool) (device *Device, err *Error) {
 	device = &Device{
 		client: c,
 	}
@@ -227,7 +227,7 @@ func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType
 	return devType, nil
 }
 
-func (c *Client) GetDeviceType(deviceTypeId int64) (devType *DeviceType, err *Error) {
+func (c *Client) GetDeviceType(deviceTypeId int) (devType *DeviceType, err *Error) {
 	devType = &DeviceType{
 		client: c,
 	}
@@ -309,7 +309,7 @@ func (c *Client) CreateNetwork(name, description string) (network *Network, err 
 	return network, nil
 }
 
-func (c *Client) GetNetwork(networkId int64) (network *Network, err *Error) {
+func (c *Client) GetNetwork(networkId int) (network *Network, err *Error) {
 	network = &Network{
 		client: c,
 	}
@@ -493,7 +493,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	return user, nil
 }
 
-func (c *Client) GetUser(userId int64) (user *User, err *Error) {
+func (c *Client) GetUser(userId int) (user *User, err *Error) {
 	user = &User{
 		client: c,
 	}

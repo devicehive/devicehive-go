@@ -5,13 +5,13 @@ type commandResponse struct {
 }
 
 type Command struct {
-	Id          int64       `json:"id,omitempty"`
+	Id          int         `json:"id,omitempty"`
 	Command     string      `json:"command,omitempty"`
 	Timestamp   ISO8601Time `json:"timestamp,omitempty"`
 	LastUpdated ISO8601Time `json:"lastUpdated,omitempty"`
-	UserId      int64       `json:"userId,omitempty"`
+	UserId      int         `json:"userId,omitempty"`
 	DeviceId    string      `json:"deviceId,omitempty"`
-	NetworkId   int64       `json:"networkId,omitempty"`
+	NetworkId   int         `json:"networkId,omitempty"`
 	Parameters  interface{} `json:"parameters,omitempty"`
 	Lifetime    int         `json:"lifetime,omitempty"`
 	Status      string      `json:"status,omitempty"`

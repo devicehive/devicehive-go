@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	client                  *Client
-	Id                      int64                  `json:"id,omitempty"`
+	Id                      int                    `json:"id,omitempty"`
 	Login                   string                 `json:"login,omitempty"`
 	Role                    int                    `json:"role,omitempty"`
 	Status                  int                    `json:"status,omitempty"`
@@ -44,7 +44,7 @@ func (u *User) UpdatePassword(password string) *Error {
 	return err
 }
 
-func (u *User) AssignNetwork(networkId int64) *Error {
+func (u *User) AssignNetwork(networkId int) *Error {
 	_, err := u.client.request("assignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -53,7 +53,7 @@ func (u *User) AssignNetwork(networkId int64) *Error {
 	return err
 }
 
-func (u *User) UnassignNetwork(networkId int64) *Error {
+func (u *User) UnassignNetwork(networkId int) *Error {
 	_, err := u.client.request("unassignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -62,7 +62,7 @@ func (u *User) UnassignNetwork(networkId int64) *Error {
 	return err
 }
 
-func (u *User) AssignDeviceType(deviceTypeId int64) *Error {
+func (u *User) AssignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("assignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
@@ -71,7 +71,7 @@ func (u *User) AssignDeviceType(deviceTypeId int64) *Error {
 	return err
 }
 
-func (u *User) UnassignDeviceType(deviceTypeId int64) *Error {
+func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("unassignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,

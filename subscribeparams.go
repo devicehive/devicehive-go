@@ -8,8 +8,8 @@ import (
 
 type SubscribeParams struct {
 	DeviceId              string    `json:"deviceId,omitempty"`
-	NetworkIds            []string  `json:"networkIds,omitempty"`
-	DeviceTypeIds         []string  `json:"deviceTypeIds,omitempty"`
+	NetworkIds            []int     `json:"networkIds,omitempty"`
+	DeviceTypeIds         []int     `json:"deviceTypeIds,omitempty"`
 	Names                 []string  `json:"names,omitempty"`
 	Timestamp             time.Time `json:"timestamp,omitempty"`
 	ReturnUpdatedCommands bool      `json:"returnUpdatedCommands,omitempty"`

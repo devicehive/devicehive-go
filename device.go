@@ -9,8 +9,8 @@ type Device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
 	Data         map[string]interface{} `json:"data,omitempty"`
-	NetworkId    int64                  `json:"networkId,omitempty"`
-	DeviceTypeId int64                  `json:"deviceTypeId,omitempty"`
+	NetworkId    int                    `json:"networkId,omitempty"`
+	DeviceTypeId int                    `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
 	client       *Client
 }

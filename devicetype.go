@@ -1,13 +1,12 @@
 package devicehive_go
 
 import (
-	"strconv"
 	"time"
 )
 
 type DeviceType struct {
 	client      *Client
-	Id          int64  `json:"id,omitempty"`
+	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
@@ -38,23 +37,21 @@ func (dt *DeviceType) SubscribeUpdateCommands(names []string, timestamp time.Tim
 }
 
 func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
-	id := []string{strconv.FormatInt(dt.Id, 10)}
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
-		DeviceTypeIds:         id,
+		DeviceTypeIds:         []int{dt.Id},
 	}
 
 	return dt.client.SubscribeCommands(params)
 }
 
 func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
-	id := []string{strconv.FormatInt(dt.Id, 10)}
 	params := &SubscribeParams{
 		Names:         names,
 		Timestamp:     timestamp,
-		DeviceTypeIds: id,
+		DeviceTypeIds: []int{dt.Id},
 	}
 
 	return dt.client.SubscribeNotifications(params)

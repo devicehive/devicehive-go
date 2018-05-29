@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"log"
 	"net/url"
 	"strings"
@@ -14,7 +15,7 @@ func isJSONArray(b []byte) bool {
 	return json.Unmarshal(b, &[]interface{}{}) == nil
 }
 
-func prepareHttpResource(resourceTemplate string, queryParams map[string]interface{}) string {
+func prepareHttpResource(resourceTemplate string, queryParams map[string]string) string {
 	t := template.New("resource")
 
 	t, err := t.Parse(resourceTemplate)
@@ -33,23 +34,25 @@ func prepareHttpResource(resourceTemplate string, queryParams map[string]interfa
 	return resource.String()
 }
 
-func prepareQueryParams(data map[string]interface{}) map[string]interface{} {
-	preparedData := make(map[string]interface{})
+func prepareQueryParams(data map[string]interface{}) map[string]string {
+	preparedData := make(map[string]string)
 
 	for k, v := range data {
 		if s, ok := v.(string); ok {
 			preparedData[k] = url.QueryEscape(s)
 		} else if s, ok := v.([]string); ok {
 			preparedData[k] = url.QueryEscape(strings.Join(s, ","))
+		} else if i, ok := v.([]int); ok {
+			preparedData[k] = url.QueryEscape(utils.JoinIntSlice(i, ","))
 		} else {
-			preparedData[k] = v
+			preparedData[k] = fmt.Sprintf("%v", v)
 		}
 	}
 
 	return preparedData
 }
 
-func createQueryString(resourcesQueryParams map[string][]string, resourceName string, queryParams map[string]interface{}) string {
+func createQueryString(resourcesQueryParams map[string][]string, resourceName string, queryParams map[string]string) string {
 	var params []string
 	paramNames, ok := resourcesQueryParams[resourceName]
 
