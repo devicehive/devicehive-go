@@ -78,6 +78,31 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 
 func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
+
+	if rawErr != nil && rawErr.Error() == "401 token expired" {
+		resBytes, err = c.refreshRetry(resourceName, data)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = newError(rawErr)
+	}
+
+	return resBytes, err
+}
+
+func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
+	accessToken, err := c.RefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.authenticate(accessToken)
+	if !res || err != nil {
+		return nil, err
+	}
+
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
 	if rawErr != nil {
 		return nil, newError(rawErr)
 	}

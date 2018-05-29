@@ -131,7 +131,10 @@ func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]in
 	reqParams = &transport.RequestParams{
 		Data:        reqData,
 		Method:      method,
-		AccessToken: a.accessToken,
+	}
+
+	if resourceName != "tokenRefresh" && resourceName != "tokenByCreds" {
+		reqParams.AccessToken = a.accessToken
 	}
 
 	return resource, reqParams
