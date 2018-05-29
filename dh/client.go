@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"fmt"
 )
 
 type Client struct {
@@ -59,7 +58,7 @@ func (c *Client) request(resourceName string, data map[string]interface{}) (resB
 	if rawErr != nil && rawErr.Error() == "401 token expired" {
 		resBytes, err = c.refreshRetry(resourceName, data)
 		if err != nil {
-			fmt.Println("REAUTHORIZED")
+			return nil, err
 		}
 	} else {
 		err = newError(rawErr)
