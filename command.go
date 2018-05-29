@@ -1,4 +1,4 @@
-package dh
+package devicehive_go
 
 type commandResponse struct {
 	Command *Command `json:"command"`

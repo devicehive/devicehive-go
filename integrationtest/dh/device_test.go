@@ -1,7 +1,7 @@
 package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
+	dh "github.com/devicehive/devicehive-go"
 	"github.com/matryer/is"
 	"testing"
 	"time"

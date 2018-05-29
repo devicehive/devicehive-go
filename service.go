@@ -1,7 +1,7 @@
-package dh
+package devicehive_go
 
 import (
-	"github.com/devicehive/devicehive-go/dh/transportadapter"
+	"github.com/devicehive/devicehive-go/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"time"
 )

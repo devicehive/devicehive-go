@@ -3,7 +3,7 @@ package dh_test
 import (
 	"flag"
 	"fmt"
-	"github.com/devicehive/devicehive-go/dh"
+	dh "github.com/devicehive/devicehive-go"
 	"os"
 	"testing"
 	"time"

@@ -1,4 +1,4 @@
-package dh
+package devicehive_go
 
 import "github.com/devicehive/devicehive-go/internal/transport"
 

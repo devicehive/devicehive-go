@@ -1,8 +1,8 @@
-package dh
+package devicehive_go
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/dh/transportadapter"
+	"github.com/devicehive/devicehive-go/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
 

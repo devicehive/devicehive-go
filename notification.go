@@ -1,4 +1,4 @@
-package dh
+package devicehive_go
 
 type notificationResponse struct {
 	Notification *Notification    `json:"notification"`
