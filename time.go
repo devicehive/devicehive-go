@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-const (
-	timestampLayout = "2006-01-02T15:04:05.000"
-)
-
 type ISO8601Time struct {
 	time.Time
 }

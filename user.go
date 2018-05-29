@@ -4,14 +4,6 @@ import (
 	"encoding/json"
 )
 
-const (
-	UserStatusActive   = 0
-	UserStatusLocked   = 1
-	UserStatusDisabled = 2
-	UserRoleAdmin      = 0
-	UserRoleClient     = 1
-)
-
 type User struct {
 	client                  *Client
 	Id                      int64                  `json:"id,omitempty"`
@@ -144,86 +136,4 @@ func (u *User) DisallowAllDeviceTypes() *Error {
 
 	u.AllDeviceTypesAvailable = false
 	return nil
-}
-
-func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (user *User, err *Error) {
-	user = &User{
-		client: c,
-		Login:  login,
-		Role:   role,
-		Data:   data,
-		AllDeviceTypesAvailable: allDevTypesAvail,
-	}
-
-	res, err := c.request("createUser", map[string]interface{}{
-		"user": map[string]interface{}{
-			"login":    login,
-			"role":     role,
-			"status":   UserStatusActive,
-			"password": password,
-			"data":     data,
-			"allDeviceTypesAvailable": allDevTypesAvail,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	jsonErr := json.Unmarshal(res, user)
-	if jsonErr != nil {
-		return nil, newJSONErr()
-	}
-
-	return user, nil
-}
-
-func (c *Client) GetUser(userId int64) (user *User, err *Error) {
-	user = &User{
-		client: c,
-	}
-
-	err = c.getModel("getUser", user, map[string]interface{}{
-		"userId": userId,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (c *Client) GetCurrentUser() (user *User, err *Error) {
-	user = &User{
-		client: c,
-	}
-
-	err = c.getModel("getCurrentUser", user, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
-	if params == nil {
-		params = &ListParams{}
-	}
-
-	data, pErr := params.Map()
-	if pErr != nil {
-		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
-	}
-
-	rawRes, err := c.request("listUsers", data)
-	if err != nil {
-		return nil, err
-	}
-
-	pErr = json.Unmarshal(rawRes, &list)
-	if pErr != nil {
-		return nil, newJSONErr()
-	}
-
-	return list, nil
 }
