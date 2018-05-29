@@ -1,10 +1,10 @@
 package dh__test
 
 import (
-	"testing"
+	"github.com/devicehive/devicehive-go/dh"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"net/http"
-	"github.com/devicehive/devicehive-go/dh"
+	"testing"
 )
 
 func TestReauthorizationByCreds(t *testing.T) {

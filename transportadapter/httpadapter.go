@@ -129,8 +129,8 @@ func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]in
 	resource, method := a.resolveResource(resourceName, data)
 	reqData := a.buildRequestData(resourceName, data)
 	reqParams = &transport.RequestParams{
-		Data:        reqData,
-		Method:      method,
+		Data:   reqData,
+		Method: method,
 	}
 
 	if resourceName != "tokenRefresh" && resourceName != "tokenByCreds" {

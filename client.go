@@ -2,8 +2,8 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
 type Client struct {
