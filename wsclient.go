@@ -12,6 +12,35 @@ type WSClient struct {
 	ErrorChan        chan error
 }
 
+func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
+	return wsc.subscribe("subscribeCommands", params)
+}
+
+func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Error {
+	if params == nil {
+		params = &SubscribeParams{}
+	}
+
+	data, jsonErr := params.Map()
+	if jsonErr != nil {
+		return &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
+	}
+
+	go func() {
+		tspChan, _, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
+		if rawErr != nil {
+			wsc.ErrorChan <- newTransportErr(rawErr)
+			return
+		}
+
+		for b := range tspChan {
+			wsc.DataChan <- b
+		}
+	}()
+
+	return nil
+}
+
 func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *Error {
 	_, err := json.Marshal(data)
 	if err != nil {
