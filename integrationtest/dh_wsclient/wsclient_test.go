@@ -45,6 +45,7 @@ func TestWSClientSubscriptions(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	testResponse(t, nil)
 	testResponse(t, func(data []byte) {
 		res := make(map[string]json.RawMessage)
 		insertedComm := &devicehive_go.Command{}
@@ -71,6 +72,7 @@ func TestWSClientSubscriptions(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	testResponse(t, nil)
 	testResponse(t, func(data []byte) {
 		res := make(map[string]json.RawMessage)
 		insertedNotif := &devicehive_go.Notification{}
@@ -78,4 +80,52 @@ func TestWSClientSubscriptions(t *testing.T) {
 		json.Unmarshal(res["notification"], insertedNotif)
 		is.Equal(insertedNotif.Id, notif.Id)
 	})
+}
+
+func TestWSClientUnsubscriptions(t *testing.T) {
+	err := wsclient.SubscribeCommands(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	subsId := ""
+	testResponse(t, func(data []byte) {
+		res := make(map[string]interface{})
+		json.Unmarshal(data, &res)
+		subsId = res["subscriptionId"].(string)
+	})
+
+	wsclient.UnsubscribeCommands(subsId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case err := <-wsclient.ErrorChan:
+		t.Fatal(err)
+	case <-time.After(TestTimeout):
+	}
+
+	err = wsclient.SubscribeNotifications(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	subsId = ""
+	testResponse(t, func(data []byte) {
+		res := make(map[string]interface{})
+		json.Unmarshal(data, &res)
+		subsId = res["subscriptionId"].(string)
+	})
+
+	wsclient.UnsubscribeNotifications(subsId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case err := <-wsclient.ErrorChan:
+		t.Fatal(err)
+	case <-time.After(TestTimeout):
+	}
 }

@@ -16,8 +16,25 @@ func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeNotifications", params)
 }
 
+func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
+	wsc.unsubscribe("notification/unsubscribe", subscriptionId)
+}
+
 func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeCommands", params)
+}
+
+func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
+	wsc.unsubscribe("command/unsubscribe", subscriptionId)
+}
+
+func (wsc *WSClient) unsubscribe(resourceName, subscriptionId string) {
+	go func() {
+		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
+		if err != nil {
+			wsc.ErrorChan <- newError(err)
+		}
+	}()
 }
 
 func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Error {
@@ -31,11 +48,17 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 	}
 
 	go func() {
-		tspChan, _, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
+		tspChan, subscriptionId, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
 		if rawErr != nil {
 			wsc.ErrorChan <- newTransportErr(rawErr)
 			return
 		}
+
+		res, _ := json.Marshal(map[string]string {
+			"subscriptionId": subscriptionId,
+		})
+
+		wsc.DataChan <- res
 
 		for b := range tspChan {
 			wsc.DataChan <- b
