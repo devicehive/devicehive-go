@@ -48,21 +48,10 @@ func (wsc *WSClient) PutDevice(deviceId, name string, data map[string]interface{
 		device.Name = name
 	}
 
-	if data != nil {
-		device.Data = data
-	}
-
-	if networkId != 0 {
-		device.NetworkId = networkId
-	}
-
-	if deviceTypeId != 0 {
-		device.DeviceTypeId = deviceTypeId
-	}
-
-	if isBlocked {
-		device.IsBlocked = isBlocked
-	}
+	device.Data = data
+	device.NetworkId = networkId
+	device.DeviceTypeId = deviceTypeId
+	device.IsBlocked = isBlocked
 
 	return wsc.request("putDevice", map[string]interface{}{
 		"deviceId": deviceId,
@@ -121,4 +110,50 @@ func (wsc *WSClient) SendDeviceCommand(deviceId, name string, params map[string]
 		"deviceId": deviceId,
 		"command":  comm,
 	})
+}
+
+func (wsc *WSClient) ListDeviceCommands(deviceId string, params *ListParams) *Error {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	params.DeviceId = deviceId
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	return wsc.request("listCommands", data)
+}
+
+func (wsc *WSClient) SendDeviceNotification(deviceId, name string, params map[string]interface{}, timestamp time.Time) *Error {
+	notif := &Notification{
+		Notification: name,
+	}
+
+	notif.Parameters = params
+	if timestamp.Unix() > 0 {
+		notif.Timestamp = ISO8601Time{Time: timestamp}
+	}
+
+	return wsc.request("insertNotification", map[string]interface{}{
+		"deviceId":     deviceId,
+		"notification": notif,
+	})
+}
+
+func (wsc *WSClient) ListDeviceNotifications(deviceId string, params *ListParams) *Error {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	params.DeviceId = deviceId
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	return wsc.request("listNotifications", data)
 }

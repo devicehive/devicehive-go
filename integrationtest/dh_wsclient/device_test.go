@@ -58,6 +58,8 @@ func TestWSClientDevice(t *testing.T) {
 }
 
 func TestWSClientDeviceCommands(t *testing.T) {
+	is := is.New(t)
+
 	err := wsclient.PutDevice("go-test-dev", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatal(err)
@@ -74,10 +76,59 @@ func TestWSClientDeviceCommands(t *testing.T) {
 		testResponse(t, nil)
 	}()
 
-	err = wsclient.SendDeviceCommand("go-test-dev", "go-test", nil, 5, time.Time{}, "", nil)
+	err = wsclient.SendDeviceCommand("go-test-dev", "go-test", nil, 120, time.Time{}, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	testResponse(t, nil)
+
+	err = wsclient.ListDeviceCommands("go-test-dev", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testResponse(t, func(data []byte) {
+		var list []*devicehive_go.Command
+		json.Unmarshal(data, &list)
+		is.True(len(list) > 0)
+	})
+}
+
+func TestWSClientDeviceNotifications(t *testing.T) {
+	is := is.New(t)
+
+	err := wsclient.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testResponse(t, nil)
+
+	defer func() {
+		err = wsclient.DeleteDevice("go-test-dev")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		testResponse(t, nil)
+	}()
+
+	err = wsclient.SendDeviceNotification("go-test-dev", "go-test", nil, time.Time{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testResponse(t, nil)
+
+	err = wsclient.ListDeviceNotifications("go-test-dev", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testResponse(t, func(data []byte) {
+		var list []*devicehive_go.Notification
+		json.Unmarshal(data, &list)
+		is.True(len(list) > 0)
+	})
 }
