@@ -52,4 +52,30 @@ func TestWSClientSubscriptions(t *testing.T) {
 		json.Unmarshal(res["command"], insertedComm)
 		is.Equal(insertedComm.Id, comm.Id)
 	})
+
+	err = wsclient.SendDeviceNotification("go-test-dev", "go-test", nil, time.Time{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	notif := &devicehive_go.Notification{}
+	testResponse(t, func(data []byte) {
+		json.Unmarshal(data, notif)
+	})
+
+	err = wsclient.SubscribeNotifications(&devicehive_go.SubscribeParams{
+		DeviceId:  "go-test-dev",
+		Timestamp: notif.Timestamp.Time.Add(-500 * time.Millisecond),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testResponse(t, func(data []byte) {
+		res := make(map[string]json.RawMessage)
+		insertedNotif := &devicehive_go.Notification{}
+		json.Unmarshal(data, &res)
+		json.Unmarshal(res["notification"], insertedNotif)
+		is.Equal(insertedNotif.Id, notif.Id)
+	})
 }

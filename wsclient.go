@@ -12,6 +12,10 @@ type WSClient struct {
 	ErrorChan        chan error
 }
 
+func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
+	return wsc.subscribe("subscribeNotifications", params)
+}
+
 func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeCommands", params)
 }
