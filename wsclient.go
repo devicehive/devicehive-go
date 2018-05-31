@@ -12,22 +12,6 @@ type WSClient struct {
 	ErrorChan        chan error
 }
 
-func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
-	return wsc.subscribe("subscribeNotifications", params)
-}
-
-func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
-	wsc.unsubscribe("notification/unsubscribe", subscriptionId)
-}
-
-func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
-	return wsc.subscribe("subscribeCommands", params)
-}
-
-func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
-	wsc.unsubscribe("command/unsubscribe", subscriptionId)
-}
-
 func (wsc *WSClient) unsubscribe(resourceName, subscriptionId string) {
 	go func() {
 		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
@@ -85,6 +69,22 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 	}()
 
 	return nil
+}
+
+func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
+	return wsc.subscribe("subscribeNotifications", params)
+}
+
+func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
+	wsc.unsubscribe("notification/unsubscribe", subscriptionId)
+}
+
+func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
+	return wsc.subscribe("subscribeCommands", params)
+}
+
+func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
+	wsc.unsubscribe("command/unsubscribe", subscriptionId)
 }
 
 func (wsc *WSClient) Authorize(accessToken string) *Error {
@@ -238,5 +238,41 @@ func (wsc *WSClient) GetProperty(name string) *Error {
 func (wsc *WSClient) DeleteProperty(name string) *Error {
 	return wsc.request("deleteConfig", map[string]interface{}{
 		"name": name,
+	})
+}
+
+func (wsc *WSClient) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) *Error {
+	data := map[string]interface{}{
+		"userId": userId,
+	}
+
+	if actions != nil {
+		data["actions"] = actions
+	}
+	if networkIds != nil {
+		data["networkIds"] = networkIds
+	}
+	if deviceTypeIds != nil {
+		data["deviceTypeIds"] = deviceTypeIds
+	}
+	if expiration.Unix() > 0 {
+		data["expiration"] = (&ISO8601Time{expiration}).String()
+	}
+
+	return wsc.request("tokenCreate", map[string]interface{}{
+		"payload": data,
+	})
+}
+
+func (wsc *WSClient) AccessTokenByRefresh(refreshToken string) *Error {
+	return wsc.request("tokenRefresh", map[string]interface{}{
+		"refreshToken": refreshToken,
+	})
+}
+
+func (wsc *WSClient) AccessTokenByCreds(login, password string) *Error {
+	return wsc.request("tokenByCreds", map[string]interface{}{
+		"login":    login,
+		"password": password,
 	})
 }
