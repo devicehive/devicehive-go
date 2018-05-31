@@ -16,7 +16,7 @@ func TestCreateNetwork(t *testing.T) {
 }
 
 func TestGetNetwork(t *testing.T) {
-	err := wsclient.GetNetwork(41691)
+	err := wsclient.GetNetwork(1)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -16,7 +16,7 @@ func TestCreateDeviceType(t *testing.T) {
 }
 
 func TestGetDeviceType(t *testing.T) {
-	err := wsclient.GetDeviceType(111)
+	err := wsclient.GetDeviceType(1)
 	if err != nil {
 		t.Fatal(err)
 	}

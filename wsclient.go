@@ -93,24 +93,9 @@ func (wsc *WSClient) Authorize(accessToken string) *Error {
 	})
 }
 
-func (wsc *WSClient) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int, isBlocked bool) *Error {
-	device := &Device{
-		Id: deviceId,
-	}
-
-	if name == "" {
-		device.Name = deviceId
-	} else {
-		device.Name = name
-	}
-
-	device.Data = data
-	device.NetworkId = networkId
-	device.DeviceTypeId = deviceTypeId
-	device.IsBlocked = isBlocked
-
+func (wsc *WSClient) PutDevice(device Device) *Error {
 	return wsc.request("putDevice", map[string]interface{}{
-		"deviceId": deviceId,
+		"deviceId": device.Id,
 		"device":   device,
 	})
 }

@@ -141,37 +141,10 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	return device, nil
 }
 
-func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int, isBlocked bool) (device *Device, err *Error) {
-	device = &Device{
-		client: c,
-	}
+func (c *Client) PutDevice(device Device) (*Device,  *Error) {
 
-	device.Id = deviceId
-
-	if name == "" {
-		device.Name = deviceId
-	} else {
-		device.Name = name
-	}
-
-	if data != nil {
-		device.Data = data
-	}
-
-	if networkId != 0 {
-		device.NetworkId = networkId
-	}
-
-	if deviceTypeId != 0 {
-		device.DeviceTypeId = deviceTypeId
-	}
-
-	if isBlocked {
-		device.IsBlocked = isBlocked
-	}
-
-	_, err = c.request("putDevice", map[string]interface{}{
-		"deviceId": deviceId,
+	_, err := c.request("putDevice", map[string]interface{}{
+		"deviceId": device.Id,
 		"device":   device,
 	})
 
@@ -179,7 +152,7 @@ func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, n
 		return nil, err
 	}
 
-	return device, nil
+	return &device, nil
 }
 
 func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
