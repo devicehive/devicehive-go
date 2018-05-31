@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"strings"
+	"time"
 )
 
 type WSAdapter struct {
-	transport transport.Transporter
+	*Adapter
 }
 
 type wsResponse struct {
@@ -18,7 +19,44 @@ type wsResponse struct {
 	Code   int    `json:"code"`
 }
 
-func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
+func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
+	_, err = a.Request("auth", map[string]interface{}{
+		"token": token,
+	}, timeout)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+	resource, tspReqParams := a.prepareRequestData(resourceName, params)
+
+	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	if tspErr != nil {
+		return nil, "", tspErr
+	}
+
+	return tspChan, subscriptionId, nil
+}
+
+func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
+	_, err := a.Request(resourceName, map[string]interface{}{
+		"subscriptionId": subscriptionId,
+	}, timeout)
+
+	if err != nil {
+		return err
+	}
+
+	a.transport.Unsubscribe(subscriptionId)
+
+	return nil
+}
+
+func (a *WSAdapter) handleResponseError(rawRes []byte) error {
 	res := &wsResponse{}
 	parseErr := json.Unmarshal(rawRes, res)
 	if parseErr != nil {
@@ -35,7 +73,7 @@ func (a *WSAdapter) HandleResponseError(rawRes []byte) error {
 	return nil
 }
 
-func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{}) (resource, method string) {
+func (a *WSAdapter) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
 	if wsResources[resName] == "" {
 		return resName, ""
 	}
@@ -43,11 +81,11 @@ func (a *WSAdapter) ResolveResource(resName string, data map[string]interface{})
 	return wsResources[resName], ""
 }
 
-func (a *WSAdapter) BuildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
+func (a *WSAdapter) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
 	return rawData
 }
 
-func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) []byte {
+func (a *WSAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
 	payloadKey := wsResponsePayloads[resourceName]
 	if payloadKey == "" {
 		return rawRes
@@ -57,6 +95,16 @@ func (a *WSAdapter) ExtractResponsePayload(resourceName string, rawRes []byte) [
 	json.Unmarshal(rawRes, &res)
 
 	return res[payloadKey]
+}
+
+func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+	resource, _ = a.resolveResource(resourceName, data)
+	reqData := a.buildRequestData(resourceName, data)
+	reqParams = &transport.RequestParams{
+		Data: reqData,
+	}
+
+	return resource, reqParams
 }
 
 var wsResponsePayloads = map[string]string{

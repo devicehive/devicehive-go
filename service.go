@@ -1,15 +1,8 @@
-package dh
+package devicehive_go
 
 import (
-	"github.com/devicehive/devicehive-go/dh/transportadapter"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"time"
-)
-
-const (
-	NotificationType = "notification"
-	CommandType      = "command"
-	Timeout          = 5 * time.Second
+	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
 var client = &Client{

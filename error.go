@@ -1,13 +1,19 @@
-package dh
+package devicehive_go
 
 import "github.com/devicehive/devicehive-go/internal/transport"
 
-const (
-	InvalidResponseErr  = "invalid response"
-	InvalidRequestErr   = "invalid request"
-	ServiceErr          = "service error"
-	ConnectionFailedErr = "connection failed"
-)
+func newError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	switch err.(type) {
+	case *transport.Error:
+		return newTransportErr(err.(*transport.Error))
+	default:
+		return &Error{ServiceErr, err.Error()}
+	}
+}
 
 func newJSONErr() *Error {
 	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string"}

@@ -1,7 +1,7 @@
 package dh_test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
+	dh "github.com/devicehive/devicehive-go"
 	"github.com/matryer/is"
 	"testing"
 )
@@ -36,7 +36,7 @@ func TestUserCreationAndObtaining(t *testing.T) {
 	}
 
 	is.True(currentUser != nil)
-	is.Equal(currentUser.Id, int64(*userId))
+	is.Equal(currentUser.Id, *userId)
 
 	list, err := client.ListUsers(&dh.ListParams{
 		UserStatus: 0,

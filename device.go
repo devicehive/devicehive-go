@@ -1,4 +1,4 @@
-package dh
+package devicehive_go
 
 import (
 	"encoding/json"
@@ -9,8 +9,8 @@ type Device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
 	Data         map[string]interface{} `json:"data,omitempty"`
-	NetworkId    int64                  `json:"networkId,omitempty"`
-	DeviceTypeId int64                  `json:"deviceTypeId,omitempty"`
+	NetworkId    int                    `json:"networkId,omitempty"`
+	DeviceTypeId int                    `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
 	client       *Client
 }
@@ -167,134 +167,23 @@ func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (s
 }
 
 func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
-	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
 		ReturnUpdatedCommands: isCommUpdatesSubscription,
-	}, "subscribeCommands")
-
-	if err != nil || tspChan == nil {
-		return nil, err
+		DeviceId:              d.Id,
 	}
 
-	subs = newCommandSubscription(subsId, tspChan, d.client)
-
-	return subs, nil
+	return d.client.SubscribeCommands(params)
 
 }
 
 func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
-	tspChan, subsId, err := d.subscribe(&SubscribeParams{
+	params := &SubscribeParams{
 		Names:     names,
 		Timestamp: timestamp,
-	}, "subscribeNotifications")
-
-	if err != nil || tspChan == nil {
-		return nil, err
+		DeviceId:  d.Id,
 	}
 
-	subs = newNotificationSubscription(subsId, tspChan, d.client)
-
-	return subs, nil
-}
-
-func (d *Device) subscribe(params *SubscribeParams, resourceName string) (tspChan chan []byte, subscriptionId string, err *Error) {
-	if params == nil {
-		params = &SubscribeParams{}
-	}
-
-	params.DeviceId = d.Id
-	params.WaitTimeout = d.client.PollingWaitTimeoutSeconds
-
-	tspChan, subsId, err := d.client.subscribe(resourceName, params)
-
-	if err != nil || tspChan == nil {
-		return nil, "", err
-	}
-
-	return tspChan, subsId, nil
-}
-
-func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
-	rawRes, err := c.request("getDevice", map[string]interface{}{
-		"deviceId": deviceId,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	device = &Device{
-		client: c,
-	}
-	parseErr := json.Unmarshal(rawRes, device)
-	if parseErr != nil {
-		return nil, newJSONErr()
-	}
-
-	return device, nil
-}
-
-func (c *Client) PutDevice(deviceId, name string, data map[string]interface{}, networkId, deviceTypeId int64, isBlocked bool) (device *Device, err *Error) {
-	device = &Device{
-		client: c,
-	}
-
-	device.Id = deviceId
-
-	if name == "" {
-		device.Name = deviceId
-	} else {
-		device.Name = name
-	}
-
-	if data != nil {
-		device.Data = data
-	}
-
-	if networkId != 0 {
-		device.NetworkId = networkId
-	}
-
-	if deviceTypeId != 0 {
-		device.DeviceTypeId = deviceTypeId
-	}
-
-	if isBlocked {
-		device.IsBlocked = isBlocked
-	}
-
-	_, err = c.request("putDevice", map[string]interface{}{
-		"deviceId": deviceId,
-		"device":   device,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return device, nil
-}
-
-func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
-	if params == nil {
-		params = &ListParams{}
-	}
-
-	data, pErr := params.Map()
-	if pErr != nil {
-		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
-	}
-
-	rawRes, err := c.request("listDevices", data)
-	if err != nil {
-		return nil, err
-	}
-
-	pErr = json.Unmarshal(rawRes, &list)
-	if pErr != nil {
-		return nil, newJSONErr()
-	}
-
-	return list, nil
+	return d.client.SubscribeNotifications(params)
 }
