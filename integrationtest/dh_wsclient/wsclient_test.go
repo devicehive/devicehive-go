@@ -11,7 +11,10 @@ import (
 func TestWSClientSubscriptions(t *testing.T) {
 	is := is.New(t)
 
-	err := wsclient.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	device := devicehive_go.Device{
+		Id: "go-test-dev",
+	}
+	err := wsclient.PutDevice(device)
 	if err != nil {
 		t.Fatal(err)
 	}

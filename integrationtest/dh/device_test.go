@@ -10,7 +10,10 @@ import (
 func TestDevice(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev", "", nil, 0, 0, false)
+	dev := dh.Device{
+		Id: "go-test-dev",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -47,7 +50,10 @@ func TestDevice(t *testing.T) {
 func TestDeviceCommands(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-command", "", nil, 0, 0, false)
+	dev := dh.Device{
+		Id: "go-test-command",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -85,7 +91,10 @@ func TestDeviceCommands(t *testing.T) {
 func TestDeviceNotifications(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-notification", "", nil, 0, 0, false)
+	dev := dh.Device{
+		Id: "go-test-notification",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

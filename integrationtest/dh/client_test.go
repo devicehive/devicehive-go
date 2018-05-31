@@ -9,7 +9,11 @@ import (
 
 func TestSubscriptions(t *testing.T) {
 	is := is.New(t)
-	device, err := client.PutDevice("go-test-subs", "", nil, 0, 0, false)
+
+	dev := dh.Device{
+		Id: "go-test-subs",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatal(err)
 	}

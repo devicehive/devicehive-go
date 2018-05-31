@@ -94,6 +94,10 @@ func (wsc *WSClient) Authorize(accessToken string) *Error {
 }
 
 func (wsc *WSClient) PutDevice(device Device) *Error {
+	if device.Name == "" {
+		device.Name = device.Id
+	}
+
 	return wsc.request("putDevice", map[string]interface{}{
 		"deviceId": device.Id,
 		"device":   device,

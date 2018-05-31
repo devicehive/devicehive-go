@@ -13,7 +13,10 @@ const testDeviceId = "go-test-dev"
 func TestWSClientDevice(t *testing.T) {
 	is := is.New(t)
 
-	err := wsclient.PutDevice(testDeviceId, "", nil, 0, 0, false)
+	device := devicehive_go.Device{
+		Id: testDeviceId,
+	}
+	err := wsclient.PutDevice(device)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +65,10 @@ func TestWSClientDevice(t *testing.T) {
 func TestWSClientDeviceCommands(t *testing.T) {
 	is := is.New(t)
 
-	err := wsclient.PutDevice(testDeviceId, "", nil, 0, 0, false)
+	device := devicehive_go.Device{
+		Id: testDeviceId,
+	}
+	err := wsclient.PutDevice(device)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +106,10 @@ func TestWSClientDeviceCommands(t *testing.T) {
 func TestWSClientDeviceNotifications(t *testing.T) {
 	is := is.New(t)
 
-	err := wsclient.PutDevice(testDeviceId, "", nil, 0, 0, false)
+	device := devicehive_go.Device{
+		Id: testDeviceId,
+	}
+	err := wsclient.PutDevice(device)
 	if err != nil {
 		t.Fatal(err)
 	}

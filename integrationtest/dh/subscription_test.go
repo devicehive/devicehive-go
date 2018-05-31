@@ -16,7 +16,10 @@ const (
 func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, 0, 0, false)
+	dev := dh.Device{
+		Id: "go-test-dev-comm-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -70,7 +73,10 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 func TestDeviceSubscribeNotifications(t *testing.T) {
 	is := is.New(t)
 
-	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, 0, 0, false)
+	dev := dh.Device{
+		Id: "go-test-dev-notif-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -130,7 +136,10 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, 0, devType.Id, false)
+	dev := dh.Device{
+		Id: "go-test-dev-comm-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -195,7 +204,10 @@ func TestDeviceTypeSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, 0, devType.Id, false)
+	dev := dh.Device{
+		Id: "go-test-dev-notif-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -255,7 +267,10 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, network.Id, 0, false)
+	dev := dh.Device{
+		Id: "go-test-dev-comm-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -320,7 +335,10 @@ func TestNetworkSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, network.Id, 0, false)
+	dev := dh.Device{
+		Id: "go-test-dev-notif-insert",
+	}
+	device, err := client.PutDevice(dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

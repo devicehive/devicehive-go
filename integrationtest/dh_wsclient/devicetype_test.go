@@ -6,7 +6,7 @@ import (
 )
 
 func TestCreateDeviceType(t *testing.T) {
-	err := wsclient.CreateDeviceType("Test_Network", "Network for tests")
+	err := wsclient.CreateDeviceType("Test_DeviceType", "Device type for tests")
 
 	if err != nil {
 		t.Fatal(err)

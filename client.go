@@ -142,6 +142,9 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 }
 
 func (c *Client) PutDevice(device Device) (*Device,  *Error) {
+	if device.Name == "" {
+		device.Name = device.Id
+	}
 
 	_, err := c.request("putDevice", map[string]interface{}{
 		"deviceId": device.Id,
@@ -151,6 +154,8 @@ func (c *Client) PutDevice(device Device) (*Device,  *Error) {
 	if err != nil {
 		return nil, err
 	}
+
+	device.client = c
 
 	return &device, nil
 }
