@@ -1,11 +1,11 @@
 package dh_wsclient_test
 
 import (
+	"encoding/json"
+	"github.com/devicehive/devicehive-go"
+	"github.com/matryer/is"
 	"testing"
 	"time"
-	"github.com/devicehive/devicehive-go"
-	"encoding/json"
-	"github.com/matryer/is"
 )
 
 func TestWSClientSubscriptions(t *testing.T) {

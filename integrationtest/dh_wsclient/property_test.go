@@ -1,9 +1,9 @@
 package dh_wsclient_test
 
 import (
-	"testing"
 	"encoding/json"
 	"github.com/matryer/is"
+	"testing"
 )
 
 func TestProperty(t *testing.T) {

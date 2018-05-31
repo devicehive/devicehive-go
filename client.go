@@ -482,11 +482,11 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 
 	res, err := c.request("createUser", map[string]interface{}{
 		"user": map[string]interface{}{
-			"login":                   login,
-			"role":                    role,
-			"status":                  UserStatusActive,
-			"password":                password,
-			"data":                    data,
+			"login":    login,
+			"role":     role,
+			"status":   UserStatusActive,
+			"password": password,
+			"data":     data,
 			"allDeviceTypesAvailable": allDevTypesAvail,
 		},
 	})

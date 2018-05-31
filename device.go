@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 type device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
@@ -15,7 +14,6 @@ type device struct {
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
 	client       *Client
 }
-
 
 func (d *device) Remove() *Error {
 	_, err := d.client.request("deleteDevice", map[string]interface{}{

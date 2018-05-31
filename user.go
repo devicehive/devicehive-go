@@ -112,7 +112,7 @@ func (u *user) ListDeviceTypes() (list []*deviceType, err *Error) {
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
-	for _, v:=range list{
+	for _, v := range list {
 		v.client = u.client
 	}
 

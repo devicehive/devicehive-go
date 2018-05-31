@@ -4,8 +4,8 @@ import (
 	"github.com/devicehive/devicehive-go/utils"
 	"math/rand"
 	"strconv"
-	"time"
 	"sync"
+	"time"
 )
 
 type RequestParams struct {
