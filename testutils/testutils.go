@@ -1,7 +1,7 @@
 package testutils
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
+	dh "github.com/devicehive/devicehive-go"
 	"testing"
 )
 

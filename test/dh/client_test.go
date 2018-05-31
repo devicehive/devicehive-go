@@ -1,7 +1,7 @@
 package dh__test
 
 import (
-	"github.com/devicehive/devicehive-go/dh"
+	dh "github.com/devicehive/devicehive-go"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"net/http"
 	"testing"
