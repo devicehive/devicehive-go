@@ -38,7 +38,7 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 			return
 		}
 
-		res, _ := json.Marshal(map[string]string {
+		res, _ := json.Marshal(map[string]string{
 			"subscriptionId": subscriptionId,
 		})
 
@@ -239,6 +239,71 @@ func (wsc *WSClient) DeleteProperty(name string) *Error {
 	return wsc.request("deleteConfig", map[string]interface{}{
 		"name": name,
 	})
+}
+
+func (wsc *WSClient) CreateDeviceType(name, description string) *Error {
+
+	devType := &DeviceType{
+		Name:        name,
+		Description: description,
+	}
+
+	return wsc.request("insertDeviceType", map[string]interface{}{
+		"deviceType": devType,
+	})
+
+}
+
+func (wsc *WSClient) GetDeviceType(deviceTypeId int) *Error {
+	return wsc.request("getDeviceType", map[string]interface{}{
+		"deviceTypeId": deviceTypeId,
+	})
+
+}
+
+func (wsc *WSClient) ListDeviceTypes(params *ListParams) *Error {
+	if params == nil {
+		params = &ListParams{}
+	}
+	data, pErr := params.Map()
+	if pErr != nil {
+		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+	return wsc.request("listDeviceTypes", data)
+
+}
+
+func (wsc *WSClient) CreateNetwork(name, description string) *Error {
+	network := &Network{
+		Name:        name,
+		Description: description,
+	}
+
+	return wsc.request("insertNetwork", map[string]interface{}{
+		"network": network,
+	})
+}
+
+func (wsc *WSClient) GetNetwork(networkId int) *Error {
+
+	return wsc.request("getNetwork", map[string]interface{}{
+		"networkId": networkId,
+	})
+
+}
+
+func (wsc *WSClient) ListNetworks(params *ListParams) *Error {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	return wsc.request("listNetworks", data)
+
 }
 
 func (wsc *WSClient) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) *Error {
