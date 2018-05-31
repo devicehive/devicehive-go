@@ -221,3 +221,22 @@ func (wsc *WSClient) GetInfo() *Error {
 func (wsc *WSClient) GetClusterInfo() *Error {
 	return wsc.request("apiInfoCluster", nil)
 }
+
+func (wsc *WSClient) SetProperty(name, value string) *Error {
+	return wsc.request("putConfig", map[string]interface{}{
+		"name":  name,
+		"value": value,
+	})
+}
+
+func (wsc *WSClient) GetProperty(name string) *Error {
+	return wsc.request("getConfig", map[string]interface{}{
+		"name": name,
+	})
+}
+
+func (wsc *WSClient) DeleteProperty(name string) *Error {
+	return wsc.request("deleteConfig", map[string]interface{}{
+		"name": name,
+	})
+}

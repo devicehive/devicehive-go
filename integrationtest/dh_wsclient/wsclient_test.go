@@ -66,7 +66,7 @@ func TestWSClientSubscriptions(t *testing.T) {
 
 	err = wsclient.SubscribeNotifications(&devicehive_go.SubscribeParams{
 		DeviceId:  "go-test-dev",
-		Timestamp: notif.Timestamp.Time.Add(-500 * time.Millisecond),
+		Timestamp: notif.Timestamp.Time.Add(-1 * time.Millisecond),
 	})
 	if err != nil {
 		t.Fatal(err)
