@@ -1,8 +1,8 @@
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
-	"github.com/devicehive/devicehive-go/internal/utils"
+	"github.com/devicehive/devicehive-go/transport/apirequests"
+	"github.com/devicehive/devicehive-go/utils"
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"

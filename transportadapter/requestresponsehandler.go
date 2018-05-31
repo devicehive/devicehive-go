@@ -1,6 +1,6 @@
 package transportadapter
 
-import "github.com/devicehive/devicehive-go/internal/transport"
+import "github.com/devicehive/devicehive-go/transport"
 
 type RequestResponseHandler interface {
 	handleResponseError(rawRes []byte) error

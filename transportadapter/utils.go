@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/devicehive/devicehive-go/internal/utils"
+	"github.com/devicehive/devicehive-go/utils"
 	"log"
 	"net/url"
 	"strings"

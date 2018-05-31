@@ -2,7 +2,7 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transport"
 	"github.com/devicehive/devicehive-go/transportadapter"
 	"time"
 )

@@ -3,7 +3,7 @@ package transport
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/transport/apirequests"
 	"io/ioutil"
 	"log"
 	"math/rand"

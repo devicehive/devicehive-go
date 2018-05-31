@@ -2,7 +2,7 @@ package devicehive_go
 
 import (
 	"errors"
-	"github.com/devicehive/devicehive-go/internal/utils"
+	"github.com/devicehive/devicehive-go/utils"
 	"time"
 )
 

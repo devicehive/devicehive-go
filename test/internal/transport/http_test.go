@@ -1,7 +1,7 @@
 package transport_test
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
 	"github.com/matryer/is"
 	"net/http"

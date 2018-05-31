@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transport"
 	"strings"
 	"time"
 )

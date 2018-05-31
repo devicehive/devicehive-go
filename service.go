@@ -1,7 +1,7 @@
 package devicehive_go
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transport"
 	"github.com/devicehive/devicehive-go/transportadapter"
 )
 

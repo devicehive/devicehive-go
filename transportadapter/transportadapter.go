@@ -1,7 +1,7 @@
 package transportadapter
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/transport"
 	"time"
 )
 
