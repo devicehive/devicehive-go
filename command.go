@@ -3,8 +3,7 @@ package devicehive_go
 type commandResponse struct {
 	Command *command `json:"command"`
 }
-
-type command struct {
+type Command struct {
 	Id          int         `json:"id,omitempty"`
 	Command     string      `json:"command,omitempty"`
 	Timestamp   ISO8601Time `json:"timestamp,omitempty"`
@@ -16,6 +15,10 @@ type command struct {
 	Lifetime    int         `json:"lifetime,omitempty"`
 	Status      string      `json:"status,omitempty"`
 	Result      interface{} `json:"result,omitempty"`
+}
+
+type command struct {
+	Command
 	client      *Client
 }
 

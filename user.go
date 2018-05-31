@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 )
 
-type user struct {
-	client                  *Client
+type User struct {
 	Id                      int                    `json:"id,omitempty"`
 	Login                   string                 `json:"login,omitempty"`
 	Role                    int                    `json:"role,omitempty"`
@@ -14,6 +13,11 @@ type user struct {
 	Data                    map[string]interface{} `json:"data,omitempty"`
 	IntroReviewed           bool                   `json:"introReviewed,omitempty"`
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
+}
+
+type user struct {
+	client                  *Client
+	User
 }
 
 func (u *user) Save() *Error {

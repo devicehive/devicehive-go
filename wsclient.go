@@ -10,11 +10,6 @@ type WSClientInterface interface {
 	SubscribeNotifications(*SubscribeParams) *Error
 	request(string, map[string]interface{}) *Error
 	SubscribeCommands(*SubscribeParams) *Error
-	NewCommand() *command
-	NewNetwork() *network
-	NewUser() *user
-	NewDeviceType() *deviceType
-	NewDevice() *device
 }
 
 type WSClient struct {
@@ -104,7 +99,7 @@ func (wsc *WSClient) Authorize(accessToken string) *Error {
 	})
 }
 
-func (wsc *WSClient) PutDevice(device device) *Error {
+func (wsc *WSClient) PutDevice(device Device) *Error {
 	if device.Name == "" {
 		device.Name = device.Id
 	}
@@ -127,7 +122,7 @@ func (wsc *WSClient) DeleteDevice(deviceId string) *Error {
 	})
 }
 
-func (wsc *WSClient) UpdateDevice(deviceId string, device *device) *Error {
+func (wsc *WSClient) UpdateDevice(deviceId string, device *Device) *Error {
 	return wsc.request("putDevice", map[string]interface{}{
 		"deviceId": deviceId,
 		"device":   device,
@@ -150,7 +145,7 @@ func (wsc *WSClient) ListDevices(params *ListParams) *Error {
 func (wsc *WSClient) SendDeviceCommand(deviceId, name string, params map[string]interface{}, lifetime int, timestamp time.Time,
 	status string, result map[string]interface{}) *Error {
 
-	comm := &command{
+	comm := &Command{
 		Command: name,
 	}
 
@@ -243,7 +238,7 @@ func (wsc *WSClient) DeleteProperty(name string) *Error {
 
 func (wsc *WSClient) CreateDeviceType(name, description string) *Error {
 
-	devType := &deviceType{
+	devType := &DeviceType{
 		Name:        name,
 		Description: description,
 	}
@@ -274,7 +269,7 @@ func (wsc *WSClient) ListDeviceTypes(params *ListParams) *Error {
 }
 
 func (wsc *WSClient) CreateNetwork(name, description string) *Error {
-	network := &network{
+	network := &Network{
 		Name:        name,
 		Description: description,
 	}

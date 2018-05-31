@@ -5,13 +5,17 @@ import (
 	"time"
 )
 
-type device struct {
+type Device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
 	Data         map[string]interface{} `json:"data,omitempty"`
 	NetworkId    int                    `json:"networkId,omitempty"`
 	DeviceTypeId int                    `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
+}
+
+type device struct {
+	Device
 	client       *Client
 }
 

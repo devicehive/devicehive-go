@@ -4,11 +4,15 @@ import (
 	"time"
 )
 
-type deviceType struct {
-	client      *Client
+type DeviceType struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
+}
+
+type deviceType struct {
+	client      *Client
+	DeviceType
 }
 
 func (dt *deviceType) Save() *Error {

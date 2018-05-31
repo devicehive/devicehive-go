@@ -3,12 +3,16 @@ package devicehive_go
 import (
 	"time"
 )
-
-type network struct {
-	client      *Client
+type Network struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
+}
+
+
+type network struct {
+	client      *Client
+	Network
 }
 
 func (n *network) Save() *Error {
