@@ -213,3 +213,11 @@ func (wsc *WSClient) ListDeviceNotifications(deviceId string, params *ListParams
 
 	return wsc.request("listNotifications", data)
 }
+
+func (wsc *WSClient) GetInfo() *Error {
+	return wsc.request("apiInfo", nil)
+}
+
+func (wsc *WSClient) GetClusterInfo() *Error {
+	return wsc.request("apiInfoCluster", nil)
+}
