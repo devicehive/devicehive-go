@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-type Device struct {
+
+type device struct {
 	Id           string                 `json:"id,omitempty"`
 	Name         string                 `json:"name,omitempty"`
 	Data         map[string]interface{} `json:"data,omitempty"`
@@ -15,7 +16,8 @@ type Device struct {
 	client       *Client
 }
 
-func (d *Device) Remove() *Error {
+
+func (d *device) Remove() *Error {
 	_, err := d.client.request("deleteDevice", map[string]interface{}{
 		"deviceId": d.Id,
 	})
@@ -23,7 +25,7 @@ func (d *Device) Remove() *Error {
 	return err
 }
 
-func (d *Device) Save() *Error {
+func (d *device) Save() *Error {
 	_, err := d.client.request("putDevice", map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
@@ -32,7 +34,7 @@ func (d *Device) Save() *Error {
 	return err
 }
 
-func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
+func (d *device) ListCommands(params *ListParams) (list []*command, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -61,13 +63,10 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 	return list, nil
 }
 
-func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
-	status string, result map[string]interface{}) (comm *Command, err *Error) {
+func (d *device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
+	status string, result map[string]interface{}) (comm *command, err *Error) {
 
-	comm = &Command{
-		Command: name,
-		client:  d.client,
-	}
+	comm = d.client.NewCommand()
 
 	if params != nil {
 		comm.Parameters = params
@@ -104,7 +103,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	return comm, nil
 }
 
-func (d *Device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
+func (d *device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -129,7 +128,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 	return list, nil
 }
 
-func (d *Device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
+func (d *device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
 	notif = &Notification{
 		Notification: name,
 	}
@@ -158,15 +157,15 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 	return notif, nil
 }
 
-func (d *Device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return d.subscribeCommands(names, timestamp, false)
 }
 
-func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return d.subscribeCommands(names, timestamp, true)
 }
 
-func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (d *device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -178,7 +177,7 @@ func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUp
 
 }
 
-func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (d *device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:     names,
 		Timestamp: timestamp,

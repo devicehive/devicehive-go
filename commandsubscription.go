@@ -10,7 +10,7 @@ var commandSubsMutex = sync.Mutex{}
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
-	CommandsChan chan *Command
+	CommandsChan chan *command
 	client       *Client
 }
 
@@ -32,14 +32,14 @@ func (cs *CommandSubscription) Remove() *Error {
 
 func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) *CommandSubscription {
 	subs := &CommandSubscription{
-		CommandsChan: make(chan *Command),
+		CommandsChan: make(chan *command),
 		client:       client,
 	}
 
 	go func() {
 		for rawComm := range tspChan {
 			if client.transport.IsWS() {
-				comm := &Command{
+				comm := &command{
 					client: client,
 				}
 				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
@@ -51,9 +51,11 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 
 				subs.CommandsChan <- comm
 			} else {
-				var comms []*Command
+				var comms []*command
 				err := json.Unmarshal(rawComm, &comms)
-
+				for _, v := range comms {
+					v.client = client
+				}
 				if err != nil {
 					log.Println("couldn't unmarshal array of command data in subscription:", err)
 					continue
