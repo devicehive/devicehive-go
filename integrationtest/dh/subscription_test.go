@@ -16,10 +16,9 @@ const (
 func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	is := is.New(t)
 
-	dev := dh.Device{
-		Id: "go-test-dev-comm-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-comm-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -30,7 +29,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	var firstValidCommand *dh.Command
+	firstValidCommand := client.NewCommand()
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
@@ -73,10 +72,9 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 func TestDeviceSubscribeNotifications(t *testing.T) {
 	is := is.New(t)
 
-	dev := dh.Device{
-		Id: "go-test-dev-notif-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-notif-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -136,10 +134,9 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	dev := dh.Device{
-		Id: "go-test-dev-comm-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-comm-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -150,7 +147,7 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	var firstValidCommand *dh.Command
+	firstValidCommand := client.NewCommand()
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
@@ -204,10 +201,9 @@ func TestDeviceTypeSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	dev := dh.Device{
-		Id: "go-test-dev-notif-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-notif-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -267,10 +263,9 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	dev := dh.Device{
-		Id: "go-test-dev-comm-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-comm-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -281,7 +276,7 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	var firstValidCommand *dh.Command
+	firstValidCommand := client.NewCommand()
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
@@ -335,10 +330,9 @@ func TestNetworkSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	dev := dh.Device{
-		Id: "go-test-dev-notif-insert",
-	}
-	device, err := client.PutDevice(dev)
+	dev := client.NewDevice()
+	dev.Id = "go-test-dev-notif-insert"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
