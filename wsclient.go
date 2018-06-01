@@ -336,3 +336,52 @@ func (wsc *WSClient) AccessTokenByCreds(login, password string) *Error {
 		"password": password,
 	})
 }
+
+func (wsc *WSClient) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) *Error {
+	return wsc.request("createUser", map[string]interface{}{
+		"user": map[string]interface{}{
+			"login":    login,
+			"role":     role,
+			"status":   UserStatusActive,
+			"password": password,
+			"data":     data,
+			"allDeviceTypesAvailable": allDevTypesAvail,
+		},
+	})
+}
+
+func (wsc *WSClient) GetUser(userId int) *Error {
+	return wsc.request("getUser", map[string]interface{}{
+		"userId": userId,
+	})
+}
+
+func (wsc *WSClient) UpdateUser(userId int, user User) *Error {
+	return wsc.request("updateUser", map[string]interface{}{
+		"userId": userId,
+		"user":   user,
+	})
+}
+
+func (wsc *WSClient) DeleteUser(userId int) *Error {
+	return wsc.request("deleteUser", map[string]interface{}{
+		"userId": userId,
+	})
+}
+
+func (wsc *WSClient) GetCurrentUser() *Error {
+	return wsc.request("getCurrentUser", nil)
+}
+
+func (wsc *WSClient) ListUsers(params *ListParams) *Error {
+	if params == nil {
+		params = &ListParams{}
+	}
+
+	data, pErr := params.Map()
+	if pErr != nil {
+		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
+	}
+
+	return wsc.request("listUsers", data)
+}
