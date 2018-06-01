@@ -5,39 +5,35 @@ import (
 	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
-var client = &Client{
-	PollingWaitTimeoutSeconds: 30,
-}
-
 func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
-	client, err = connect(url)
+	c, err = connect(url)
 
 	if err != nil {
 		return nil, err
 	}
 
-	client.refreshToken = refreshToken
+	c.refreshToken = refreshToken
 
-	return auth(accessToken, client)
+	return auth(accessToken, c)
 }
 
 func ConnectWithCreds(url, login, password string) (c *Client, err *Error) {
-	client, err = connect(url)
+	c, err = connect(url)
 
 	if err != nil {
 		return nil, err
 	}
 
-	accTok, _, err := client.tokensByCreds(login, password)
+	accTok, _, err := c.tokensByCreds(login, password)
 
 	if err != nil {
 		return nil, err
 	}
 
-	client.login = login
-	client.password = password
+	c.login = login
+	c.password = password
 
-	return auth(accTok, client)
+	return auth(accTok, c)
 }
 
 func connect(url string) (c *Client, err *Error) {
@@ -47,8 +43,11 @@ func connect(url string) (c *Client, err *Error) {
 		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}
 	}
 
-	client.transport = tsp
-	client.transportAdapter = transportadapter.New(client.transport)
+	client := &Client{
+		transport:                 tsp,
+		transportAdapter:          transportadapter.New(tsp),
+		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
+	}
 
 	return client, nil
 }

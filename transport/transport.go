@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"strings"
+	"net/url"
 	"time"
 )
 
@@ -17,10 +17,15 @@ type Transporter interface {
 	IsWS() bool
 }
 
-func Create(url string) (transport Transporter, err error) {
-	if strings.Contains(url, "http") {
-		return newHTTP(url)
+func Create(addr string) (transport Transporter, err error) {
+	u, err := url.Parse(addr)
+	if err != nil {
+		return nil, err
 	}
 
-	return newWS(url)
+	if u.Scheme == "http" || u.Scheme == "https" {
+		return newHTTP(addr)
+	}
+
+	return newWS(addr)
 }

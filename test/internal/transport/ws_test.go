@@ -1,8 +1,8 @@
 package transport_test
 
 import (
-	"github.com/devicehive/devicehive-go/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
+	"github.com/devicehive/devicehive-go/transport"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"
