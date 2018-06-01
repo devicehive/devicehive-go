@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"time"
+	"sync"
 )
 
 func newWS(addr string) (tsp *ws, err error) {
@@ -18,6 +19,7 @@ func newWS(addr string) (tsp *ws, err error) {
 
 	tsp = &ws{
 		conn:          conn,
+		connMu:		   sync.Mutex{},
 		requests:      apirequests.NewClientsMap(),
 		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
 	}
@@ -29,6 +31,7 @@ func newWS(addr string) (tsp *ws, err error) {
 
 type ws struct {
 	conn          *websocket.Conn
+	connMu		  sync.Mutex
 	requests      *apirequests.PendingRequestsMap
 	subscriptions *apirequests.WSSubscriptionsMap
 }
@@ -57,7 +60,9 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	data["action"] = resource
 	data["requestId"] = reqId
 
+	t.connMu.Lock()
 	wErr := t.conn.WriteJSON(data)
+	t.connMu.Unlock()
 	if wErr != nil {
 		return nil, NewError(InvalidRequestErr, wErr.Error())
 	}
