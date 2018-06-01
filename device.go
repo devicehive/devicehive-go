@@ -85,6 +85,7 @@ func (d *device) SendCommand(name string, params map[string]interface{}, lifetim
 	if result != nil {
 		comm.Result = result
 	}
+	comm.Command.Command = name
 
 	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
 		"deviceId": d.Id,

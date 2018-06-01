@@ -11,7 +11,7 @@ func TestDevice(t *testing.T) {
 	is := is.New(t)
 
 	dev := client.NewDevice()
-	dev.Id = "go-test-subs"
+	dev.Id = "go-test-dev"
 	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
@@ -20,6 +20,7 @@ func TestDevice(t *testing.T) {
 	list, err := client.ListDevices(&dh.ListParams{
 		NamePattern: "go-%-dev",
 	})
+
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
