@@ -249,6 +249,12 @@ func (wsc *WSClient) CreateDeviceType(name, description string) *Error {
 
 }
 
+func (wsc *WSClient) DeleteDeviceType(deviceTypeId int) *Error {
+	return wsc.request("deleteDeviceType", map[string]interface{}{
+		"deviceTypeId": deviceTypeId,
+	})
+}
+
 func (wsc *WSClient) GetDeviceType(deviceTypeId int) *Error {
 	return wsc.request("getDeviceType", map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
@@ -299,6 +305,12 @@ func (wsc *WSClient) ListNetworks(params *ListParams) *Error {
 
 	return wsc.request("listNetworks", data)
 
+}
+
+func (wsc *WSClient) DeleteNetwork(networkId int) *Error {
+	return wsc.request("deleteNetwork", map[string]interface{}{
+		"networkId": networkId,
+	})
 }
 
 func (wsc *WSClient) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) *Error {
@@ -384,4 +396,50 @@ func (wsc *WSClient) ListUsers(params *ListParams) *Error {
 	}
 
 	return wsc.request("listUsers", data)
+}
+
+func (wsc *WSClient) UserAssignNetwork(userId, networkId int) *Error {
+	return wsc.request("assignNetwork", map[string]interface{}{
+		"userId":    userId,
+		"networkId": networkId,
+	})
+}
+
+func (wsc *WSClient) UserUnassignNetwork(userId, networkId int) *Error {
+	return wsc.request("unassignNetwork", map[string]interface{}{
+		"userId":    userId,
+		"networkId": networkId,
+	})
+}
+
+func (wsc *WSClient) UserAssignDeviceType(userId, deviceTypeId int) *Error {
+	return wsc.request("assignDeviceType", map[string]interface{}{
+		"userId":    userId,
+		"deviceTypeId": deviceTypeId,
+	})
+}
+
+func (wsc *WSClient) UserUnassignDeviceType(userId, deviceTypeId int) *Error {
+	return wsc.request("unassignDeviceType", map[string]interface{}{
+		"userId":    userId,
+		"deviceTypeId": deviceTypeId,
+	})
+}
+
+func (wsc *WSClient) AllowAllDeviceTypes(userId int) *Error {
+	return wsc.request("allowAllDeviceTypes", map[string]interface{}{
+		"userId": userId,
+	})
+}
+
+func (wsc *WSClient) DisallowAllDeviceTypes(userId int) *Error {
+	return wsc.request("disallowAllDeviceTypes", map[string]interface{}{
+		"userId": userId,
+	})
+}
+
+func (wsc *WSClient) ListUserDeviceTypes(userId int) *Error {
+	return wsc.request("getUserDeviceTypes", map[string]interface{}{
+		"userId": userId,
+	})
 }

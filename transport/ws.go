@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
-	"sync"
 	"time"
+	"sync"
 )
 
 func newWS(addr string) (tsp *ws, err error) {
@@ -31,7 +31,7 @@ func newWS(addr string) (tsp *ws, err error) {
 
 type ws struct {
 	conn          *websocket.Conn
-	connMu        sync.Mutex
+	connMu		  sync.Mutex
 	requests      *apirequests.PendingRequestsMap
 	subscriptions *apirequests.WSSubscriptionsMap
 }
