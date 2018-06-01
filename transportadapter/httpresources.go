@@ -46,6 +46,8 @@ var httpResources = map[string][2]string{
 }
 
 var httpResourcesQueryParams = map[string][]string{
+	"deleteNetwork":          {"force"},
+	"deleteDeviceType":       {"force"},
 	"listCommands":           {"start", "end", "command", "status", "sortField", "sortOrder", "take", "skip"},
 	"listNotifications":      {"start", "end", "notification", "sortField", "sortOrder", "take", "skip"},
 	"subscribeCommands":      {"deviceId", "networkIds", "deviceTypeIds", "timestamp", "waitTimeout", "names"},

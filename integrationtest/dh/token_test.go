@@ -10,7 +10,7 @@ func TestCreateToken(t *testing.T) {
 	is := is.New(t)
 
 	expiration := time.Now().Add(1 * time.Second)
-	accTok, refTok, err := client.CreateToken(*userId, expiration, nil, nil, nil)
+	accTok, refTok, err := client.CreateToken(*userId, expiration, expiration, nil, nil, nil)
 
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)

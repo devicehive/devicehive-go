@@ -28,6 +28,15 @@ func (n *Network) Remove() *Error {
 	return err
 }
 
+func (n *Network) ForceRemove() *Error {
+	_, err := n.client.request("deleteNetwork", map[string]interface{}{
+		"networkId": n.Id,
+		"force":     true,
+	})
+
+	return err
+}
+
 func (n *Network) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return n.subscribeCommands(names, timestamp, false)
 }
