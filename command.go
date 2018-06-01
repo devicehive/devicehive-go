@@ -19,7 +19,7 @@ type Command struct {
 
 type command struct {
 	Command
-	client      *Client
+	client *Client
 }
 
 func (comm *command) Save() *Error {

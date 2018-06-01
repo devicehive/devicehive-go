@@ -16,7 +16,7 @@ type User struct {
 }
 
 type user struct {
-	client                  *Client
+	client *Client
 	User
 }
 

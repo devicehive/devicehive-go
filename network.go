@@ -3,15 +3,15 @@ package devicehive_go
 import (
 	"time"
 )
+
 type Network struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
-
 type network struct {
-	client      *Client
+	client *Client
 	Network
 }
 

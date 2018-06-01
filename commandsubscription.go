@@ -35,6 +35,9 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 		CommandsChan: make(chan *command),
 		client:       client,
 	}
+	commandSubsMutex.Lock()
+	commandSubscriptions[subs] = subsId
+	commandSubsMutex.Unlock()
 
 	go func() {
 		for rawComm := range tspChan {
@@ -69,10 +72,6 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 
 		close(subs.CommandsChan)
 	}()
-
-	commandSubsMutex.Lock()
-	commandSubscriptions[subs] = subsId
-	commandSubsMutex.Unlock()
 
 	return subs
 }

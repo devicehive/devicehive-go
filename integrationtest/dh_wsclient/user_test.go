@@ -1,9 +1,9 @@
 package dh_wsclient_test
 
 import (
-	"testing"
 	"encoding/json"
 	"github.com/devicehive/devicehive-go"
+	"testing"
 )
 
 func TestWSClientUser(t *testing.T) {

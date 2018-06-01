@@ -16,7 +16,7 @@ type Device struct {
 
 type device struct {
 	Device
-	client       *Client
+	client *Client
 }
 
 func (d *device) Remove() *Error {

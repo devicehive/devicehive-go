@@ -11,7 +11,7 @@ type DeviceType struct {
 }
 
 type deviceType struct {
-	client      *Client
+	client *Client
 	DeviceType
 }
 
