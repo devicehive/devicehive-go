@@ -28,6 +28,15 @@ func (dt *DeviceType) Remove() *Error {
 	return err
 }
 
+func (dt *DeviceType) ForceRemove() *Error {
+	_, err := dt.client.request("deleteDeviceType", map[string]interface{}{
+		"deviceTypeId": dt.Id,
+		"force":        true,
+	})
+
+	return err
+}
+
 func (dt *DeviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return dt.subscribeCommands(names, timestamp, false)
 }

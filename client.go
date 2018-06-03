@@ -387,7 +387,7 @@ func (c *Client) DeleteProperty(name string) *Error {
 	return err
 }
 
-func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkIds, deviceTypeIds []string) (accessToken, refreshToken string, err *Error) {
+func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time, actions, networkIds, deviceTypeIds []string) (accessToken, refreshToken string, err *Error) {
 	data := map[string]interface{}{
 		"userId": userId,
 	}
@@ -403,6 +403,9 @@ func (c *Client) CreateToken(userId int, expiration time.Time, actions, networkI
 	}
 	if expiration.Unix() > 0 {
 		data["expiration"] = expiration.UTC().Format(timestampLayout)
+	}
+	if refreshExpiration.Unix() > 0 {
+		data["refreshExpiration"] = refreshExpiration.UTC().Format(timestampLayout)
 	}
 
 	return c.tokenRequest("tokenCreate", map[string]interface{}{
