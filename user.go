@@ -5,7 +5,6 @@ import (
 )
 
 type User struct {
-	client                  *Client
 	Id                      int                    `json:"id,omitempty"`
 	Login                   string                 `json:"login,omitempty"`
 	Role                    int                    `json:"role,omitempty"`
@@ -16,7 +15,12 @@ type User struct {
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
 }
 
-func (u *User) Save() *Error {
+type user struct {
+	client *Client
+	User
+}
+
+func (u *user) Save() *Error {
 	_, err := u.client.request("updateUser", map[string]interface{}{
 		"userId": u.Id,
 		"user":   u,
@@ -25,7 +29,7 @@ func (u *User) Save() *Error {
 	return err
 }
 
-func (u *User) Remove() *Error {
+func (u *user) Remove() *Error {
 	_, err := u.client.request("deleteUser", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -33,7 +37,7 @@ func (u *User) Remove() *Error {
 	return err
 }
 
-func (u *User) UpdatePassword(password string) *Error {
+func (u *user) UpdatePassword(password string) *Error {
 	_, err := u.client.request("updateUser", map[string]interface{}{
 		"userId": u.Id,
 		"user": map[string]interface{}{
@@ -44,7 +48,7 @@ func (u *User) UpdatePassword(password string) *Error {
 	return err
 }
 
-func (u *User) AssignNetwork(networkId int) *Error {
+func (u *user) AssignNetwork(networkId int) *Error {
 	_, err := u.client.request("assignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -53,7 +57,7 @@ func (u *User) AssignNetwork(networkId int) *Error {
 	return err
 }
 
-func (u *User) UnassignNetwork(networkId int) *Error {
+func (u *user) UnassignNetwork(networkId int) *Error {
 	_, err := u.client.request("unassignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -62,7 +66,7 @@ func (u *User) UnassignNetwork(networkId int) *Error {
 	return err
 }
 
-func (u *User) AssignDeviceType(deviceTypeId int) *Error {
+func (u *user) AssignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("assignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
@@ -71,7 +75,7 @@ func (u *User) AssignDeviceType(deviceTypeId int) *Error {
 	return err
 }
 
-func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
+func (u *user) UnassignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("unassignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
@@ -80,7 +84,7 @@ func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
 	return err
 }
 
-func (u *User) ListNetworks() (list []*Network, err *Error) {
+func (u *user) ListNetworks() (list []*network, err *Error) {
 	rawRes, err := u.client.request("getUser", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -89,16 +93,18 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 	}
 
 	pErr := json.Unmarshal(rawRes, &struct {
-		List *[]*Network `json:"networks"`
+		List *[]*network `json:"networks"`
 	}{&list})
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
-
+	for _, v := range list {
+		v.client = client
+	}
 	return list, nil
 }
 
-func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
+func (u *user) ListDeviceTypes() (list []*deviceType, err *Error) {
 	rawRes, err := u.client.request("getUserDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -110,11 +116,14 @@ func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 	if pErr != nil {
 		return nil, newJSONErr()
 	}
+	for _, v := range list {
+		v.client = u.client
+	}
 
 	return list, nil
 }
 
-func (u *User) AllowAllDeviceTypes() *Error {
+func (u *user) AllowAllDeviceTypes() *Error {
 	_, err := u.client.request("allowAllDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -126,7 +135,7 @@ func (u *User) AllowAllDeviceTypes() *Error {
 	return nil
 }
 
-func (u *User) DisallowAllDeviceTypes() *Error {
+func (u *user) DisallowAllDeviceTypes() *Error {
 	_, err := u.client.request("disallowAllDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})

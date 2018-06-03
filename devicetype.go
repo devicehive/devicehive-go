@@ -5,13 +5,17 @@ import (
 )
 
 type DeviceType struct {
-	client      *Client
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
-func (dt *DeviceType) Save() *Error {
+type deviceType struct {
+	client *Client
+	DeviceType
+}
+
+func (dt *deviceType) Save() *Error {
 	_, err := dt.client.request("updateDeviceType", map[string]interface{}{
 		"deviceTypeId": dt.Id,
 		"deviceType":   dt,
@@ -20,7 +24,7 @@ func (dt *DeviceType) Save() *Error {
 	return err
 }
 
-func (dt *DeviceType) Remove() *Error {
+func (dt *deviceType) Remove() *Error {
 	_, err := dt.client.request("deleteDeviceType", map[string]interface{}{
 		"deviceTypeId": dt.Id,
 	})
@@ -28,7 +32,7 @@ func (dt *DeviceType) Remove() *Error {
 	return err
 }
 
-func (dt *DeviceType) ForceRemove() *Error {
+func (dt *deviceType) ForceRemove() *Error {
 	_, err := dt.client.request("deleteDeviceType", map[string]interface{}{
 		"deviceTypeId": dt.Id,
 		"force":        true,
@@ -37,15 +41,15 @@ func (dt *DeviceType) ForceRemove() *Error {
 	return err
 }
 
-func (dt *DeviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (dt *deviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return dt.subscribeCommands(names, timestamp, false)
 }
 
-func (dt *DeviceType) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (dt *deviceType) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return dt.subscribeCommands(names, timestamp, true)
 }
 
-func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (dt *deviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -56,7 +60,7 @@ func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isC
 	return dt.client.SubscribeCommands(params)
 }
 
-func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (dt *deviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:         names,
 		Timestamp:     timestamp,

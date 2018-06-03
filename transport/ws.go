@@ -115,7 +115,6 @@ func (t *ws) Unsubscribe(subscriptionId string) {
 func (t *ws) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
-
 		connClosed := mt == websocket.CloseMessage || mt == -1
 		if connClosed {
 			t.terminateRequests(err)

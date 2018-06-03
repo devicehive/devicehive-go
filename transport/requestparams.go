@@ -4,6 +4,7 @@ import (
 	"github.com/devicehive/devicehive-go/utils"
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -16,12 +17,15 @@ type RequestParams struct {
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+var randLocker = sync.Mutex{}
 
 func (p *RequestParams) requestId() string {
 	reqId := p.RequestId
 
 	if reqId == "" {
+		randLocker.Lock()
 		r := strconv.FormatUint(ranGen.Uint64(), 10)
+		randLocker.Unlock()
 		ts := strconv.FormatInt(time.Now().Unix(), 10)
 		reqId = r + ts
 

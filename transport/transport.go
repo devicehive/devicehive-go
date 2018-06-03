@@ -17,7 +17,7 @@ type Transporter interface {
 	IsWS() bool
 }
 
-func Create(addr string) (transport Transporter, err error) {
+func Create(addr string) (Transporter, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err

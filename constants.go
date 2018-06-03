@@ -15,4 +15,5 @@ const (
 	ServiceErr                       = "service error"
 	ConnectionFailedErr              = "connection failed"
 	DefaultPollingWaitTimeoutSeconds = 30
+	WrongURLErr                      = "wrong url"
 )

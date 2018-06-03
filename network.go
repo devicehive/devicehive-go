@@ -5,13 +5,17 @@ import (
 )
 
 type Network struct {
-	client      *Client
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
 
-func (n *Network) Save() *Error {
+type network struct {
+	client *Client
+	Network
+}
+
+func (n *network) Save() *Error {
 	_, err := n.client.request("updateNetwork", map[string]interface{}{
 		"networkId": n.Id,
 		"network":   n,
@@ -20,7 +24,7 @@ func (n *Network) Save() *Error {
 	return err
 }
 
-func (n *Network) Remove() *Error {
+func (n *network) Remove() *Error {
 	_, err := n.client.request("deleteNetwork", map[string]interface{}{
 		"networkId": n.Id,
 	})
@@ -28,7 +32,7 @@ func (n *Network) Remove() *Error {
 	return err
 }
 
-func (n *Network) ForceRemove() *Error {
+func (n *network) ForceRemove() *Error {
 	_, err := n.client.request("deleteNetwork", map[string]interface{}{
 		"networkId": n.Id,
 		"force":     true,
@@ -37,15 +41,15 @@ func (n *Network) ForceRemove() *Error {
 	return err
 }
 
-func (n *Network) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (n *network) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return n.subscribeCommands(names, timestamp, false)
 }
 
-func (n *Network) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (n *network) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return n.subscribeCommands(names, timestamp, true)
 }
 
-func (n *Network) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (n *network) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -56,7 +60,7 @@ func (n *Network) subscribeCommands(names []string, timestamp time.Time, isCommU
 	return n.client.SubscribeCommands(params)
 }
 
-func (n *Network) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (n *network) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:      names,
 		Timestamp:  timestamp,

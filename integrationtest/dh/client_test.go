@@ -9,7 +9,10 @@ import (
 
 func TestSubscriptions(t *testing.T) {
 	is := is.New(t)
-	device, err := client.PutDevice("go-test-subs", "", nil, 0, 0, false)
+
+	dev := client.NewDevice()
+	dev.Id = "go-test-subs"
+	device, err := client.PutDevice(*dev)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +39,7 @@ func TestSubscriptions(t *testing.T) {
 	select {
 	case n := <-notifSubs.NotificationChan:
 		is.Equal(n.Notification, "test")
-	case <-time.After(1 * time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("Subscription event timeout")
 	}
 
@@ -55,7 +58,7 @@ func TestSubscriptions(t *testing.T) {
 
 	select {
 	case c := <-commSubs.CommandsChan:
-		is.Equal(c.Command, "test")
+		is.Equal(c.Command.Command, "test")
 	case <-time.After(1 * time.Second):
 		t.Fatal("Subscription event timeout")
 	}

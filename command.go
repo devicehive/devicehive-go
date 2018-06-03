@@ -1,9 +1,8 @@
 package devicehive_go
 
 type commandResponse struct {
-	Command *Command `json:"command"`
+	Command *command `json:"command"`
 }
-
 type Command struct {
 	Id          int         `json:"id,omitempty"`
 	Command     string      `json:"command,omitempty"`
@@ -16,10 +15,14 @@ type Command struct {
 	Lifetime    int         `json:"lifetime,omitempty"`
 	Status      string      `json:"status,omitempty"`
 	Result      interface{} `json:"result,omitempty"`
-	client      *Client
 }
 
-func (comm *Command) Save() *Error {
+type command struct {
+	Command
+	client *Client
+}
+
+func (comm *command) Save() *Error {
 	_, err := comm.client.request("updateCommand", map[string]interface{}{
 		"deviceId":  comm.DeviceId,
 		"commandId": comm.Id,
