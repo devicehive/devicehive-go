@@ -414,14 +414,14 @@ func (wsc *WSClient) UserUnassignNetwork(userId, networkId int) *Error {
 
 func (wsc *WSClient) UserAssignDeviceType(userId, deviceTypeId int) *Error {
 	return wsc.request("assignDeviceType", map[string]interface{}{
-		"userId":    userId,
+		"userId":       userId,
 		"deviceTypeId": deviceTypeId,
 	})
 }
 
 func (wsc *WSClient) UserUnassignDeviceType(userId, deviceTypeId int) *Error {
 	return wsc.request("unassignDeviceType", map[string]interface{}{
-		"userId":    userId,
+		"userId":       userId,
 		"deviceTypeId": deviceTypeId,
 	})
 }

@@ -1,9 +1,9 @@
 package dh_wsclient_test
 
 import (
+	"encoding/json"
 	"github.com/devicehive/devicehive-go"
 	"testing"
-	"encoding/json"
 )
 
 func TestCreateDeviceType(t *testing.T) {
