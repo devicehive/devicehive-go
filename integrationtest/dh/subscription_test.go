@@ -288,7 +288,7 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 
 	firstValidCommand := client.NewCommand()
 
-	commSubs, err := network.SubscribeInsertCommands(nil, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
+	commSubs, err := network.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}

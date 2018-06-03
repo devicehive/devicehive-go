@@ -39,7 +39,7 @@ func TestSubscriptions(t *testing.T) {
 	select {
 	case n := <-notifSubs.NotificationChan:
 		is.Equal(n.Notification, "test")
-	case <-time.After(1 * time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("Subscription event timeout")
 	}
 
