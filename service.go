@@ -5,10 +5,6 @@ import (
 	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
-var client = &Client{
-	PollingWaitTimeoutSeconds: 30,
-}
-
 func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
 	c, err = connect(url)
 

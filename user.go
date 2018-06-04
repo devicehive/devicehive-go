@@ -95,7 +95,7 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 		return nil, newJSONErr()
 	}
 	for _, v := range list {
-		v.client = client
+		v.client = u.client
 	}
 	return list, nil
 }
