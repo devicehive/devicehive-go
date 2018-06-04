@@ -7,17 +7,6 @@ import (
 	"time"
 )
 
-type MainClientInterface interface {
-	SubscribeNotifications(*SubscribeParams) (*NotificationSubscription, *Error)
-	request(string, map[string]interface{}) ([]byte, *Error)
-	SubscribeCommands(*SubscribeParams) (*CommandSubscription, *Error)
-	NewCommand() *Command
-	NewNetwork() *Network
-	NewUser() *User
-	NewDeviceType() *DeviceType
-	NewDevice() *Device
-}
-
 type Client struct {
 	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter

@@ -6,12 +6,6 @@ import (
 	"time"
 )
 
-type WSClientInterface interface {
-	SubscribeNotifications(*SubscribeParams) *Error
-	request(string, map[string]interface{}) *Error
-	SubscribeCommands(*SubscribeParams) *Error
-}
-
 type WSClient struct {
 	transportAdapter *transportadapter.WSAdapter
 	DataChan         chan []byte
