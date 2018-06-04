@@ -80,7 +80,7 @@ func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
 	return err
 }
 
-func (u *User) ListNetworks() (list []*network, err *Error) {
+func (u *User) ListNetworks() (list []*Network, err *Error) {
 	rawRes, err := u.client.request("getUser", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -89,7 +89,7 @@ func (u *User) ListNetworks() (list []*network, err *Error) {
 	}
 
 	pErr := json.Unmarshal(rawRes, &struct {
-		List *[]*network `json:"networks"`
+		List *[]*Network `json:"networks"`
 	}{&list})
 	if pErr != nil {
 		return nil, newJSONErr()

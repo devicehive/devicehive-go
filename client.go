@@ -12,7 +12,7 @@ type MainClientInterface interface {
 	request(string, map[string]interface{}) ([]byte, *Error)
 	SubscribeCommands(*SubscribeParams) (*CommandSubscription, *Error)
 	NewCommand() *command
-	NewNetwork() *network
+	NewNetwork() *Network
 	NewUser() *User
 	NewDeviceType() *DeviceType
 	NewDevice() *Device
@@ -39,8 +39,8 @@ func (c *Client) NewUser() *User {
 	return &User{client: c}
 }
 
-func (c *Client) NewNetwork() *network {
-	return &network{client: c}
+func (c *Client) NewNetwork() *Network {
+	return &Network{client: c}
 }
 
 func (c *Client) NewCommand() *command {
@@ -296,7 +296,7 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 	return info, nil
 }
 
-func (c *Client) CreateNetwork(name, description string) (ntwk *network, err *Error) {
+func (c *Client) CreateNetwork(name, description string) (ntwk *Network, err *Error) {
 	ntwk = c.NewNetwork()
 
 	ntwk.Name = name
@@ -317,7 +317,7 @@ func (c *Client) CreateNetwork(name, description string) (ntwk *network, err *Er
 	return ntwk, nil
 }
 
-func (c *Client) GetNetwork(networkId int) (ntwk *network, err *Error) {
+func (c *Client) GetNetwork(networkId int) (ntwk *Network, err *Error) {
 	ntwk = c.NewNetwork()
 
 	err = c.getModel("getNetwork", ntwk, map[string]interface{}{
@@ -330,7 +330,7 @@ func (c *Client) GetNetwork(networkId int) (ntwk *network, err *Error) {
 	return ntwk, nil
 }
 
-func (c *Client) ListNetworks(params *ListParams) (list []*network, err *Error) {
+func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
