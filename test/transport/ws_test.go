@@ -1,4 +1,4 @@
-package transport_test
+package transport
 
 import (
 	"github.com/devicehive/devicehive-go/test/stubs"
