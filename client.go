@@ -47,6 +47,10 @@ func (c *Client) NewCommand() *Command {
 	return &Command{client: c}
 }
 
+func (c *Client) NewNotification() *Notification {
+	return &Notification{}
+}
+
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
 	tspChan, subsId, err := c.subscribe("subscribeNotifications", params)
 	if err != nil || tspChan == nil {
