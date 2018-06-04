@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Main struct which serves as entry point to DeviceHive API
 type Client struct {
 	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter
@@ -16,30 +17,38 @@ type Client struct {
 	PollingWaitTimeoutSeconds int
 }
 
+// Constructor, doesn't create device at DH
 func (c *Client) NewDevice() *Device {
 	return &Device{client: c}
 }
 
+// Constructor, doesn't create device type at DH
 func (c *Client) NewDeviceType() *DeviceType {
 	return &DeviceType{client: c}
 }
 
+// Constructor, doesn't create user at DH
 func (c *Client) NewUser() *User {
 	return &User{client: c}
 }
 
+// Constructor, doesn't create network at DH
 func (c *Client) NewNetwork() *Network {
 	return &Network{client: c}
 }
 
+// Constructor, doesn't create command at DH
 func (c *Client) NewCommand() *Command {
 	return &Command{client: c}
 }
 
+// Constructor, doesn't create notification at DH
 func (c *Client) NewNotification() *Notification {
 	return &Notification{}
 }
 
+// Subscribes to notifications by custom filter
+// In case params is nil returns subscription for all notifications
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
 	tspChan, subsId, err := c.subscribe("subscribeNotifications", params)
 	if err != nil || tspChan == nil {
@@ -51,6 +60,8 @@ func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *Notifica
 	return subs, nil
 }
 
+// Subscribes to commands by custom filter
+// In case params is nil returns subscription for all commands
 func (c *Client) SubscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
 	tspChan, subsId, err := c.subscribe("subscribeCommands", params)
 	if err != nil || tspChan == nil {
@@ -163,6 +174,7 @@ func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	return d, nil
 }
 
+// Id property of device must be non empty
 func (c *Client) PutDevice(id, name string, data map[string]interface{}, networkId, deviceTypeId int, blocked bool) (*Device, *Error) {
 	if name == "" {
 		name = id
@@ -188,6 +200,7 @@ func (c *Client) PutDevice(id, name string, data map[string]interface{}, network
 	return device, nil
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 	if params == nil {
 		params = &ListParams{}
@@ -249,6 +262,7 @@ func (c *Client) GetDeviceType(deviceTypeId int) (devType *DeviceType, err *Erro
 	return devType, nil
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *Error) {
 	if params == nil {
 		params = &ListParams{}
@@ -331,6 +345,7 @@ func (c *Client) GetNetwork(networkId int) (ntwk *Network, err *Error) {
 	return ntwk, nil
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) {
 	if params == nil {
 		params = &ListParams{}
