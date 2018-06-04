@@ -5,6 +5,19 @@
     go get -u github.com/devicehive/devicehive-go
 
 ## Usage
+### Connection
+
+    import "github.com/devicehive/devicehive-go"
+
+    func main() {
+        client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
+        // OR
+        client, err := devicehive_go.ConnectWithToken("ws://devicehive-address.com/api/websocket", "jwt.Access.Token", "jwt.Refresh.Token")
+        if err != nil {
+            panic(err)
+        }
+    }
+
 ### Device creation
 
     import "github.com/devicehive/devicehive-go"
