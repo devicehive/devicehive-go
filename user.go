@@ -104,7 +104,7 @@ func (u *user) ListNetworks() (list []*network, err *Error) {
 	return list, nil
 }
 
-func (u *user) ListDeviceTypes() (list []*deviceType, err *Error) {
+func (u *user) ListDeviceTypes() (list []*DeviceType, err *Error) {
 	rawRes, err := u.client.request("getUserDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
