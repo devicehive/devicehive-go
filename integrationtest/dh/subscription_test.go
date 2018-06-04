@@ -65,7 +65,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		case comm, ok := <-commSubs.CommandsChan:
 			is.True(ok)
 			is.True(comm != nil)
-			is.Equal(comm.Command.Command, "go test command")
+			is.Equal(comm.Command, "go test command")
 		case <-time.After(waitTimeout):
 			t.Error("command insert event timeout")
 		}
@@ -185,7 +185,7 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		case comm, ok := <-commSubs.CommandsChan:
 			is.True(ok)
 			is.True(comm != nil)
-			is.Equal(comm.Command.Command, "go test command")
+			is.Equal(comm.Command, "go test command")
 		case <-time.After(waitTimeout):
 			t.Error("command insert event timeout")
 		}
@@ -321,7 +321,7 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		case comm, ok := <-commSubs.CommandsChan:
 			is.True(ok)
 			is.True(comm != nil)
-			is.Equal(comm.Command.Command, "go test command")
+			is.Equal(comm.Command, "go test command")
 		case <-time.After(waitTimeout):
 			t.Error("command insert event timeout")
 		}

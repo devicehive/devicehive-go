@@ -11,7 +11,7 @@ type MainClientInterface interface {
 	SubscribeNotifications(*SubscribeParams) (*NotificationSubscription, *Error)
 	request(string, map[string]interface{}) ([]byte, *Error)
 	SubscribeCommands(*SubscribeParams) (*CommandSubscription, *Error)
-	NewCommand() *command
+	NewCommand() *Command
 	NewNetwork() *Network
 	NewUser() *User
 	NewDeviceType() *DeviceType
@@ -43,8 +43,8 @@ func (c *Client) NewNetwork() *Network {
 	return &Network{client: c}
 }
 
-func (c *Client) NewCommand() *command {
-	return &command{client: c}
+func (c *Client) NewCommand() *Command {
+	return &Command{client: c}
 }
 
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {

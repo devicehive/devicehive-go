@@ -32,7 +32,7 @@ func (d *Device) Save() *Error {
 	return err
 }
 
-func (d *Device) ListCommands(params *ListParams) (list []*command, err *Error) {
+func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -62,7 +62,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*command, err *Error) 
 }
 
 func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
-	status string, result map[string]interface{}) (comm *command, err *Error) {
+	status string, result map[string]interface{}) (comm *Command, err *Error) {
 
 	comm = d.client.NewCommand()
 
@@ -81,7 +81,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	if result != nil {
 		comm.Result = result
 	}
-	comm.Command.Command = name
+	comm.Command = name
 
 	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
 		"deviceId": d.Id,
