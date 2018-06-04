@@ -13,7 +13,7 @@ type MainClientInterface interface {
 	SubscribeCommands(*SubscribeParams) (*CommandSubscription, *Error)
 	NewCommand() *command
 	NewNetwork() *network
-	NewUser() *user
+	NewUser() *User
 	NewDeviceType() *DeviceType
 	NewDevice() *Device
 }
@@ -35,8 +35,8 @@ func (c *Client) NewDeviceType() *DeviceType {
 	return &DeviceType{client: c}
 }
 
-func (c *Client) NewUser() *user {
-	return &user{client: c}
+func (c *Client) NewUser() *User {
+	return &User{client: c}
 }
 
 func (c *Client) NewNetwork() *network {
@@ -473,7 +473,7 @@ func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) 
 	return tok.Access, tok.Refresh, nil
 }
 
-func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*user, *Error) {
+func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*User, *Error) {
 	usr := c.NewUser()
 	usr.Login = login
 	usr.Role = role
@@ -502,7 +502,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	return usr, nil
 }
 
-func (c *Client) GetUser(userId int) (usr *user, err *Error) {
+func (c *Client) GetUser(userId int) (usr *User, err *Error) {
 	usr = c.NewUser()
 
 	err = c.getModel("getUser", usr, map[string]interface{}{
@@ -515,7 +515,7 @@ func (c *Client) GetUser(userId int) (usr *user, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) GetCurrentUser() (usr *user, err *Error) {
+func (c *Client) GetCurrentUser() (usr *User, err *Error) {
 	usr = c.NewUser()
 
 	err = c.getModel("getCurrentUser", usr, nil)
@@ -526,7 +526,7 @@ func (c *Client) GetCurrentUser() (usr *user, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) ListUsers(params *ListParams) (list []*user, err *Error) {
+func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}

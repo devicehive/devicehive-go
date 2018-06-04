@@ -13,14 +13,10 @@ type User struct {
 	Data                    map[string]interface{} `json:"data,omitempty"`
 	IntroReviewed           bool                   `json:"introReviewed,omitempty"`
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
+	client 					*Client
 }
 
-type user struct {
-	client *Client
-	User
-}
-
-func (u *user) Save() *Error {
+func (u *User) Save() *Error {
 	_, err := u.client.request("updateUser", map[string]interface{}{
 		"userId": u.Id,
 		"user":   u,
@@ -29,7 +25,7 @@ func (u *user) Save() *Error {
 	return err
 }
 
-func (u *user) Remove() *Error {
+func (u *User) Remove() *Error {
 	_, err := u.client.request("deleteUser", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -37,7 +33,7 @@ func (u *user) Remove() *Error {
 	return err
 }
 
-func (u *user) UpdatePassword(password string) *Error {
+func (u *User) UpdatePassword(password string) *Error {
 	_, err := u.client.request("updateUser", map[string]interface{}{
 		"userId": u.Id,
 		"user": map[string]interface{}{
@@ -48,7 +44,7 @@ func (u *user) UpdatePassword(password string) *Error {
 	return err
 }
 
-func (u *user) AssignNetwork(networkId int) *Error {
+func (u *User) AssignNetwork(networkId int) *Error {
 	_, err := u.client.request("assignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -57,7 +53,7 @@ func (u *user) AssignNetwork(networkId int) *Error {
 	return err
 }
 
-func (u *user) UnassignNetwork(networkId int) *Error {
+func (u *User) UnassignNetwork(networkId int) *Error {
 	_, err := u.client.request("unassignNetwork", map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
@@ -66,7 +62,7 @@ func (u *user) UnassignNetwork(networkId int) *Error {
 	return err
 }
 
-func (u *user) AssignDeviceType(deviceTypeId int) *Error {
+func (u *User) AssignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("assignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
@@ -75,7 +71,7 @@ func (u *user) AssignDeviceType(deviceTypeId int) *Error {
 	return err
 }
 
-func (u *user) UnassignDeviceType(deviceTypeId int) *Error {
+func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
 	_, err := u.client.request("unassignDeviceType", map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
@@ -84,7 +80,7 @@ func (u *user) UnassignDeviceType(deviceTypeId int) *Error {
 	return err
 }
 
-func (u *user) ListNetworks() (list []*network, err *Error) {
+func (u *User) ListNetworks() (list []*network, err *Error) {
 	rawRes, err := u.client.request("getUser", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -104,7 +100,7 @@ func (u *user) ListNetworks() (list []*network, err *Error) {
 	return list, nil
 }
 
-func (u *user) ListDeviceTypes() (list []*DeviceType, err *Error) {
+func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 	rawRes, err := u.client.request("getUserDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -123,7 +119,7 @@ func (u *user) ListDeviceTypes() (list []*DeviceType, err *Error) {
 	return list, nil
 }
 
-func (u *user) AllowAllDeviceTypes() *Error {
+func (u *User) AllowAllDeviceTypes() *Error {
 	_, err := u.client.request("allowAllDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
@@ -135,7 +131,7 @@ func (u *user) AllowAllDeviceTypes() *Error {
 	return nil
 }
 
-func (u *user) DisallowAllDeviceTypes() *Error {
+func (u *User) DisallowAllDeviceTypes() *Error {
 	_, err := u.client.request("disallowAllDeviceTypes", map[string]interface{}{
 		"userId": u.Id,
 	})
