@@ -7,17 +7,6 @@ import (
 	"time"
 )
 
-type MainClientInterface interface {
-	SubscribeNotifications(*SubscribeParams) (*NotificationSubscription, *Error)
-	request(string, map[string]interface{}) ([]byte, *Error)
-	SubscribeCommands(*SubscribeParams) (*CommandSubscription, *Error)
-	NewCommand() *command
-	NewNetwork() *network
-	NewUser() *user
-	NewDeviceType() *deviceType
-	NewDevice() *device
-}
-
 type Client struct {
 	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter
@@ -27,24 +16,28 @@ type Client struct {
 	PollingWaitTimeoutSeconds int
 }
 
-func (c *Client) NewDevice() *device {
-	return &device{client: c}
+func (c *Client) NewDevice() *Device {
+	return &Device{client: c}
 }
 
-func (c *Client) NewDeviceType() *deviceType {
-	return &deviceType{client: c}
+func (c *Client) NewDeviceType() *DeviceType {
+	return &DeviceType{client: c}
 }
 
-func (c *Client) NewUser() *user {
-	return &user{client: c}
+func (c *Client) NewUser() *User {
+	return &User{client: c}
 }
 
-func (c *Client) NewNetwork() *network {
-	return &network{client: c}
+func (c *Client) NewNetwork() *Network {
+	return &Network{client: c}
 }
 
-func (c *Client) NewCommand() *command {
-	return &command{client: c}
+func (c *Client) NewCommand() *Command {
+	return &Command{client: c}
+}
+
+func (c *Client) NewNotification() *Notification {
+	return &Notification{}
 }
 
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
@@ -157,7 +150,7 @@ func (c *Client) getModel(resourceName string, model interface{}, data map[strin
 	return nil
 }
 
-func (c *Client) GetDevice(deviceId string) (device *device, err *Error) {
+func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	d := c.NewDevice()
 
 	err = c.getModel("getDevice", d, map[string]interface{}{
@@ -170,7 +163,7 @@ func (c *Client) GetDevice(deviceId string) (device *device, err *Error) {
 	return d, nil
 }
 
-func (c *Client) PutDevice(device device) (*device, *Error) {
+func (c *Client) PutDevice(device Device) (*Device, *Error) {
 	if device.Name == "" {
 		device.Name = device.Id
 	}
@@ -187,7 +180,7 @@ func (c *Client) PutDevice(device device) (*device, *Error) {
 	return &device, nil
 }
 
-func (c *Client) ListDevices(params *ListParams) (list []*device, err *Error) {
+func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -214,7 +207,7 @@ func (c *Client) ListDevices(params *ListParams) (list []*device, err *Error) {
 	return list, nil
 }
 
-func (c *Client) CreateDeviceType(name, description string) (devType *deviceType, err *Error) {
+func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType, err *Error) {
 	devType = c.NewDeviceType()
 
 	devType.Name = name
@@ -235,7 +228,7 @@ func (c *Client) CreateDeviceType(name, description string) (devType *deviceType
 	return devType, nil
 }
 
-func (c *Client) GetDeviceType(deviceTypeId int) (devType *deviceType, err *Error) {
+func (c *Client) GetDeviceType(deviceTypeId int) (devType *DeviceType, err *Error) {
 	devType = c.NewDeviceType()
 
 	err = c.getModel("getDeviceType", devType, map[string]interface{}{
@@ -248,7 +241,7 @@ func (c *Client) GetDeviceType(deviceTypeId int) (devType *deviceType, err *Erro
 	return devType, nil
 }
 
-func (c *Client) ListDeviceTypes(params *ListParams) (list []*deviceType, err *Error) {
+func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -296,7 +289,7 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 	return info, nil
 }
 
-func (c *Client) CreateNetwork(name, description string) (ntwk *network, err *Error) {
+func (c *Client) CreateNetwork(name, description string) (ntwk *Network, err *Error) {
 	ntwk = c.NewNetwork()
 
 	ntwk.Name = name
@@ -317,7 +310,7 @@ func (c *Client) CreateNetwork(name, description string) (ntwk *network, err *Er
 	return ntwk, nil
 }
 
-func (c *Client) GetNetwork(networkId int) (ntwk *network, err *Error) {
+func (c *Client) GetNetwork(networkId int) (ntwk *Network, err *Error) {
 	ntwk = c.NewNetwork()
 
 	err = c.getModel("getNetwork", ntwk, map[string]interface{}{
@@ -330,7 +323,7 @@ func (c *Client) GetNetwork(networkId int) (ntwk *network, err *Error) {
 	return ntwk, nil
 }
 
-func (c *Client) ListNetworks(params *ListParams) (list []*network, err *Error) {
+func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -473,7 +466,7 @@ func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) 
 	return tok.Access, tok.Refresh, nil
 }
 
-func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*user, *Error) {
+func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*User, *Error) {
 	usr := c.NewUser()
 	usr.Login = login
 	usr.Role = role
@@ -502,7 +495,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	return usr, nil
 }
 
-func (c *Client) GetUser(userId int) (usr *user, err *Error) {
+func (c *Client) GetUser(userId int) (usr *User, err *Error) {
 	usr = c.NewUser()
 
 	err = c.getModel("getUser", usr, map[string]interface{}{
@@ -515,7 +508,7 @@ func (c *Client) GetUser(userId int) (usr *user, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) GetCurrentUser() (usr *user, err *Error) {
+func (c *Client) GetCurrentUser() (usr *User, err *Error) {
 	usr = c.NewUser()
 
 	err = c.getModel("getCurrentUser", usr, nil)
@@ -526,7 +519,7 @@ func (c *Client) GetCurrentUser() (usr *user, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) ListUsers(params *ListParams) (list []*user, err *Error) {
+func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}

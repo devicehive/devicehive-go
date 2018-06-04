@@ -12,14 +12,10 @@ type Device struct {
 	NetworkId    int                    `json:"networkId,omitempty"`
 	DeviceTypeId int                    `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
+	client 		 *Client
 }
 
-type device struct {
-	Device
-	client *Client
-}
-
-func (d *device) Remove() *Error {
+func (d *Device) Remove() *Error {
 	_, err := d.client.request("deleteDevice", map[string]interface{}{
 		"deviceId": d.Id,
 	})
@@ -27,7 +23,7 @@ func (d *device) Remove() *Error {
 	return err
 }
 
-func (d *device) Save() *Error {
+func (d *Device) Save() *Error {
 	_, err := d.client.request("putDevice", map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
@@ -36,7 +32,7 @@ func (d *device) Save() *Error {
 	return err
 }
 
-func (d *device) ListCommands(params *ListParams) (list []*command, err *Error) {
+func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -65,8 +61,8 @@ func (d *device) ListCommands(params *ListParams) (list []*command, err *Error) 
 	return list, nil
 }
 
-func (d *device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
-	status string, result map[string]interface{}) (comm *command, err *Error) {
+func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
+	status string, result map[string]interface{}) (comm *Command, err *Error) {
 
 	comm = d.client.NewCommand()
 
@@ -85,7 +81,7 @@ func (d *device) SendCommand(name string, params map[string]interface{}, lifetim
 	if result != nil {
 		comm.Result = result
 	}
-	comm.Command.Command = name
+	comm.Command = name
 
 	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
 		"deviceId": d.Id,
@@ -106,7 +102,7 @@ func (d *device) SendCommand(name string, params map[string]interface{}, lifetim
 	return comm, nil
 }
 
-func (d *device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
+func (d *Device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -131,7 +127,7 @@ func (d *device) ListNotifications(params *ListParams) (list []*Notification, er
 	return list, nil
 }
 
-func (d *device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
+func (d *Device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
 	notif = &Notification{
 		Notification: name,
 	}
@@ -160,15 +156,15 @@ func (d *device) SendNotification(name string, params map[string]interface{}, ti
 	return notif, nil
 }
 
-func (d *device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *Device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return d.subscribeCommands(names, timestamp, false)
 }
 
-func (d *device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
 	return d.subscribeCommands(names, timestamp, true)
 }
 
-func (d *device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -180,7 +176,7 @@ func (d *device) subscribeCommands(names []string, timestamp time.Time, isCommUp
 
 }
 
-func (d *device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
 	params := &SubscribeParams{
 		Names:     names,
 		Timestamp: timestamp,

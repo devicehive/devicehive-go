@@ -58,7 +58,7 @@ func TestSubscriptions(t *testing.T) {
 
 	select {
 	case c := <-commSubs.CommandsChan:
-		is.Equal(c.Command.Command, "test")
+		is.Equal(c.Command, "test")
 	case <-time.After(1 * time.Second):
 		t.Fatal("Subscription event timeout")
 	}
