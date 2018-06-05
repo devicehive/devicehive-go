@@ -2,7 +2,9 @@
 Package devicehive-go provides access to DeviceHive API through WebSocket or REST.
 Error handling is omitted to simplify examples:
 
-	client, _ := devicehive_go.ConnectWithCreds("ws://playground-dev.devicehive.com/api/websocket", "login", "password")
+	client, _ := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
+	// or
+	client, _ := devicehive_go.ConnectWithCreds("http://devicehive-address.com/api/rest", "login", "password")
 
 	device, _ := client.PutDevice("my-device", "", nil, 0, 0, false)
 	subscription, _ := device.SubscribeInsertCommands(nil, time.Time{})
