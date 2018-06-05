@@ -16,7 +16,10 @@ Visit https://godoc.org/github.com/devicehive/devicehive-go for full API referen
 ## Usage
 ### Connection
 
-    import "github.com/devicehive/devicehive-go"
+    import (
+        "github.com/devicehive/devicehive-go"
+        "fmt"
+    )
 
     func main() {
         client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
@@ -30,22 +33,25 @@ Visit https://godoc.org/github.com/devicehive/devicehive-go for full API referen
 
 ### Device creation
 
-    import "github.com/devicehive/devicehive-go"
+    import (
+    	"github.com/devicehive/devicehive-go"
+    	"fmt"
+    )
 
     func main() {
-        client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
-        if err != nil {
-            fmt.Println(err)
-            return
-        }
+    	client, err := devicehive_go.ConnectWithCreds("ws://playground-dev.devicehive.com/api/websocket", "login", "password")
+    	if err != nil {
+    		fmt.Println(err)
+    		return
+    	}
 
-        deviceData := client.NewDevice()
-        deviceData.Id = "my-device"
-        device, err := client.PutDevice(*deviceData)
-        if err != nil {
-            fmt.Println(err)
-            return
-        }
+    	device, err := client.PutDevice("my-device1", "", nil, 0, 0, false)
+    	if err != nil {
+    		fmt.Println(err)
+    		return
+    	}
+
+    	fmt.Println(device)
     }
 
 ### Command insert subscription
@@ -53,6 +59,7 @@ Visit https://godoc.org/github.com/devicehive/devicehive-go for full API referen
     import (
         "github.com/devicehive/devicehive-go"
         "fmt"
+        "time"
     )
 
     func main() {
