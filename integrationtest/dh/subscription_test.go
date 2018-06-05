@@ -27,13 +27,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	firstValidCommand := client.NewCommand()
-
-	commSubs, err := device.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-
+	var firstValidCommand *dh.Command
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
@@ -50,12 +44,10 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 		}
 	}
 
-	defer func() {
-		err := commSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
+	commSubs, err := device.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
+	}
 
 	for i := 0; i < commandsToSend; i++ {
 
@@ -100,12 +92,6 @@ func TestDeviceSubscribeNotifications(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
-	defer func() {
-		err := notifSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
 
 	for i := 0; i < notificationsToSend; i++ {
 		select {
@@ -144,19 +130,7 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	firstValidCommand := client.NewCommand()
-
-	commSubs, err := devType.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
-	if err != nil {
-		t.Fatalf("%s: %v", err.Name(), err)
-	}
-	defer func() {
-		err := commSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
+	var firstValidCommand *dh.Command
 	for i := 0; i < commandsToSend; i++ {
 		comm, err := device.SendCommand("go test command", nil, 120, time.Time{}, "", nil)
 		if err != nil {
@@ -171,6 +145,11 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", err.Name(), err)
 		}
+	}
+
+	commSubs, err := devType.SubscribeInsertCommands([]string{"go test command"}, firstValidCommand.Timestamp.Add(subscriptionTimestampOffset))
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
 	}
 
 	for i := 0; i < commandsToSend; i++ {
@@ -213,7 +192,6 @@ func TestDeviceTypeSubscribeNotifications(t *testing.T) {
 	}()
 
 	var firstValidNotif *dh.Notification
-
 	for i := 0; i < notificationsToSend; i++ {
 		notif, err := device.SendNotification("go test notification", nil, time.Time{})
 		if err != nil {
@@ -228,13 +206,6 @@ func TestDeviceTypeSubscribeNotifications(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
-
-	defer func() {
-		err := notifSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
 
 	for i := 0; i < notificationsToSend; i++ {
 		select {
@@ -296,13 +267,6 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		}
 	}
 
-	defer func() {
-		err := commSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
-
 	for i := 0; i < commandsToSend; i++ {
 		select {
 		case comm, ok := <-commSubs.CommandsChan:
@@ -356,12 +320,6 @@ func TestNetworkSubscribeNotifications(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
-	defer func() {
-		err := notifSubs.Remove()
-		if err != nil {
-			t.Fatalf("%s: %v", err.Name(), err)
-		}
-	}()
 	for i := 0; i < notificationsToSend; i++ {
 		select {
 		case notif, ok := <-notifSubs.NotificationChan:
