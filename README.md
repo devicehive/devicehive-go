@@ -4,7 +4,7 @@ Generally Golang SDK for DeviceHive consists of 2 APIs, feel free to choose your
 - client (a.k.a. high-level client) — provides synchronous API and ORM-like access to DeviceHive models
 - WS client (a.k.a. WS low-level client) — provides asynchronous API: just sends the request and returns an error only in case of request error,
 all raw response data and response errors are written to appropriate channels which are created after WS connection is established
-(for more details see [documentation at godoc](#documentation))
+(for more details see [documentation](#documentation))
 
 ## Installation
 
