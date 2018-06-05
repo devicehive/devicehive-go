@@ -33,10 +33,7 @@ The SDK has an ability to send requests in non-blocking manner, writing each res
 WS low-level API usage example:
 
 	wsclient, err := devicehive_go.WSConnect("ws://devicehive-address.com/api/websocket")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	...
 
 	done := make(chan struct{})
 	go func() {
@@ -46,7 +43,7 @@ WS low-level API usage example:
 				res := make(map[string]interface{})
 				action := ""
 				status := ""
-				json.Unmarshal(d, &res)
+				json.Unmarshal(d, &res) // If message was written to DataChan it must be valid JSON
 
 				if a, ok := res["action"].(string); ok {
 					action = a
@@ -70,10 +67,7 @@ WS low-level API usage example:
 	}()
 
 	err = wsclient.Authenticate("some.JWT.accessToken")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	...
 
 	<-done
 	fmt.Println("Done")
