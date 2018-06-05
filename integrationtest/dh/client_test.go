@@ -66,6 +66,9 @@ func TestCommandSubscriptionRemove(t *testing.T) {
 	is := is.New(t)
 
 	subs, err := client.SubscribeCommands(nil)
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
+	}
 
 	err = subs.Remove()
 	if err != nil {
@@ -85,6 +88,9 @@ func TestNotificationSubscriptionRemove(t *testing.T) {
 	is := is.New(t)
 
 	subs, err := client.SubscribeNotifications(nil)
+	if err != nil {
+		t.Fatalf("%s: %v", err.Name(), err)
+	}
 
 	err = subs.Remove()
 	if err != nil {
