@@ -73,6 +73,8 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 	return nil
 }
 
+// Subscribes for notifications with given params. If params is nil then default values take place.
+// After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeNotifications", params)
 }
@@ -81,6 +83,8 @@ func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
 	wsc.unsubscribe("notification/unsubscribe", subscriptionId)
 }
 
+// Subscribes for commands with given params. If params is nil then default values take place.
+// After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeCommands", params)
 }
