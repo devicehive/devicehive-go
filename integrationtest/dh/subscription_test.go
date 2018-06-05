@@ -16,9 +16,7 @@ const (
 func TestDeviceSubscribeInsertCommands(t *testing.T) {
 	is := is.New(t)
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-comm-insert"
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -75,9 +73,7 @@ func TestDeviceSubscribeInsertCommands(t *testing.T) {
 func TestDeviceSubscribeNotifications(t *testing.T) {
 	is := is.New(t)
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-notif-insert"
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, 0, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -137,10 +133,7 @@ func TestDeviceTypeSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-comm-insert"
-	dev.DeviceTypeId = devType.Id
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, 0, devType.Id, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -207,10 +200,7 @@ func TestDeviceTypeSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-notif-insert"
-	dev.DeviceTypeId = devType.Id
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, 0, devType.Id, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -272,10 +262,7 @@ func TestNetworkSubscribeInsertCommands(t *testing.T) {
 		}
 	}()
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-comm-insert"
-	dev.NetworkId = network.Id
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-comm-insert", "", nil, network.Id, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
@@ -342,10 +329,7 @@ func TestNetworkSubscribeNotifications(t *testing.T) {
 		}
 	}()
 
-	dev := client.NewDevice()
-	dev.Id = "go-test-dev-notif-insert"
-	dev.NetworkId = network.Id
-	device, err := client.PutDevice(*dev)
+	device, err := client.PutDevice("go-test-dev-notif-insert", "", nil, network.Id, 0, false)
 	if err != nil {
 		t.Fatalf("%s: %v", err.Name(), err)
 	}
