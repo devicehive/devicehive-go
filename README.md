@@ -14,7 +14,8 @@
         // OR
         client, err := devicehive_go.ConnectWithToken("ws://devicehive-address.com/api/websocket", "jwt.Access.Token", "jwt.Refresh.Token")
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
     }
 
@@ -25,17 +26,18 @@
     func main() {
         client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
 
         deviceData := client.NewDevice()
         deviceData.Id = "my-device"
-        device, err := client.PutDevice(deviceData)
+        device, err := client.PutDevice(*deviceData)
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
     }
-
 
 ### Command insert subscription
 
@@ -47,17 +49,20 @@
     func main() {
         client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
 
         device, err := client.GetDevice("my-device")
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
 
         subscription, err := device.SubscribeInsertCommands(nil, time.Time{})
         if err != nil {
-            panic(err)
+            fmt.Println(err)
+            return
         }
 
         for command := range subscription.CommandsChan {
