@@ -1,27 +1,25 @@
 /*
 Package devicehive-go provides access to DeviceHive API through WebSocket or REST.
+Error handling is omitted to simplify examples:
 
-	client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
-	// or
-	client, err := devicehive_go.ConnectWithCreds("http://devicehive-address.com/api/rest", "login", "password")
-	...
-	deviceData := client.NewDevice()
-	deviceData.Id = "device-id"
-	deviceData.NetworkId = 1
-	deviceData.DeviceTypeId = 1
+	client, _ := devicehive_go.ConnectWithCreds("ws://playground-dev.devicehive.com/api/websocket", "login", "password")
 
-	device, err := client.PutDevice(deviceData)
-	...
-	subscription, err := device.SubscribeInsertCommands(nil, time.Time{})
-	...
+	device, _ := client.PutDevice("my-device", "", nil, 0, 0, false)
+	subscription, _ := device.SubscribeInsertCommands(nil, time.Time{})
+
+	done := make(chan struct{})
 	go func() {
 		for command := range subscription.CommandsChan {
-			fmt.Println(command)
+			fmt.Printf("Received command with id %d\n", command.Id)
+			close(done)
 		}
 	}()
 
-	command, err := device.SendCommand("my-command", nil, 120, time.Time{}, "", nil)
-	...
+	command, _ := device.SendCommand("my-command", nil, 120, time.Time{}, "", nil)
+
+	fmt.Printf("Command with id %d has been sent\n", command.Id)
+
+	<-done
 
 In addition there is an ability to connect with tokens.
 
