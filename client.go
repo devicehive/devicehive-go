@@ -289,6 +289,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *E
 	return list, nil
 }
 
+// Gets information about DeviceHive server
 func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 	info = &ServerInfo{}
 
