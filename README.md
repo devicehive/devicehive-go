@@ -39,7 +39,7 @@ Visit https://godoc.org/github.com/devicehive/devicehive-go for full API referen
     )
 
     func main() {
-    	client, err := devicehive_go.ConnectWithCreds("ws://playground-dev.devicehive.com/api/websocket", "login", "password")
+    	client, err := devicehive_go.ConnectWithCreds("ws://devicehive-address.com/api/websocket", "login", "password")
     	if err != nil {
     		fmt.Println(err)
     		return
