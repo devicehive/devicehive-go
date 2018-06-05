@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Custom timestamp in ISO8601 format
 type ISO8601Time struct {
 	time.Time
 }

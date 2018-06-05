@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	err = wsclient.Authorize(*accessToken)
+	err = wsclient.Authenticate(*accessToken)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)

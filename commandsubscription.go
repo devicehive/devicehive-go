@@ -14,6 +14,7 @@ type CommandSubscription struct {
 	client       *Client
 }
 
+// Sends request to unsubscribe
 func (cs *CommandSubscription) Remove() *Error {
 	commandSubsMutex.Lock()
 	defer commandSubsMutex.Unlock()

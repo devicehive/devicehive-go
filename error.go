@@ -28,6 +28,7 @@ type Error struct {
 	reason string
 }
 
+// Method serves as name getter to classify the type of error
 func (e *Error) Name() string {
 	if e == nil {
 		return ""

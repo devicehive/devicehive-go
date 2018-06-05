@@ -8,7 +8,9 @@ import (
 
 type WSClient struct {
 	transportAdapter *transportadapter.WSAdapter
+	// Channel for receiving responses
 	DataChan         chan []byte
+	// Channel for receiving errors
 	ErrorChan        chan error
 }
 
@@ -71,6 +73,8 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 	return nil
 }
 
+// Subscribes for notifications with given params. If params is nil then default values take place.
+// After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeNotifications", params)
 }
@@ -79,6 +83,8 @@ func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
 	wsc.unsubscribe("notification/unsubscribe", subscriptionId)
 }
 
+// Subscribes for commands with given params. If params is nil then default values take place.
+// After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
 	return wsc.subscribe("subscribeCommands", params)
 }
@@ -87,7 +93,7 @@ func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
 	wsc.unsubscribe("command/unsubscribe", subscriptionId)
 }
 
-func (wsc *WSClient) Authorize(accessToken string) *Error {
+func (wsc *WSClient) Authenticate(accessToken string) *Error {
 	return wsc.request("auth", map[string]interface{}{
 		"token": accessToken,
 	})
@@ -123,6 +129,7 @@ func (wsc *WSClient) UpdateDevice(deviceId string, device *Device) *Error {
 	})
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListDevices(params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}
@@ -157,6 +164,7 @@ func (wsc *WSClient) SendDeviceCommand(deviceId, name string, params map[string]
 	})
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListDeviceCommands(deviceId string, params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}
@@ -188,6 +196,7 @@ func (wsc *WSClient) SendDeviceNotification(deviceId, name string, params map[st
 	})
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListDeviceNotifications(deviceId string, params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}
@@ -256,6 +265,8 @@ func (wsc *WSClient) GetDeviceType(deviceTypeId int) *Error {
 
 }
 
+
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListDeviceTypes(params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}
@@ -287,6 +298,7 @@ func (wsc *WSClient) GetNetwork(networkId int) *Error {
 
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListNetworks(params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}
@@ -379,6 +391,7 @@ func (wsc *WSClient) GetCurrentUser() *Error {
 	return wsc.request("getCurrentUser", nil)
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListUsers(params *ListParams) *Error {
 	if params == nil {
 		params = &ListParams{}

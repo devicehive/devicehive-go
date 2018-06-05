@@ -5,6 +5,8 @@ import (
 	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
+// Method uses access token directly to connect
+// It will recreate access token on expiration by given refresh token
 func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
 	c, err = connect(url)
 
@@ -17,6 +19,8 @@ func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Er
 	return auth(accessToken, c)
 }
 
+// Method obtains access token by credentials and then connects
+// It will recreate access token on expiration by given credentials
 func ConnectWithCreds(url, login, password string) (c *Client, err *Error) {
 	c, err = connect(url)
 

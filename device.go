@@ -32,6 +32,7 @@ func (d *Device) Save() *Error {
 	return err
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
 	if params == nil {
 		params = &ListParams{}
@@ -102,6 +103,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	return comm, nil
 }
 
+// In case params is nil default values defined at DeviceHive take place
 func (d *Device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
 	if params == nil {
 		params = &ListParams{}

@@ -18,6 +18,7 @@ type Command struct {
 	client 		*Client
 }
 
+// Sends request to modify command at DeviceHive
 func (comm *Command) Save() *Error {
 	_, err := comm.client.request("updateCommand", map[string]interface{}{
 		"deviceId":  comm.DeviceId,

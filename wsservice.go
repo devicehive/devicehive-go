@@ -5,6 +5,8 @@ import (
 	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
+// Creates low-level WS API which sends requests concurrently and writes all responses to a single channel.
+// This might be useful in case of non-blocking writes (i.e. sending sensor data, subscribing for commands).
 func WSConnect(url string) (c *WSClient, err *Error) {
 	tsp, tspErr := transport.Create(url)
 	if tspErr != nil {
