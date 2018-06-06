@@ -29,7 +29,7 @@ In addition there is an ability to connect with tokens.
 
 The client will be automatically reauthenticated by credentials or refresh token in case of access token expiration.
 
-The SDK has an ability to send requests in non-blocking manner, writing each response and error to separate channels that you can read from in separate go routine. This API is called WebSocket low-level API.
+The SDK has an ability to send requests in non-blocking manner, writing each response and error to separate channels that you can read in a separate go routine. This API is called WebSocket low-level API.
 WS low-level API usage example:
 
 	wsclient, err := devicehive_go.WSConnect("ws://devicehive-address.com/api/websocket")
