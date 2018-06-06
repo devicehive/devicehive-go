@@ -6,8 +6,8 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
+	"log"
 )
 
 var commandSubsMutex = sync.Mutex{}
@@ -46,33 +46,14 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 
 	go func() {
 		for rawComm := range tspChan {
-			if client.transport.IsWS() {
-				comm := &Command{
-					client: client,
-				}
-				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
-
-				if err != nil {
-					log.Println("couldn't unmarshal command data in subscription:", err)
-					continue
-				}
-
-				subs.CommandsChan <- comm
-			} else {
-				var comms []*Command
-				err := json.Unmarshal(rawComm, &comms)
-				for _, v := range comms {
-					v.client = client
-				}
-				if err != nil {
-					log.Println("couldn't unmarshal array of command data in subscription:", err)
-					continue
-				}
-
-				for _, comm := range comms {
-					subs.CommandsChan <- comm
-				}
+			comm := client.NewCommand()
+			err := json.Unmarshal(rawComm, comm)
+			if err != nil {
+				log.Printf("Error while parsing command subscription event: %s %s\n", err, string(rawComm))
+				continue
 			}
+
+			subs.CommandsChan <- comm
 		}
 
 		close(subs.CommandsChan)

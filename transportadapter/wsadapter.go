@@ -53,7 +53,7 @@ func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, ti
 	return resBytes, nil
 }
 
-func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (dataChan chan []byte, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
@@ -61,7 +61,15 @@ func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int
 		return nil, "", tspErr
 	}
 
-	return tspChan, subscriptionId, nil
+	c := make(chan []byte, 16)
+	go func() {
+		for b := range tspChan {
+			data := a.extractResponsePayload(resourceName + "Event", b)
+			c <- data
+		}
+	}()
+
+	return c, subscriptionId, nil
 }
 
 func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
@@ -139,6 +147,8 @@ var wsResponsePayloads = map[string]string{
 	"insertCommand":      "command",
 	"listNotifications":  "notifications",
 	"insertNotification": "notification",
+	"subscribeNotificationsEvent": "notification",
+	"subscribeCommandsEvent": "command",
 	"getDevice":          "device",
 	"commandEvent":       "command",
 	"notificationEvent":  "notification",

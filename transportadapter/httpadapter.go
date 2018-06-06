@@ -46,7 +46,7 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 	return resBytes, nil
 }
 
-func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (dataChan chan []byte, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
@@ -56,7 +56,23 @@ func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds i
 		return nil, "", tspErr
 	}
 
-	return tspChan, subscriptionId, nil
+	c := make(chan []byte, 16)
+	go func() {
+		for b := range tspChan {
+			var list []json.RawMessage
+			err := json.Unmarshal(b, &list)
+			if err != nil {
+				c <- b
+				continue
+			}
+
+			for _, data := range list {
+				c <- data
+			}
+		}
+	}()
+
+	return c, subscriptionId, nil
 }
 
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
