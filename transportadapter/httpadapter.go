@@ -70,6 +70,8 @@ func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds i
 				c <- data
 			}
 		}
+
+		close(c)
 	}()
 
 	return c, subscriptionId, nil

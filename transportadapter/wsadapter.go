@@ -67,6 +67,8 @@ func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int
 			data := a.extractResponsePayload(resourceName + "Event", b)
 			c <- data
 		}
+
+		close(c)
 	}()
 
 	return c, subscriptionId, nil
