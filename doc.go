@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 /*
 Package devicehive-go provides access to DeviceHive API through WebSocket or REST.
 Error handling is omitted to simplify examples:
