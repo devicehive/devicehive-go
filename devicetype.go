@@ -8,7 +8,7 @@ type DeviceType struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
-	client 		*Client
+	client      *Client
 }
 
 func (dt *DeviceType) Save() *Error {
