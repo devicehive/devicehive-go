@@ -8,7 +8,7 @@ type Network struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
-	client 		*Client
+	client      *Client
 }
 
 func (n *Network) Save() *Error {

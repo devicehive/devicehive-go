@@ -53,6 +53,11 @@ func connect(url string) (c *Client, err *Error) {
 		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
 	}
 
+	info, err := client.GetInfo()
+	if err == nil {
+		client.subscriptionTimestamp = info.ServerTimestamp.Time
+	}
+
 	return client, nil
 }
 

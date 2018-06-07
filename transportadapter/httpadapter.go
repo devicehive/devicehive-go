@@ -10,7 +10,7 @@ import (
 )
 
 type HTTPAdapter struct {
-	transport transport.Transporter
+	transport   transport.Transporter
 	accessToken string
 }
 

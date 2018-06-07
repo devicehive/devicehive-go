@@ -15,7 +15,7 @@ type Command struct {
 	Lifetime    int         `json:"lifetime,omitempty"`
 	Status      string      `json:"status,omitempty"`
 	Result      interface{} `json:"result,omitempty"`
-	client 		*Client
+	client      *Client
 }
 
 // Sends request to modify command at DeviceHive

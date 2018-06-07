@@ -12,7 +12,7 @@ type Device struct {
 	NetworkId    int                    `json:"networkId,omitempty"`
 	DeviceTypeId int                    `json:"deviceTypeId,omitempty"`
 	IsBlocked    bool                   `json:"isBlocked,omitempty"`
-	client 		 *Client
+	client       *Client
 }
 
 func (d *Device) Remove() *Error {

@@ -13,7 +13,7 @@ type User struct {
 	Data                    map[string]interface{} `json:"data,omitempty"`
 	IntroReviewed           bool                   `json:"introReviewed,omitempty"`
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
-	client 					*Client
+	client                  *Client
 }
 
 func (u *User) Save() *Error {

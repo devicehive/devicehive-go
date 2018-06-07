@@ -15,6 +15,7 @@ type Client struct {
 	login                     string
 	password                  string
 	PollingWaitTimeoutSeconds int
+	subscriptionTimestamp     time.Time
 }
 
 // Constructor, doesn't create device at DH
@@ -89,6 +90,10 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 	}
 
 	params.WaitTimeout = c.PollingWaitTimeoutSeconds
+
+	if params.Timestamp.Unix() <= 0 {
+		params.Timestamp = c.subscriptionTimestamp
+	}
 
 	data, jsonErr := params.Map()
 	if jsonErr != nil {
