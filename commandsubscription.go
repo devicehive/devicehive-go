@@ -6,8 +6,8 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"sync"
 	"log"
+	"sync"
 )
 
 var commandSubsMutex = sync.Mutex{}

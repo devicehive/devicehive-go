@@ -104,12 +104,12 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	tspChan, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.PollingWaitTimeoutSeconds, data)
+	subs, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.PollingWaitTimeoutSeconds, data)
 	if rawErr != nil {
 		return nil, "", newTransportErr(rawErr)
 	}
 
-	return tspChan, subscriptionId, nil
+	return subs.DataChan, subscriptionId, nil
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {

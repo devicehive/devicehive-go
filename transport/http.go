@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/devicehive/devicehive-go/transport/apirequests"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -154,18 +153,20 @@ func (t *httpTsp) doRequest(client *http.Client, req *http.Request) (rawRes []by
 	return rawRes, nil
 }
 
-func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
+func (t *httpTsp) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
 	subs := t.subscriptions.CreateSubscription(subscriptionId)
 
 	go func() {
 		done := make(chan struct{})
-		resChan := t.poll(resource, params, done)
+		resChan, errChan := t.poll(resource, params, done)
 
 	loop:
 		for {
 			select {
+			case err := <-errChan:
+				subs.Err <- err
 			case res := <-resChan:
 				subs.Data <- res
 			case <-subs.Signal:
@@ -175,11 +176,17 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (eventChan c
 		}
 	}()
 
-	return subs.Data, subscriptionId, nil
+	subscription = &Subscription{
+		DataChan: subs.Data,
+		ErrChan:  subs.Err,
+	}
+
+	return subscription, subscriptionId, nil
 }
 
-func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte) {
+func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte, errChan chan error) {
 	resChan = make(chan []byte)
+	errChan = make(chan error)
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
@@ -193,7 +200,7 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 		for {
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
-				log.Printf("Subscription poll request failed for resource: %s, error: %s", resource, err)
+				errChan <- err
 				continue
 			}
 
@@ -205,7 +212,7 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 		}
 	}()
 
-	return resChan
+	return resChan, errChan
 }
 
 func (t *httpTsp) Unsubscribe(subscriptionId string) {

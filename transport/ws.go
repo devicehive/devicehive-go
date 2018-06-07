@@ -83,7 +83,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 }
 
-func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
+func (t *ws) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -98,13 +98,19 @@ func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan [
 	return t.subscribe(subscriptionId), subscriptionId, nil
 }
 
-func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
+func (t *ws) subscribe(subscriptionId string) *Subscription {
 	if _, ok := t.subscriptions.Get(subscriptionId); ok {
 		return nil
 	}
 
-	subscription := t.subscriptions.CreateSubscription(subscriptionId)
-	return subscription.Data
+	subs := t.subscriptions.CreateSubscription(subscriptionId)
+
+	subscription := &Subscription{
+		DataChan: subs.Data,
+		ErrChan:  subs.Err,
+	}
+
+	return subscription
 }
 
 func (t *ws) Unsubscribe(subscriptionId string) {

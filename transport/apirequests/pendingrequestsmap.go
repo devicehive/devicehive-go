@@ -38,7 +38,7 @@ func (m *PendingRequestsMap) CreateSubscription(key string) (req *PendingRequest
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	return m.create(key, false)
+	return m.create(key, true)
 }
 
 func (m *PendingRequestsMap) create(key string, isErrChan bool) (req *PendingRequest) {
