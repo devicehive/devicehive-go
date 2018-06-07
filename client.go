@@ -13,7 +13,6 @@ import (
 
 // Main struct which serves as entry point to DeviceHive API
 type Client struct {
-	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter
 	refreshToken              string
 	login                     string
