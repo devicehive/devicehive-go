@@ -6,8 +6,8 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
+	"github.com/devicehive/devicehive-go/transport"
 )
 
 var commandSubsMutex = sync.Mutex{}
@@ -15,6 +15,7 @@ var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
+	ErrorChan	 chan *Error
 	client       *Client
 }
 
@@ -35,9 +36,10 @@ func (cs *CommandSubscription) Remove() *Error {
 	return nil
 }
 
-func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) *CommandSubscription {
+func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
+		ErrorChan:	  make(chan *Error),
 		client:       client,
 	}
 	commandSubsMutex.Lock()
@@ -45,18 +47,32 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 	commandSubsMutex.Unlock()
 
 	go func() {
-		for rawComm := range tspChan {
-			comm := client.NewCommand()
-			err := json.Unmarshal(rawComm, comm)
-			if err != nil {
-				log.Printf("Error while parsing command subscription event: %s %s\n", err, string(rawComm))
-				continue
-			}
+		loop: for {
+			select {
+			case rawComm, ok := <- tspSubs.DataChan:
+				if !ok {
+					break loop
+				}
 
-			subs.CommandsChan <- comm
+				comm := client.NewCommand()
+				err := json.Unmarshal(rawComm, comm)
+				if err != nil {
+					subs.ErrorChan <- &Error{name: InvalidSubscriptionEventData, reason: err.Error()}
+					continue
+				}
+
+				subs.CommandsChan <- comm
+			case err, ok := <- tspSubs.ErrChan:
+				if !ok {
+					break loop
+				}
+
+				subs.ErrorChan <- newError(err)
+			}
 		}
 
 		close(subs.CommandsChan)
+		close(subs.ErrorChan)
 	}()
 
 	return subs

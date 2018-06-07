@@ -16,6 +16,7 @@ const (
 	UserRoleClient                   = 1
 	InvalidResponseErr               = "invalid response"
 	InvalidRequestErr                = "invalid request"
+	InvalidSubscriptionEventData	 = "invalid subscription event data"
 	ServiceErr                       = "service error"
 	ConnectionFailedErr              = "connection failed"
 	DefaultPollingWaitTimeoutSeconds = 30
