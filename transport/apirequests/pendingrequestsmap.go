@@ -27,12 +27,12 @@ func (m *PendingRequestsMap) Delete(key string) {
 	delete(m.clients, key)
 }
 
-func (m *PendingRequestsMap) CreateRequest(key string) (req *PendingRequest) {
-	req = &PendingRequest{
+func (m *PendingRequestsMap) CreateRequest(key string) *PendingRequest {
+	req := &PendingRequest{
 		Data:       make(chan []byte, 16),
 		Signal:     make(chan struct{}),
 		DataLocker: sync.Mutex{},
-		Err: 	    make(chan error),
+		Err:        make(chan error),
 	}
 
 	m.mu.Lock()
@@ -42,7 +42,7 @@ func (m *PendingRequestsMap) CreateRequest(key string) (req *PendingRequest) {
 	return req
 }
 
-func (m *PendingRequestsMap) Get(key string) (client *PendingRequest, ok bool) {
+func (m *PendingRequestsMap) Get(key string) (*PendingRequest, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

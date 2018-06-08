@@ -5,9 +5,10 @@
 package apirequests
 
 import (
-	"github.com/devicehive/devicehive-go/utils"
 	"strconv"
 	"sync"
+
+	"github.com/devicehive/devicehive-go/utils"
 )
 
 func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
@@ -66,5 +67,5 @@ func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]
 		}
 	}
 
-	return subsData, newBuffer
+	return
 }
