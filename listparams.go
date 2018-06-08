@@ -6,8 +6,9 @@ package devicehive_go
 
 import (
 	"errors"
-	"github.com/devicehive/devicehive-go/utils"
 	"time"
+
+	"github.com/devicehive/devicehive-go/utils"
 )
 
 type ListParams struct {
@@ -31,8 +32,8 @@ type ListParams struct {
 	UserStatus   int       `json:"status,omitempty"`
 }
 
-func (p *ListParams) Map() (m map[string]interface{}, err error) {
-	m = utils.StructToJSONMap(p)
+func (p *ListParams) Map() (map[string]interface{}, error) {
+	m := utils.StructToJSONMap(p)
 
 	if m == nil {
 		return nil, errors.New("invalid JSON representation of struct")
