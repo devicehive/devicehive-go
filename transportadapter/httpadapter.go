@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/devicehive/devicehive-go/transport"
 	"strings"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transport"
 )
 
 type HTTPAdapter struct {
@@ -23,12 +24,12 @@ type httpResponse struct {
 	Status  int    `json:"status"`
 }
 
-func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
+func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
 	a.accessToken = token
 	return true, nil
 }
 
-func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
@@ -36,7 +37,7 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 		return nil, tspErr
 	}
 
-	err = a.handleResponseError(resBytes)
+	err := a.handleResponseError(resBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +127,9 @@ func (a *HTTPAdapter) handleResponseError(rawRes []byte) error {
 	return nil
 }
 
-func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (httpRes *httpResponse, err error) {
+func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (*httpResponse, error) {
 	res := make(map[string]interface{})
-	err = json.Unmarshal(rawRes, &res)
+	err := json.Unmarshal(rawRes, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (httpRes *httpResponse, 
 		return nil, nil
 	}
 
-	httpRes = &httpResponse{
+	httpRes := &httpResponse{
 		Message: res["message"].(string),
 	}
 	if e, ok := res["error"].(float64); ok {

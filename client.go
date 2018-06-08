@@ -6,9 +6,10 @@ package devicehive_go
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/devicehive/devicehive-go/transport"
 	"github.com/devicehive/devicehive-go/transportadapter"
-	"time"
 )
 
 // Main struct which serves as entry point to DeviceHive API
@@ -53,32 +54,32 @@ func (c *Client) NewNotification() *Notification {
 
 // Subscribes to notifications by custom filter
 // In case params is nil returns subscription for all notifications
-func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
+func (c *Client) SubscribeNotifications(params *SubscribeParams) (*NotificationSubscription, *Error) {
 	tspSubs, subsId, err := c.subscribe("subscribeNotifications", params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
 
-	subs = newNotificationSubscription(subsId, tspSubs, c)
+	subs := newNotificationSubscription(subsId, tspSubs, c)
 
 	return subs, nil
 }
 
 // Subscribes to commands by custom filter
 // In case params is nil returns subscription for all commands
-func (c *Client) SubscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
+func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscription, *Error) {
 	tspSubs, subsId, err := c.subscribe("subscribeCommands", params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
 
-	subs = newCommandSubscription(subsId, tspSubs, c)
+	subs := newCommandSubscription(subsId, tspSubs, c)
 
 	return subs, nil
 }
 
-func (c *Client) authenticate(token string) (result bool, err *Error) {
-	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+func (c *Client) authenticate(token string) (bool, *Error) {
+	_, rawErr := c.transportAdapter.Authenticate(token, Timeout)
 
 	if rawErr != nil {
 		return false, newError(rawErr)
@@ -120,22 +121,18 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 	return nil
 }
 
-func (c *Client) request(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
+func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
 
 	if rawErr != nil && rawErr.Error() == "401 token expired" {
-		resBytes, err = c.refreshRetry(resourceName, data)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		err = newError(rawErr)
+		resBytes, err := c.refreshRetry(resourceName, data)
+		return resBytes, err
 	}
 
-	return resBytes, err
+	return resBytes, nil
 }
 
-func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) (resBytes []byte, err *Error) {
+func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) ([]byte, *Error) {
 	accessToken, err := c.RefreshToken()
 	if err != nil {
 		return nil, err
@@ -236,8 +233,8 @@ func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 	return list, nil
 }
 
-func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType, err *Error) {
-	devType = c.NewDeviceType()
+func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error) {
+	devType := c.NewDeviceType()
 
 	devType.Name = name
 	devType.Description = description
@@ -257,10 +254,10 @@ func (c *Client) CreateDeviceType(name, description string) (devType *DeviceType
 	return devType, nil
 }
 
-func (c *Client) GetDeviceType(deviceTypeId int) (devType *DeviceType, err *Error) {
-	devType = c.NewDeviceType()
+func (c *Client) GetDeviceType(deviceTypeId int) (*DeviceType, *Error) {
+	devType := c.NewDeviceType()
 
-	err = c.getModel("getDeviceType", devType, map[string]interface{}{
+	err := c.getModel("getDeviceType", devType, map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
 	})
 	if err != nil {
@@ -271,7 +268,7 @@ func (c *Client) GetDeviceType(deviceTypeId int) (devType *DeviceType, err *Erro
 }
 
 // In case params is nil default values defined at DeviceHive take place
-func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *Error) {
+func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -286,6 +283,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *E
 		return nil, err
 	}
 
+	var list []*DeviceType
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -298,10 +296,10 @@ func (c *Client) ListDeviceTypes(params *ListParams) (list []*DeviceType, err *E
 }
 
 // Gets information about DeviceHive server
-func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
-	info = &ServerInfo{}
+func (c *Client) GetInfo() (*ServerInfo, *Error) {
+	info := &ServerInfo{}
 
-	err = c.getModel("apiInfo", info, nil)
+	err := c.getModel("apiInfo", info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -309,10 +307,10 @@ func (c *Client) GetInfo() (info *ServerInfo, err *Error) {
 	return info, nil
 }
 
-func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
-	info = &ClusterInfo{}
+func (c *Client) GetClusterInfo() (*ClusterInfo, *Error) {
+	info := &ClusterInfo{}
 
-	err = c.getModel("apiInfoCluster", info, nil)
+	err := c.getModel("apiInfoCluster", info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -320,8 +318,8 @@ func (c *Client) GetClusterInfo() (info *ClusterInfo, err *Error) {
 	return info, nil
 }
 
-func (c *Client) CreateNetwork(name, description string) (ntwk *Network, err *Error) {
-	ntwk = c.NewNetwork()
+func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
+	ntwk := c.NewNetwork()
 
 	ntwk.Name = name
 	ntwk.Description = description
@@ -341,10 +339,10 @@ func (c *Client) CreateNetwork(name, description string) (ntwk *Network, err *Er
 	return ntwk, nil
 }
 
-func (c *Client) GetNetwork(networkId int) (ntwk *Network, err *Error) {
-	ntwk = c.NewNetwork()
+func (c *Client) GetNetwork(networkId int) (*Network, *Error) {
+	ntwk := c.NewNetwork()
 
-	err = c.getModel("getNetwork", ntwk, map[string]interface{}{
+	err := c.getModel("getNetwork", ntwk, map[string]interface{}{
 		"networkId": networkId,
 	})
 	if err != nil {
@@ -355,7 +353,7 @@ func (c *Client) GetNetwork(networkId int) (ntwk *Network, err *Error) {
 }
 
 // In case params is nil default values defined at DeviceHive take place
-func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) {
+func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -370,6 +368,7 @@ func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) 
 		return nil, err
 	}
 
+	var list []*Network
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -380,10 +379,10 @@ func (c *Client) ListNetworks(params *ListParams) (list []*Network, err *Error) 
 	return list, nil
 }
 
-func (c *Client) GetProperty(name string) (conf *Configuration, err *Error) {
-	conf = &Configuration{}
+func (c *Client) GetProperty(name string) (*Configuration, *Error) {
+	conf := &Configuration{}
 
-	err = c.getModel("getConfig", conf, map[string]interface{}{
+	err := c.getModel("getConfig", conf, map[string]interface{}{
 		"name": name,
 	})
 	if err != nil {
@@ -527,10 +526,10 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	return usr, nil
 }
 
-func (c *Client) GetUser(userId int) (usr *User, err *Error) {
-	usr = c.NewUser()
+func (c *Client) GetUser(userId int) (*User, *Error) {
+	usr := c.NewUser()
 
-	err = c.getModel("getUser", usr, map[string]interface{}{
+	err := c.getModel("getUser", usr, map[string]interface{}{
 		"userId": userId,
 	})
 	if err != nil {
@@ -540,10 +539,10 @@ func (c *Client) GetUser(userId int) (usr *User, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) GetCurrentUser() (usr *User, err *Error) {
-	usr = c.NewUser()
+func (c *Client) GetCurrentUser() (*User, *Error) {
+	usr := c.NewUser()
 
-	err = c.getModel("getCurrentUser", usr, nil)
+	err := c.getModel("getCurrentUser", usr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -551,7 +550,7 @@ func (c *Client) GetCurrentUser() (usr *User, err *Error) {
 	return usr, nil
 }
 
-func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
+func (c *Client) ListUsers(params *ListParams) ([]*User, *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -566,6 +565,7 @@ func (c *Client) ListUsers(params *ListParams) (list []*User, err *Error) {
 		return nil, err
 	}
 
+	var list []*User
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()

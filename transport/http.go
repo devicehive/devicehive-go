@@ -7,20 +7,21 @@ package transport
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/transport/apirequests"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transport/apirequests"
 )
 
 const (
 	defaultHTTPMethod = "GET"
 )
 
-func newHTTP(addr string) (tsp *httpTsp, err error) {
+func newHTTP(addr string) (*httpTsp, error) {
 	if addr[len(addr)-1:] != "/" {
 		addr += "/"
 	}
@@ -50,7 +51,7 @@ func (t *httpTsp) IsWS() bool {
 	return false
 }
 
-func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) (rawRes []byte, err *Error) {
+func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
 	client := &http.Client{}
 	addr, err := t.createRequestAddr(resource)
 	if err != nil {
@@ -81,7 +82,7 @@ func (t *httpTsp) getRequestMethod(params *RequestParams) string {
 	return params.Method
 }
 
-func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (req *http.Request, err error) {
+func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (*http.Request, error) {
 	if method == "GET" {
 		return http.NewRequest(method, addr, nil)
 	}
@@ -94,7 +95,7 @@ func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (req
 	return http.NewRequest(method, addr, reqDataReader)
 }
 
-func (t *httpTsp) createRequestDataReader(params *RequestParams) (dataReader *bytes.Reader, err error) {
+func (t *httpTsp) createRequestDataReader(params *RequestParams) (*bytes.Reader, error) {
 	var rawReqData []byte
 
 	if params != nil && params.Data != nil {
@@ -132,7 +133,7 @@ func (t *httpTsp) addRequestHeaders(req *http.Request, params *RequestParams) {
 	}
 }
 
-func (t *httpTsp) doRequest(client *http.Client, req *http.Request) (rawRes []byte, err *Error) {
+func (t *httpTsp) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
 	res, resErr := client.Do(req)
 
 	if resErr != nil {
@@ -184,9 +185,9 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (subscriptio
 	return subscription, subscriptionId, nil
 }
 
-func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte, errChan chan error) {
-	resChan = make(chan []byte)
-	errChan = make(chan error)
+func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (chan []byte, chan error) {
+	resChan := make(chan []byte)
+	errChan := make(chan error)
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {

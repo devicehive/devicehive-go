@@ -5,13 +5,14 @@
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/transport/apirequests"
-	"github.com/devicehive/devicehive-go/utils"
-	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transport/apirequests"
+	"github.com/devicehive/devicehive-go/utils"
+	"github.com/gorilla/websocket"
 )
 
 func newWS(addr string) (tsp *ws, err error) {
@@ -48,7 +49,7 @@ func (t *ws) IsWS() bool {
 	return true
 }
 
-func (t *ws) Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error) {
+func (t *ws) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
@@ -72,7 +73,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	select {
-	case res = <-req.Data:
+	case res := <-req.Data:
 		return res, nil
 	case err := <-req.Err:
 		return nil, NewError(ConnClosedErr, err.Error())

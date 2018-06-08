@@ -5,8 +5,9 @@
 package transportadapter
 
 import (
-	"github.com/devicehive/devicehive-go/transport"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transport"
 )
 
 func New(tsp transport.Transporter) TransportAdapter {

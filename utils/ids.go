@@ -6,9 +6,9 @@ package utils
 
 import "encoding/json"
 
-func ParseIDs(b []byte) (ids *IDs, err error) {
-	ids = &IDs{}
-	err = json.Unmarshal(b, ids)
+func ParseIDs(b []byte) (*IDs, error) {
+	ids := &IDs{}
+	err := json.Unmarshal(b, ids)
 	return ids, err
 }
 

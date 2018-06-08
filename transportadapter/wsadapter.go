@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/devicehive/devicehive-go/transport"
 	"strings"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transport"
 )
 
 type WSAdapter struct {
@@ -23,8 +24,8 @@ type wsResponse struct {
 	Code   int    `json:"code"`
 }
 
-func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
-	_, err = a.Request("auth", map[string]interface{}{
+func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
+	_, err := a.Request("auth", map[string]interface{}{
 		"token": token,
 	}, timeout)
 
@@ -35,7 +36,7 @@ func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (result bo
 	return true, nil
 }
 
-func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
@@ -43,7 +44,7 @@ func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, ti
 		return nil, tspErr
 	}
 
-	err = a.handleResponseError(resBytes)
+	err := a.handleResponseError(resBytes)
 	if err != nil {
 		return nil, err
 	}
