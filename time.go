@@ -28,11 +28,7 @@ func (t *ISO8601Time) UnmarshalJSON(b []byte) (err error) {
 
 	t.Time, err = time.Parse(timestampLayout, s)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
 
 func (t *ISO8601Time) MarshalJSON() (b []byte, err error) {

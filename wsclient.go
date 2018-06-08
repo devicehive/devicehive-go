@@ -6,8 +6,9 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/transportadapter"
 	"time"
+
+	"github.com/devicehive/devicehive-go/transportadapter"
 )
 
 type WSClient struct {
