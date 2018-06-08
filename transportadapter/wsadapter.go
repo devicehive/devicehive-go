@@ -53,15 +53,42 @@ func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, ti
 	return resBytes, nil
 }
 
-func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
-	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	tspSubs, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
 	if tspErr != nil {
 		return nil, "", tspErr
 	}
 
-	return tspChan, subscriptionId, nil
+	subscription = a.transformSubscription(resourceName, tspSubs)
+
+	return subscription, subscriptionId, nil
+}
+
+func (a *WSAdapter) transformSubscription(resourceName string, subs *transport.Subscription) *transport.Subscription {
+	dataChan := make(chan []byte, 16)
+
+	go func() {
+		for d := range subs.DataChan {
+			resErr := a.handleResponseError(d)
+			if resErr != nil {
+				subs.ErrChan <- resErr
+			} else {
+				data := a.extractResponsePayload(resourceName+"Event", d)
+				dataChan <- data
+			}
+		}
+
+		close(dataChan)
+	}()
+
+	transSubs := &transport.Subscription{
+		DataChan: dataChan,
+		ErrChan:  subs.ErrChan,
+	}
+
+	return transSubs
 }
 
 func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
@@ -130,28 +157,30 @@ func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]inte
 }
 
 var wsResponsePayloads = map[string]string{
-	"getConfig":          "configuration",
-	"putConfig":          "configuration",
-	"deleteConfig":       "configuration",
-	"apiInfo":            "info",
-	"apiInfoCluster":     "clusterInfo",
-	"listCommands":       "commands",
-	"insertCommand":      "command",
-	"listNotifications":  "notifications",
-	"insertNotification": "notification",
-	"getDevice":          "device",
-	"commandEvent":       "command",
-	"notificationEvent":  "notification",
-	"listDevices":        "devices",
-	"insertNetwork":      "network",
-	"getNetwork":         "network",
-	"listNetworks":       "networks",
-	"insertDeviceType":   "deviceType",
-	"getDeviceType":      "deviceType",
-	"listDeviceTypes":    "deviceTypes",
-	"createUser":         "user",
-	"getUser":            "user",
-	"getCurrentUser":     "current",
-	"listUsers":          "users",
-	"getUserDeviceTypes": "deviceTypes",
+	"getConfig":                   "configuration",
+	"putConfig":                   "configuration",
+	"deleteConfig":                "configuration",
+	"apiInfo":                     "info",
+	"apiInfoCluster":              "clusterInfo",
+	"listCommands":                "commands",
+	"insertCommand":               "command",
+	"listNotifications":           "notifications",
+	"insertNotification":          "notification",
+	"subscribeNotificationsEvent": "notification",
+	"subscribeCommandsEvent":      "command",
+	"getDevice":                   "device",
+	"commandEvent":                "command",
+	"notificationEvent":           "notification",
+	"listDevices":                 "devices",
+	"insertNetwork":               "network",
+	"getNetwork":                  "network",
+	"listNetworks":                "networks",
+	"insertDeviceType":            "deviceType",
+	"getDeviceType":               "deviceType",
+	"listDeviceTypes":             "deviceTypes",
+	"createUser":                  "user",
+	"getUser":                     "user",
+	"getCurrentUser":              "current",
+	"listUsers":                   "users",
+	"getUserDeviceTypes":          "deviceTypes",
 }

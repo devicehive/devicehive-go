@@ -63,7 +63,6 @@ func connect(url string) (*Client, *Error) {
 	}
 
 	client := &Client{
-		transport:                 tsp,
 		transportAdapter:          transportadapter.New(tsp),
 		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
 	}

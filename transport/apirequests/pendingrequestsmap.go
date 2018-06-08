@@ -28,36 +28,18 @@ func (m *PendingRequestsMap) Delete(key string) {
 }
 
 func (m *PendingRequestsMap) CreateRequest(key string) (req *PendingRequest) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	return m.create(key, true)
-}
-
-func (m *PendingRequestsMap) CreateSubscription(key string) (req *PendingRequest) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	return m.create(key, false)
-}
-
-func (m *PendingRequestsMap) create(key string, isErrChan bool) (req *PendingRequest) {
-	var c *PendingRequest
-	data := make(chan []byte, 16)
-	signal := make(chan struct{})
-
-	c = &PendingRequest{
-		Data:       data,
-		Signal:     signal,
+	req = &PendingRequest{
+		Data:       make(chan []byte, 16),
+		Signal:     make(chan struct{}),
 		DataLocker: sync.Mutex{},
-	}
-	if isErrChan {
-		c.Err = make(chan error)
+		Err: 	    make(chan error),
 	}
 
-	m.clients[key] = c
+	m.mu.Lock()
+	m.clients[key] = req
+	m.mu.Unlock()
 
-	return c
+	return req
 }
 
 func (m *PendingRequestsMap) Get(key string) (client *PendingRequest, ok bool) {

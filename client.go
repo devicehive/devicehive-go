@@ -13,7 +13,6 @@ import (
 
 // Main struct which serves as entry point to DeviceHive API
 type Client struct {
-	transport                 transport.Transporter
 	transportAdapter          transportadapter.TransportAdapter
 	refreshToken              string
 	login                     string
@@ -55,12 +54,12 @@ func (c *Client) NewNotification() *Notification {
 // Subscribes to notifications by custom filter
 // In case params is nil returns subscription for all notifications
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *NotificationSubscription, err *Error) {
-	tspChan, subsId, err := c.subscribe("subscribeNotifications", params)
-	if err != nil || tspChan == nil {
+	tspSubs, subsId, err := c.subscribe("subscribeNotifications", params)
+	if err != nil || tspSubs == nil {
 		return nil, err
 	}
 
-	subs = newNotificationSubscription(subsId, tspChan, c)
+	subs = newNotificationSubscription(subsId, tspSubs, c)
 
 	return subs, nil
 }
@@ -68,12 +67,12 @@ func (c *Client) SubscribeNotifications(params *SubscribeParams) (subs *Notifica
 // Subscribes to commands by custom filter
 // In case params is nil returns subscription for all commands
 func (c *Client) SubscribeCommands(params *SubscribeParams) (subs *CommandSubscription, err *Error) {
-	tspChan, subsId, err := c.subscribe("subscribeCommands", params)
-	if err != nil || tspChan == nil {
+	tspSubs, subsId, err := c.subscribe("subscribeCommands", params)
+	if err != nil || tspSubs == nil {
 		return nil, err
 	}
 
-	subs = newCommandSubscription(subsId, tspChan, c)
+	subs = newCommandSubscription(subsId, tspSubs, c)
 
 	return subs, nil
 }
@@ -88,7 +87,7 @@ func (c *Client) authenticate(token string) (result bool, err *Error) {
 	return true, nil
 }
 
-func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspChan chan []byte, subscriptionId string, err *Error) {
+func (c *Client) subscribe(resourceName string, params *SubscribeParams) (subscription *transport.Subscription, subscriptionId string, err *Error) {
 	if params == nil {
 		params = &SubscribeParams{}
 	}
@@ -104,12 +103,12 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (tspCha
 		return nil, "", &Error{name: InvalidRequestErr, reason: jsonErr.Error()}
 	}
 
-	tspChan, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.PollingWaitTimeoutSeconds, data)
+	subs, subscriptionId, rawErr := c.transportAdapter.Subscribe(resourceName, c.PollingWaitTimeoutSeconds, data)
 	if rawErr != nil {
 		return nil, "", newTransportErr(rawErr)
 	}
 
-	return tspChan, subscriptionId, nil
+	return subs, subscriptionId, nil
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {

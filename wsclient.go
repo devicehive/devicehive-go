@@ -38,7 +38,7 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 	}
 
 	go func() {
-		tspChan, subscriptionId, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
+		tspSubs, subscriptionId, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
 		if rawErr != nil {
 			wsc.ErrorChan <- newTransportErr(rawErr)
 			return
@@ -50,7 +50,7 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 
 		wsc.DataChan <- res
 
-		for b := range tspChan {
+		for b := range tspSubs.DataChan {
 			wsc.DataChan <- b
 		}
 	}()

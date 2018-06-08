@@ -33,7 +33,7 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	subs := s.PendingRequestsMap.CreateSubscription(key)
+	subs := s.PendingRequestsMap.CreateRequest(key)
 
 	subsData, newBuffer := s.extractSubscriberData(key)
 

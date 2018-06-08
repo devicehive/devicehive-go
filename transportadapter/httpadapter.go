@@ -46,17 +46,53 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 	return resBytes, nil
 }
 
-func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
 
-	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	tspSubs, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
 	if tspErr != nil {
 		return nil, "", tspErr
 	}
 
-	return tspChan, subscriptionId, nil
+	subscription = a.transformSubscription(tspSubs)
+
+	return subscription, subscriptionId, nil
+}
+
+func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *transport.Subscription {
+	dataChan := make(chan []byte, 16)
+
+	go func() {
+		for d := range subs.DataChan {
+			var list []json.RawMessage
+			err := json.Unmarshal(d, &list)
+			if err != nil {
+				resErr := a.handleResponseError(d)
+				if resErr != nil {
+					subs.ErrChan <- resErr
+				} else {
+					subs.ErrChan <- err
+				}
+
+				continue
+			}
+
+			for _, data := range list {
+				dataChan <- data
+			}
+		}
+
+		close(dataChan)
+	}()
+
+	transSubs := &transport.Subscription{
+		DataChan: dataChan,
+		ErrChan:  subs.ErrChan,
+	}
+
+	return transSubs
 }
 
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
