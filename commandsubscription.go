@@ -7,6 +7,7 @@ package devicehive_go
 import (
 	"encoding/json"
 	"sync"
+
 	"github.com/devicehive/devicehive-go/transport"
 )
 
@@ -15,7 +16,7 @@ var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
-	ErrorChan	 chan *Error
+	ErrorChan    chan *Error
 	client       *Client
 }
 
@@ -39,7 +40,7 @@ func (cs *CommandSubscription) Remove() *Error {
 func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
-		ErrorChan:	  make(chan *Error),
+		ErrorChan:    make(chan *Error),
 		client:       client,
 	}
 	commandSubsMutex.Lock()
@@ -47,9 +48,10 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 	commandSubsMutex.Unlock()
 
 	go func() {
-		loop: for {
+	loop:
+		for {
 			select {
-			case rawComm, ok := <- tspSubs.DataChan:
+			case rawComm, ok := <-tspSubs.DataChan:
 				if !ok {
 					break loop
 				}
@@ -62,7 +64,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 				}
 
 				subs.CommandsChan <- comm
-			case err, ok := <- tspSubs.ErrChan:
+			case err, ok := <-tspSubs.ErrChan:
 				if !ok {
 					break loop
 				}

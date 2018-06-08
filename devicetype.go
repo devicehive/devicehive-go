@@ -41,15 +41,15 @@ func (dt *DeviceType) ForceRemove() *Error {
 	return err
 }
 
-func (dt *DeviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (dt *DeviceType) SubscribeInsertCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return dt.subscribeCommands(names, timestamp, false)
 }
 
-func (dt *DeviceType) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (dt *DeviceType) SubscribeUpdateCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return dt.subscribeCommands(names, timestamp, true)
 }
 
-func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (*CommandSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -60,7 +60,7 @@ func (dt *DeviceType) subscribeCommands(names []string, timestamp time.Time, isC
 	return dt.client.SubscribeCommands(params)
 }
 
-func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (dt *DeviceType) SubscribeNotifications(names []string, timestamp time.Time) (*NotificationSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:         names,
 		Timestamp:     timestamp,

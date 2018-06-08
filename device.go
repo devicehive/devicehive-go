@@ -37,7 +37,7 @@ func (d *Device) Save() *Error {
 }
 
 // In case params is nil default values defined at DeviceHive take place
-func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) {
+func (d *Device) ListCommands(params *ListParams) ([]*Command, *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -54,6 +54,7 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 		return nil, err
 	}
 
+	var list []*Command
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -67,9 +68,9 @@ func (d *Device) ListCommands(params *ListParams) (list []*Command, err *Error) 
 }
 
 func (d *Device) SendCommand(name string, params map[string]interface{}, lifetime int, timestamp time.Time,
-	status string, result map[string]interface{}) (comm *Command, err *Error) {
+	status string, result map[string]interface{}) (*Command, *Error) {
 
-	comm = d.client.NewCommand()
+	comm := d.client.NewCommand()
 
 	if params != nil {
 		comm.Parameters = params
@@ -108,7 +109,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 }
 
 // In case params is nil default values defined at DeviceHive take place
-func (d *Device) ListNotifications(params *ListParams) (list []*Notification, err *Error) {
+func (d *Device) ListNotifications(params *ListParams) ([]*Notification, *Error) {
 	if params == nil {
 		params = &ListParams{}
 	}
@@ -125,6 +126,7 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 		return nil, err
 	}
 
+	var list []*Notification
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
 		return nil, newJSONErr()
@@ -133,8 +135,8 @@ func (d *Device) ListNotifications(params *ListParams) (list []*Notification, er
 	return list, nil
 }
 
-func (d *Device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (notif *Notification, err *Error) {
-	notif = &Notification{
+func (d *Device) SendNotification(name string, params map[string]interface{}, timestamp time.Time) (*Notification, *Error) {
+	notif := &Notification{
 		Notification: name,
 	}
 
@@ -162,15 +164,15 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 	return notif, nil
 }
 
-func (d *Device) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *Device) SubscribeInsertCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return d.subscribeCommands(names, timestamp, false)
 }
 
-func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (d *Device) SubscribeUpdateCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return d.subscribeCommands(names, timestamp, true)
 }
 
-func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (*CommandSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -182,7 +184,7 @@ func (d *Device) subscribeCommands(names []string, timestamp time.Time, isCommUp
 
 }
 
-func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (d *Device) SubscribeNotifications(names []string, timestamp time.Time) (*NotificationSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:     names,
 		Timestamp: timestamp,
