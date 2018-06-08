@@ -14,8 +14,10 @@ import (
 	"github.com/devicehive/devicehive-go/transport"
 )
 
+const TokenExpiredHTTPErr = "401 token expired"
+
 type HTTPAdapter struct {
-	transport   transport.Transporter
+	transport   *transport.HTTP
 	accessToken string
 }
 
@@ -25,6 +27,7 @@ type httpResponse struct {
 }
 
 func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
+	a.transport.SetPollingToken(token)
 	a.accessToken = token
 	return true, nil
 }
@@ -64,36 +67,57 @@ func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds i
 
 func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *transport.Subscription {
 	dataChan := make(chan []byte, 16)
+	errChan := make(chan error)
 
 	go func() {
-		for d := range subs.DataChan {
-			var list []json.RawMessage
-			err := json.Unmarshal(d, &list)
-			if err != nil {
-				resErr := a.handleResponseError(d)
-				if resErr != nil {
-					subs.ErrChan <- resErr
-				} else {
-					subs.ErrChan <- err
+		loop: for {
+			select {
+			case d, ok := <- subs.DataChan:
+				if !ok {
+					break loop
 				}
 
-				continue
-			}
+				list, err := a.handleSubscriptionEventData(d)
+				if err != nil {
+					errChan <- err
+					continue
+				}
 
-			for _, data := range list {
-				dataChan <- data
+				for _, data := range list {
+					dataChan <- data
+				}
+			case err, ok := <- subs.ErrChan:
+				if !ok {
+					break loop
+				}
+
+				errChan <- err
 			}
 		}
 
 		close(dataChan)
+		close(errChan)
 	}()
 
 	transSubs := &transport.Subscription{
 		DataChan: dataChan,
-		ErrChan:  subs.ErrChan,
+		ErrChan:  errChan,
 	}
 
 	return transSubs
+}
+
+func (a *HTTPAdapter) handleSubscriptionEventData(data []byte) ([]json.RawMessage, error) {
+	var list []json.RawMessage
+	if err := json.Unmarshal(data, &list); err != nil {
+		if resErr := a.handleResponseError(data); resErr != nil {
+			return nil, resErr
+		} else {
+			return nil, err
+		}
+	}
+
+	return list, nil
 }
 
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {

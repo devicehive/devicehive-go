@@ -57,7 +57,7 @@ func (d *Device) ListCommands(params *ListParams) ([]*Command, *Error) {
 	var list []*Command
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 
 	for _, c := range list {
@@ -100,7 +100,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 
 	parseErr := json.Unmarshal(rawRes, comm)
 	if parseErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(parseErr)
 	}
 
 	comm.DeviceId = d.Id
@@ -129,7 +129,7 @@ func (d *Device) ListNotifications(params *ListParams) ([]*Notification, *Error)
 	var list []*Notification
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 
 	return list, nil
@@ -158,7 +158,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 
 	pErr := json.Unmarshal(rawRes, notif)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 
 	return notif, nil

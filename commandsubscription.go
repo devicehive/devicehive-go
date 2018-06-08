@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/devicehive/devicehive-go/transport"
+	"errors"
 )
 
 var commandSubsMutex = sync.Mutex{}
@@ -35,6 +36,14 @@ func (cs *CommandSubscription) Remove() *Error {
 	delete(commandSubscriptions, cs)
 
 	return nil
+}
+
+func (cs *CommandSubscription) removeWithError(err *Error) {
+	cs.ErrorChan <- err
+	removeErr := cs.Remove()
+	if removeErr != nil {
+		cs.ErrorChan <- removeErr
+	}
 }
 
 func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
@@ -69,7 +78,11 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 					break loop
 				}
 
-				subs.ErrorChan <- newError(err)
+				if err.Error() == "401 token expired" || err.Error() == "401 token has expired" {
+					reauthenticateHTTPPolling(client, subs, err)
+				} else {
+					subs.ErrorChan <- newError(err)
+				}
 			}
 		}
 
@@ -78,4 +91,22 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 	}()
 
 	return subs
+}
+
+func reauthenticateHTTPPolling(client *Client, subs *CommandSubscription, err error) {
+	accessToken, refreshErr := client.RefreshToken()
+	if refreshErr != nil {
+		subs.removeWithError(refreshErr)
+		return
+	}
+
+	res, authErr := client.authenticate(accessToken)
+	if authErr != nil {
+		subs.removeWithError(authErr)
+		return
+	}
+
+	if !res {
+		subs.removeWithError(newError(errors.New("re-authentication failed")))
+	}
 }

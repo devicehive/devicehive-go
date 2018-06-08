@@ -96,7 +96,7 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 		List *[]*Network `json:"networks"`
 	}{&list})
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = u.client
@@ -114,7 +114,7 @@ func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 
 	pErr := json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = u.client

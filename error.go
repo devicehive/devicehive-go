@@ -19,8 +19,8 @@ func newError(err error) *Error {
 	}
 }
 
-func newJSONErr() *Error {
-	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string"}
+func newJSONErr(err error) *Error {
+	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string: " + err.Error()}
 }
 
 func newTransportErr(err *transport.Error) *Error {

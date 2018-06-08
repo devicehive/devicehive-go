@@ -21,7 +21,7 @@ const (
 	defaultHTTPMethod = "GET"
 )
 
-func newHTTP(addr string) (*httpTsp, error) {
+func newHTTP(addr string) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
 		addr += "/"
 	}
@@ -32,26 +32,31 @@ func newHTTP(addr string) (*httpTsp, error) {
 		return nil, err
 	}
 
-	return &httpTsp{
+	return &HTTP{
 		url:           u,
 		subscriptions: apirequests.NewClientsMap(),
 	}, nil
 }
 
-type httpTsp struct {
-	url           *url.URL
-	subscriptions *apirequests.PendingRequestsMap
+type HTTP struct {
+	url                *url.URL
+	subscriptions      *apirequests.PendingRequestsMap
+	pollingAccessToken string
 }
 
-func (t *httpTsp) IsHTTP() bool {
+func (t *HTTP) IsHTTP() bool {
 	return true
 }
 
-func (t *httpTsp) IsWS() bool {
+func (t *HTTP) IsWS() bool {
 	return false
 }
 
-func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *HTTP) SetPollingToken(accessToken string) {
+	t.pollingAccessToken = accessToken
+}
+
+func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
 	client := &http.Client{}
 	addr, err := t.createRequestAddr(resource)
 	if err != nil {
@@ -74,7 +79,7 @@ func (t *httpTsp) Request(resource string, params *RequestParams, timeout time.D
 	return t.doRequest(client, req)
 }
 
-func (t *httpTsp) getRequestMethod(params *RequestParams) string {
+func (t *HTTP) getRequestMethod(params *RequestParams) string {
 	if params == nil || params.Method == "" {
 		return defaultHTTPMethod
 	}
@@ -82,7 +87,7 @@ func (t *httpTsp) getRequestMethod(params *RequestParams) string {
 	return params.Method
 }
 
-func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (*http.Request, error) {
+func (t *HTTP) createRequest(method, addr string, params *RequestParams) (*http.Request, error) {
 	if method == "GET" {
 		return http.NewRequest(method, addr, nil)
 	}
@@ -95,7 +100,7 @@ func (t *httpTsp) createRequest(method, addr string, params *RequestParams) (*ht
 	return http.NewRequest(method, addr, reqDataReader)
 }
 
-func (t *httpTsp) createRequestDataReader(params *RequestParams) (*bytes.Reader, error) {
+func (t *HTTP) createRequestDataReader(params *RequestParams) (*bytes.Reader, error) {
 	var rawReqData []byte
 
 	if params != nil && params.Data != nil {
@@ -112,7 +117,7 @@ func (t *httpTsp) createRequestDataReader(params *RequestParams) (*bytes.Reader,
 	return bytes.NewReader(rawReqData), nil
 }
 
-func (t *httpTsp) createRequestAddr(resource string) (addr string, err *Error) {
+func (t *HTTP) createRequestAddr(resource string) (addr string, err *Error) {
 	u := t.url
 
 	if resource != "" {
@@ -127,13 +132,13 @@ func (t *httpTsp) createRequestAddr(resource string) (addr string, err *Error) {
 	return u.String(), nil
 }
 
-func (t *httpTsp) addRequestHeaders(req *http.Request, params *RequestParams) {
+func (t *HTTP) addRequestHeaders(req *http.Request, params *RequestParams) {
 	if params != nil && params.AccessToken != "" {
 		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
 	}
 }
 
-func (t *httpTsp) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
+func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
 	res, resErr := client.Do(req)
 
 	if resErr != nil {
@@ -154,7 +159,7 @@ func (t *httpTsp) doRequest(client *http.Client, req *http.Request) ([]byte, *Er
 	return rawRes, nil
 }
 
-func (t *httpTsp) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
 	subs := t.subscriptions.CreateRequest(subscriptionId)
@@ -171,6 +176,8 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (subscriptio
 			case res := <-resChan:
 				subs.Data <- res
 			case <-subs.Signal:
+				close(subs.Data)
+				close(subs.Err)
 				close(done)
 				break loop
 			}
@@ -185,9 +192,9 @@ func (t *httpTsp) Subscribe(resource string, params *RequestParams) (subscriptio
 	return subscription, subscriptionId, nil
 }
 
-func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{}) (chan []byte, chan error) {
-	resChan := make(chan []byte)
-	errChan := make(chan error)
+func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte, errChan chan error) {
+	resChan = make(chan []byte)
+	errChan = make(chan error)
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
@@ -199,6 +206,7 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 	go func() {
 	loop:
 		for {
+			params.AccessToken = t.pollingAccessToken
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
 				errChan <- err
@@ -216,7 +224,7 @@ func (t *httpTsp) poll(resource string, params *RequestParams, done chan struct{
 	return resChan, errChan
 }
 
-func (t *httpTsp) Unsubscribe(subscriptionId string) {
+func (t *HTTP) Unsubscribe(subscriptionId string) {
 	subscriber, ok := t.subscriptions.Get(subscriptionId)
 
 	if ok {
