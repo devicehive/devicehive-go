@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/devicehive/devicehive-go/transport/apirequests"
@@ -20,6 +21,8 @@ import (
 const (
 	defaultHTTPMethod = "GET"
 )
+
+var pollingAccessTokenMutex = sync.Mutex{}
 
 func newHTTP(addr string) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
@@ -53,7 +56,9 @@ func (t *HTTP) IsWS() bool {
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
+	pollingAccessTokenMutex.Lock()
 	t.pollingAccessToken = accessToken
+	pollingAccessTokenMutex.Unlock()
 }
 
 func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
@@ -206,7 +211,10 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 	go func() {
 	loop:
 		for {
+			pollingAccessTokenMutex.Lock()
 			params.AccessToken = t.pollingAccessToken
+			pollingAccessTokenMutex.Unlock()
+
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
 				errChan <- err

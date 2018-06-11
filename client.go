@@ -436,10 +436,10 @@ func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time
 		data["deviceTypeIds"] = deviceTypeIds
 	}
 	if expiration.Unix() > 0 {
-		data["expiration"] = expiration.UTC().Format(timestampLayout)
+		data["expiration"] = &ISO8601Time{expiration}
 	}
 	if refreshExpiration.Unix() > 0 {
-		data["refreshExpiration"] = refreshExpiration.UTC().Format(timestampLayout)
+		data["refreshExpiration"] = &ISO8601Time{refreshExpiration}
 	}
 
 	return c.tokenRequest("tokenCreate", map[string]interface{}{
@@ -458,7 +458,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
 	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
-		"refreshToken": c.refreshToken,
+		"refreshToken": refreshToken,
 	})
 
 	if err != nil {

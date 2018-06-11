@@ -10,10 +10,14 @@ import (
 
 	"github.com/devicehive/devicehive-go/transport"
 	"errors"
+	"time"
 )
 
 var commandSubsMutex = sync.Mutex{}
 var commandSubscriptions = make(map[*CommandSubscription]string)
+
+var lastReauthMutex = sync.Mutex{}
+var lastReauth time.Time
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
@@ -79,7 +83,12 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 				}
 
 				if err.Error() == "401 token expired" || err.Error() == "401 token has expired" {
-					reauthenticateHTTPPolling(client, subs, err)
+					lastReauthMutex.Lock()
+					if time.Now().Sub(lastReauth) > 1 * time.Minute {
+						reauthenticateHTTPPolling(client, subs, err)
+						lastReauth = time.Now()
+					}
+					lastReauthMutex.Unlock()
 				} else {
 					subs.ErrorChan <- newError(err)
 				}
