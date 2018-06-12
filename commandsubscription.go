@@ -9,15 +9,10 @@ import (
 	"sync"
 
 	"github.com/devicehive/devicehive-go/transport"
-	"errors"
-	"time"
 )
 
 var commandSubsMutex = sync.Mutex{}
 var commandSubscriptions = make(map[*CommandSubscription]string)
-
-var lastReauthMutex = sync.Mutex{}
-var lastReauth time.Time
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
@@ -42,12 +37,8 @@ func (cs *CommandSubscription) Remove() *Error {
 	return nil
 }
 
-func (cs *CommandSubscription) removeWithError(err *Error) {
+func (cs *CommandSubscription) sendError(err *Error) {
 	cs.ErrorChan <- err
-	removeErr := cs.Remove()
-	if removeErr != nil {
-		cs.ErrorChan <- removeErr
-	}
 }
 
 func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
@@ -82,16 +73,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 					break loop
 				}
 
-				if err.Error() == "401 token expired" || err.Error() == "401 token has expired" {
-					lastReauthMutex.Lock()
-					if time.Now().Sub(lastReauth) > 1 * time.Minute {
-						reauthenticateHTTPPolling(client, subs, err)
-						lastReauth = time.Now()
-					}
-					lastReauthMutex.Unlock()
-				} else {
-					subs.ErrorChan <- newError(err)
-				}
+				client.handleSubscriptionError(subs, err)
 			}
 		}
 
@@ -100,22 +82,4 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 	}()
 
 	return subs
-}
-
-func reauthenticateHTTPPolling(client *Client, subs *CommandSubscription, err error) {
-	accessToken, refreshErr := client.RefreshToken()
-	if refreshErr != nil {
-		subs.removeWithError(refreshErr)
-		return
-	}
-
-	res, authErr := client.authenticate(accessToken)
-	if authErr != nil {
-		subs.removeWithError(authErr)
-		return
-	}
-
-	if !res {
-		subs.removeWithError(newError(errors.New("re-authentication failed")))
-	}
 }

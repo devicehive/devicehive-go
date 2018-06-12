@@ -6,6 +6,7 @@ package devicehive_go
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/devicehive/devicehive-go/transport"
@@ -78,14 +79,40 @@ func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscriptio
 	return subs, nil
 }
 
-func (c *Client) authenticate(token string) (bool, *Error) {
-	_, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+func (c *Client) handleSubscriptionError(subs subscriber, err error) {
+	if err.Error() == TokenExpiredErr {
+		if subscriptionReauth.reauthNeeded() {
+			c.reauthenticateSubscription(subs)
+			subscriptionReauth.reauthPoint()
+		}
+	} else {
+		subs.sendError(newError(err))
+	}
+}
 
-	if rawErr != nil {
-		return false, newError(rawErr)
+func (c *Client) reauthenticateSubscription(subs subscriber) {
+	accessToken, err := c.RefreshToken()
+	if err != nil {
+		removeSubscriptionWithError(subs, err)
+		return
 	}
 
-	return true, nil
+	if success, err := c.authenticate(accessToken); err != nil {
+		removeSubscriptionWithError(subs, err)
+		return
+	} else if !success {
+		removeSubscriptionWithError(subs, newError(errors.New("re-authentication failed")))
+	}
+}
+
+func (c *Client) authenticate(token string) (bool, *Error) {
+	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+
+	if rawErr != nil {
+		return result, newError(rawErr)
+	}
+
+	return result, nil
 }
 
 func (c *Client) subscribe(resourceName string, params *SubscribeParams) (subscription *transport.Subscription, subscriptionId string, err *Error) {
