@@ -35,12 +35,20 @@ func (ns *NotificationSubscription) Remove() *Error {
 	return nil
 }
 
+func (ns *NotificationSubscription) sendError(err *Error) {
+	ns.ErrorChan <- err
+}
+
 func newNotificationSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *NotificationSubscription {
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
 		ErrorChan:		  make(chan *Error),
 		client:           client,
 	}
+
+	notifSubsMutex.Lock()
+	notificationSubscriptions[subs] = subsId
+	notifSubsMutex.Unlock()
 
 	go func() {
 		loop: for {
@@ -63,17 +71,13 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 					break loop
 				}
 
-				subs.ErrorChan <- newError(err)
+				client.handleSubscriptionError(subs, err)
 			}
 		}
 
 		close(subs.NotificationChan)
 		close(subs.ErrorChan)
 	}()
-
-	notifSubsMutex.Lock()
-	notificationSubscriptions[subs] = subsId
-	notifSubsMutex.Unlock()
 
 	return subs
 }
