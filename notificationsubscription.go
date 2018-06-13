@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var notifSubsMutex = sync.Mutex{}
+var notifSubsMutex sync.Mutex
 var notificationSubscriptions = make(map[*NotificationSubscription]string)
 
 type NotificationSubscription struct {

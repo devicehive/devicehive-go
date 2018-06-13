@@ -5,9 +5,7 @@ import (
 	"time"
 )
 
-var subscriptionReauth = &subscriptionReauthenticator{
-	lastReauthMutex: sync.Mutex{},
-}
+var subscriptionReauth = &subscriptionReauthenticator{}
 
 type subscriber interface {
 	Remove() *Error

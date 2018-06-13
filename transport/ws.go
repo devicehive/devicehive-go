@@ -24,7 +24,6 @@ func newWS(addr string) (tsp *WS, err error) {
 
 	tsp = &WS{
 		conn:          conn,
-		connMu:        sync.Mutex{},
 		requests:      apirequests.NewClientsMap(),
 		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
 	}

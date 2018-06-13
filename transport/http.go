@@ -22,7 +22,7 @@ const (
 	defaultHTTPMethod = "GET"
 )
 
-var pollingAccessTokenMutex = sync.Mutex{}
+var pollingAccessTokenMutex sync.Mutex
 
 func newHTTP(addr string) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {

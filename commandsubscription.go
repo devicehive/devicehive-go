@@ -11,7 +11,7 @@ import (
 	"github.com/devicehive/devicehive-go/transport"
 )
 
-var commandSubsMutex = sync.Mutex{}
+var commandSubsMutex sync.Mutex
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
