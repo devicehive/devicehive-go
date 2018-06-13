@@ -6,8 +6,8 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"sync"
 	"github.com/devicehive/devicehive-go/transport"
+	"sync"
 )
 
 var notifSubsMutex = sync.Mutex{}
@@ -15,7 +15,7 @@ var notificationSubscriptions = make(map[*NotificationSubscription]string)
 
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
-	ErrorChan	 chan *Error
+	ErrorChan        chan *Error
 	client           *Client
 }
 
@@ -42,7 +42,7 @@ func (ns *NotificationSubscription) sendError(err *Error) {
 func newNotificationSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *NotificationSubscription {
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
-		ErrorChan:		  make(chan *Error),
+		ErrorChan:        make(chan *Error),
 		client:           client,
 	}
 
@@ -51,9 +51,10 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 	notifSubsMutex.Unlock()
 
 	go func() {
-		loop: for {
+	loop:
+		for {
 			select {
-			case rawNotif, ok := <- tspSubs.DataChan:
+			case rawNotif, ok := <-tspSubs.DataChan:
 				if !ok {
 					break loop
 				}
@@ -66,7 +67,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 				}
 
 				subs.NotificationChan <- notif
-			case err, ok := <- tspSubs.ErrChan:
+			case err, ok := <-tspSubs.ErrChan:
 				if !ok {
 					break loop
 				}

@@ -1,8 +1,8 @@
 package devicehive_go
 
 import (
-	"time"
 	"sync"
+	"time"
 )
 
 var subscriptionReauth = &subscriptionReauthenticator{
@@ -23,14 +23,14 @@ func removeSubscriptionWithError(s subscriber, err *Error) {
 }
 
 type subscriptionReauthenticator struct {
-	lastReauth time.Time
+	lastReauth      time.Time
 	lastReauthMutex sync.Mutex
 }
 
 func (sr *subscriptionReauthenticator) reauthNeeded() bool {
 	sr.lastReauthMutex.Lock()
 	defer sr.lastReauthMutex.Unlock()
-	return time.Now().Sub(sr.lastReauth) > 5 * time.Second
+	return time.Now().Sub(sr.lastReauth) > 5*time.Second
 }
 
 func (sr *subscriptionReauthenticator) reauthPoint() {

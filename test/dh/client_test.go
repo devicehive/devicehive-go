@@ -14,7 +14,6 @@ import (
 var testTokens = []byte(`{"accessToken":"test","refreshToken":"test"}`)
 var response401 = []byte(`{"timestamp":"2018-05-25T05:20:44.181","status":401,"error":"Unauthorized","message":"Token expired"}`)
 
-
 func TestReauthorizationByCreds(t *testing.T) {
 	httpSrv, httpAddr, httpClose := stubs.StartHTTPTestServer()
 	defer httpClose()

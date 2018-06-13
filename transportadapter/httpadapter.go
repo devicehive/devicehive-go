@@ -68,9 +68,10 @@ func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *trans
 	errChan := make(chan error)
 
 	go func() {
-		loop: for {
+	loop:
+		for {
 			select {
-			case d, ok := <- subs.DataChan:
+			case d, ok := <-subs.DataChan:
 				if !ok {
 					break loop
 				}
@@ -84,7 +85,7 @@ func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *trans
 				for _, data := range list {
 					dataChan <- data
 				}
-			case err, ok := <- subs.ErrChan:
+			case err, ok := <-subs.ErrChan:
 				if !ok {
 					break loop
 				}
