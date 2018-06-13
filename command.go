@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 type commandResponse struct {
@@ -15,7 +19,7 @@ type Command struct {
 	Lifetime    int         `json:"lifetime,omitempty"`
 	Status      string      `json:"status,omitempty"`
 	Result      interface{} `json:"result,omitempty"`
-	client 		*Client
+	client      *Client
 }
 
 // Sends request to modify command at DeviceHive

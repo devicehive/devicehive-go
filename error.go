@@ -1,6 +1,10 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
-import "github.com/devicehive/devicehive-go/transport"
+import "github.com/devicehive/devicehive-go/internal/transport"
 
 func newError(err error) *Error {
 	if err == nil {
@@ -15,8 +19,8 @@ func newError(err error) *Error {
 	}
 }
 
-func newJSONErr() *Error {
-	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string"}
+func newJSONErr(err error) *Error {
+	return &Error{name: InvalidResponseErr, reason: "data is not valid JSON string: " + err.Error()}
 }
 
 func newTransportErr(err *transport.Error) *Error {

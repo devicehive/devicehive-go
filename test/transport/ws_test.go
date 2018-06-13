@@ -1,8 +1,12 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transport
 
 import (
+	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/devicehive/devicehive-go/transport"
 	"github.com/gorilla/websocket"
 	"github.com/matryer/is"
 	"testing"

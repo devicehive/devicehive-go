@@ -1,16 +1,21 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transportadapter
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/devicehive/devicehive-go/transport"
 	"strings"
 	"time"
+
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
 type HTTPAdapter struct {
-	transport transport.Transporter
+	transport   *transport.HTTP
 	accessToken string
 }
 
@@ -19,12 +24,13 @@ type httpResponse struct {
 	Status  int    `json:"status"`
 }
 
-func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (result bool, err error) {
+func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
+	a.transport.SetPollingToken(token)
 	a.accessToken = token
 	return true, nil
 }
 
-func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) (res []byte, err error) {
+func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
@@ -32,7 +38,7 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 		return nil, tspErr
 	}
 
-	err = a.handleResponseError(resBytes)
+	err := a.handleResponseError(resBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -42,17 +48,75 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 	return resBytes, nil
 }
 
-func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (tspChan chan []byte, subscriptionId string, err *transport.Error) {
+func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, params)
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
 
-	tspChan, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
+	tspSubs, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
 	if tspErr != nil {
 		return nil, "", tspErr
 	}
 
-	return tspChan, subscriptionId, nil
+	subscription = a.transformSubscription(tspSubs)
+
+	return subscription, subscriptionId, nil
+}
+
+func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *transport.Subscription {
+	dataChan := make(chan []byte, 16)
+	errChan := make(chan error)
+
+	go func() {
+	loop:
+		for {
+			select {
+			case d, ok := <-subs.DataChan:
+				if !ok {
+					break loop
+				}
+
+				list, err := a.handleSubscriptionEventData(d)
+				if err != nil {
+					errChan <- err
+					continue
+				}
+
+				for _, data := range list {
+					dataChan <- data
+				}
+			case err, ok := <-subs.ErrChan:
+				if !ok {
+					break loop
+				}
+
+				errChan <- err
+			}
+		}
+
+		close(dataChan)
+		close(errChan)
+	}()
+
+	transSubs := &transport.Subscription{
+		DataChan: dataChan,
+		ErrChan:  errChan,
+	}
+
+	return transSubs
+}
+
+func (a *HTTPAdapter) handleSubscriptionEventData(data []byte) ([]json.RawMessage, error) {
+	var list []json.RawMessage
+	if err := json.Unmarshal(data, &list); err != nil {
+		if resErr := a.handleResponseError(data); resErr != nil {
+			return nil, resErr
+		} else {
+			return nil, err
+		}
+	}
+
+	return list, nil
 }
 
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
@@ -86,9 +150,9 @@ func (a *HTTPAdapter) handleResponseError(rawRes []byte) error {
 	return nil
 }
 
-func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (httpRes *httpResponse, err error) {
+func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (*httpResponse, error) {
 	res := make(map[string]interface{})
-	err = json.Unmarshal(rawRes, &res)
+	err := json.Unmarshal(rawRes, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +161,7 @@ func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (httpRes *httpResponse, 
 		return nil, nil
 	}
 
-	httpRes = &httpResponse{
+	httpRes := &httpResponse{
 		Message: res["message"].(string),
 	}
 	if e, ok := res["error"].(float64); ok {

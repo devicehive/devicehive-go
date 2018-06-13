@@ -1,15 +1,19 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package apirequests
 
 import (
-	"github.com/devicehive/devicehive-go/utils"
 	"strconv"
 	"sync"
+
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
 	return &WSSubscriptionsMap{
 		PendingRequestsMap: clients,
-		mu:                 sync.Mutex{},
 	}
 }
 
@@ -29,7 +33,7 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	subs := s.PendingRequestsMap.CreateSubscription(key)
+	subs := s.PendingRequestsMap.CreateRequest(key)
 
 	subsData, newBuffer := s.extractSubscriberData(key)
 
@@ -62,5 +66,5 @@ func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]
 		}
 	}
 
-	return subsData, newBuffer
+	return
 }

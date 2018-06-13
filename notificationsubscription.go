@@ -1,16 +1,21 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/devicehive/devicehive-go/internal/transport"
 	"sync"
 )
 
-var notifSubsMutex = sync.Mutex{}
+var notifSubsMutex sync.Mutex
 var notificationSubscriptions = make(map[*NotificationSubscription]string)
 
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
+	ErrorChan        chan *Error
 	client           *Client
 }
 
@@ -30,45 +35,50 @@ func (ns *NotificationSubscription) Remove() *Error {
 	return nil
 }
 
-func newNotificationSubscription(subsId string, tspChan chan []byte, client *Client) *NotificationSubscription {
+func (ns *NotificationSubscription) sendError(err *Error) {
+	ns.ErrorChan <- err
+}
+
+func newNotificationSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *NotificationSubscription {
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
+		ErrorChan:        make(chan *Error),
 		client:           client,
 	}
-
-	go func() {
-		for rawNotif := range tspChan {
-			if client.transport.IsWS() {
-				notif := &Notification{}
-				err := json.Unmarshal(rawNotif, &notificationResponse{Notification: notif})
-
-				if err != nil {
-					log.Println("couldn't unmarshal notification insert event data:", err)
-					continue
-				}
-
-				subs.NotificationChan <- notif
-			} else {
-				var notifs []*Notification
-				err := json.Unmarshal(rawNotif, &notifs)
-
-				if err != nil {
-					log.Println("couldn't unmarshal array of notification data in subscription:", err)
-					continue
-				}
-
-				for _, notif := range notifs {
-					subs.NotificationChan <- notif
-				}
-			}
-		}
-
-		close(subs.NotificationChan)
-	}()
 
 	notifSubsMutex.Lock()
 	notificationSubscriptions[subs] = subsId
 	notifSubsMutex.Unlock()
+
+	go func() {
+	loop:
+		for {
+			select {
+			case rawNotif, ok := <-tspSubs.DataChan:
+				if !ok {
+					break loop
+				}
+
+				notif := client.NewNotification()
+				err := json.Unmarshal(rawNotif, notif)
+				if err != nil {
+					subs.ErrorChan <- &Error{name: InvalidSubscriptionEventData, reason: err.Error()}
+					continue
+				}
+
+				subs.NotificationChan <- notif
+			case err, ok := <-tspSubs.ErrChan:
+				if !ok {
+					break loop
+				}
+
+				client.handleSubscriptionError(subs, err)
+			}
+		}
+
+		close(subs.NotificationChan)
+		close(subs.ErrorChan)
+	}()
 
 	return subs
 }

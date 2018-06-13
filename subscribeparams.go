@@ -1,9 +1,14 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
 	"errors"
-	"github.com/devicehive/devicehive-go/utils"
 	"time"
+
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 type SubscribeParams struct {
@@ -17,8 +22,8 @@ type SubscribeParams struct {
 	WaitTimeout           int       `json:"waitTimeout,omitempty"`
 }
 
-func (p *SubscribeParams) Map() (m map[string]interface{}, err error) {
-	m = utils.StructToJSONMap(p)
+func (p *SubscribeParams) Map() (map[string]interface{}, error) {
+	m := utils.StructToJSONMap(p)
 
 	if m == nil {
 		return nil, errors.New("invalid JSON representation of struct")

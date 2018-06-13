@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
@@ -13,7 +17,7 @@ type User struct {
 	Data                    map[string]interface{} `json:"data,omitempty"`
 	IntroReviewed           bool                   `json:"introReviewed,omitempty"`
 	AllDeviceTypesAvailable bool                   `json:"allDeviceTypesAvailable,omitempty"`
-	client 					*Client
+	client                  *Client
 }
 
 func (u *User) Save() *Error {
@@ -92,7 +96,7 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 		List *[]*Network `json:"networks"`
 	}{&list})
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = u.client
@@ -110,7 +114,7 @@ func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 
 	pErr := json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = u.client

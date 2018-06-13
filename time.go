@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
@@ -24,11 +28,7 @@ func (t *ISO8601Time) UnmarshalJSON(b []byte) (err error) {
 
 	t.Time, err = time.Parse(timestampLayout, s)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return
 }
 
 func (t *ISO8601Time) MarshalJSON() (b []byte, err error) {

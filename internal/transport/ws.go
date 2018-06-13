@@ -1,25 +1,29 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/transport/apirequests"
-	"github.com/devicehive/devicehive-go/utils"
-	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"github.com/gorilla/websocket"
 )
 
-func newWS(addr string) (tsp *ws, err error) {
+func newWS(addr string) (tsp *WS, err error) {
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
 
 	if err != nil {
 		return nil, err
 	}
 
-	tsp = &ws{
+	tsp = &WS{
 		conn:          conn,
-		connMu:        sync.Mutex{},
 		requests:      apirequests.NewClientsMap(),
 		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
 	}
@@ -29,22 +33,22 @@ func newWS(addr string) (tsp *ws, err error) {
 	return tsp, nil
 }
 
-type ws struct {
+type WS struct {
 	conn          *websocket.Conn
 	connMu        sync.Mutex
 	requests      *apirequests.PendingRequestsMap
 	subscriptions *apirequests.WSSubscriptionsMap
 }
 
-func (t *ws) IsHTTP() bool {
+func (t *WS) IsHTTP() bool {
 	return false
 }
 
-func (t *ws) IsWS() bool {
+func (t *WS) IsWS() bool {
 	return true
 }
 
-func (t *ws) Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error) {
+func (t *WS) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
@@ -68,7 +72,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 
 	select {
-	case res = <-req.Data:
+	case res := <-req.Data:
 		return res, nil
 	case err := <-req.Err:
 		return nil, NewError(ConnClosedErr, err.Error())
@@ -79,7 +83,7 @@ func (t *ws) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 }
 
-func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error) {
+func (t *WS) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -94,16 +98,22 @@ func (t *ws) Subscribe(resource string, params *RequestParams) (eventChan chan [
 	return t.subscribe(subscriptionId), subscriptionId, nil
 }
 
-func (t *ws) subscribe(subscriptionId string) (eventChan chan []byte) {
+func (t *WS) subscribe(subscriptionId string) *Subscription {
 	if _, ok := t.subscriptions.Get(subscriptionId); ok {
 		return nil
 	}
 
-	subscription := t.subscriptions.CreateSubscription(subscriptionId)
-	return subscription.Data
+	subs := t.subscriptions.CreateSubscription(subscriptionId)
+
+	subscription := &Subscription{
+		DataChan: subs.Data,
+		ErrChan:  subs.Err,
+	}
+
+	return subscription
 }
 
-func (t *ws) Unsubscribe(subscriptionId string) {
+func (t *WS) Unsubscribe(subscriptionId string) {
 	subscription, ok := t.subscriptions.Get(subscriptionId)
 
 	if ok {
@@ -112,7 +122,7 @@ func (t *ws) Unsubscribe(subscriptionId string) {
 	}
 }
 
-func (t *ws) handleServerMessages() {
+func (t *WS) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
 		connClosed := mt == websocket.CloseMessage || mt == -1
@@ -125,7 +135,7 @@ func (t *ws) handleServerMessages() {
 	}
 }
 
-func (t *ws) terminateRequests(err error) {
+func (t *WS) terminateRequests(err error) {
 	t.requests.ForEach(func(req *apirequests.PendingRequest) {
 		req.Err <- err
 		req.Close()
@@ -136,7 +146,7 @@ func (t *ws) terminateRequests(err error) {
 	})
 }
 
-func (t *ws) resolveReceiver(msg []byte) {
+func (t *WS) resolveReceiver(msg []byte) {
 	ids, err := utils.ParseIDs(msg)
 
 	if err != nil {

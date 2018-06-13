@@ -1,14 +1,19 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transportadapter
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/devicehive/devicehive-go/utils"
 	"log"
 	"net/url"
 	"strings"
 	"text/template"
+
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func isJSONArray(b []byte) bool {

@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
@@ -8,7 +12,7 @@ type Network struct {
 	Id          int    `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
-	client 		*Client
+	client      *Client
 }
 
 func (n *Network) Save() *Error {
@@ -37,15 +41,15 @@ func (n *Network) ForceRemove() *Error {
 	return err
 }
 
-func (n *Network) SubscribeInsertCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (n *Network) SubscribeInsertCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return n.subscribeCommands(names, timestamp, false)
 }
 
-func (n *Network) SubscribeUpdateCommands(names []string, timestamp time.Time) (subs *CommandSubscription, err *Error) {
+func (n *Network) SubscribeUpdateCommands(names []string, timestamp time.Time) (*CommandSubscription, *Error) {
 	return n.subscribeCommands(names, timestamp, true)
 }
 
-func (n *Network) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (subs *CommandSubscription, err *Error) {
+func (n *Network) subscribeCommands(names []string, timestamp time.Time, isCommUpdatesSubscription bool) (*CommandSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:                 names,
 		Timestamp:             timestamp,
@@ -56,7 +60,7 @@ func (n *Network) subscribeCommands(names []string, timestamp time.Time, isCommU
 	return n.client.SubscribeCommands(params)
 }
 
-func (n *Network) SubscribeNotifications(names []string, timestamp time.Time) (subs *NotificationSubscription, err *Error) {
+func (n *Network) SubscribeNotifications(names []string, timestamp time.Time) (*NotificationSubscription, *Error) {
 	params := &SubscribeParams{
 		Names:      names,
 		Timestamp:  timestamp,

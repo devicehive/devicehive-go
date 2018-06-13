@@ -1,14 +1,19 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
-	"github.com/devicehive/devicehive-go/transport"
-	"github.com/devicehive/devicehive-go/transportadapter"
+	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
 // Method uses access token directly to connect
+// If access token is empty it will get access token by refresh token
 // It will recreate access token on expiration by given refresh token
-func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Error) {
-	c, err = connect(url)
+func ConnectWithToken(url, accessToken, refreshToken string) (*Client, *Error) {
+	c, err := connect(url)
 
 	if err != nil {
 		return nil, err
@@ -16,13 +21,23 @@ func ConnectWithToken(url, accessToken, refreshToken string) (c *Client, err *Er
 
 	c.refreshToken = refreshToken
 
+	if accessToken != "" {
+		return auth(accessToken, c)
+	}
+
+	accessToken, err = c.accessTokenByRefresh(refreshToken)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return auth(accessToken, c)
 }
 
 // Method obtains access token by credentials and then connects
 // It will recreate access token on expiration by given credentials
-func ConnectWithCreds(url, login, password string) (c *Client, err *Error) {
-	c, err = connect(url)
+func ConnectWithCreds(url, login, password string) (*Client, *Error) {
+	c, err := connect(url)
 
 	if err != nil {
 		return nil, err
@@ -40,7 +55,7 @@ func ConnectWithCreds(url, login, password string) (c *Client, err *Error) {
 	return auth(accTok, c)
 }
 
-func connect(url string) (c *Client, err *Error) {
+func connect(url string) (*Client, *Error) {
 	tsp, tspErr := transport.Create(url)
 
 	if tspErr != nil {
@@ -48,15 +63,19 @@ func connect(url string) (c *Client, err *Error) {
 	}
 
 	client := &Client{
-		transport:                 tsp,
 		transportAdapter:          transportadapter.New(tsp),
 		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
+	}
+
+	info, err := client.GetInfo()
+	if err == nil {
+		client.subscriptionTimestamp = info.ServerTimestamp.Time
 	}
 
 	return client, nil
 }
 
-func auth(accTok string, c *Client) (client *Client, err *Error) {
+func auth(accTok string, c *Client) (*Client, *Error) {
 	auth, err := c.authenticate(accTok)
 
 	if err != nil {

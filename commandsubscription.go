@@ -1,16 +1,22 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
+
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-var commandSubsMutex = sync.Mutex{}
+var commandSubsMutex sync.Mutex
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
+	ErrorChan    chan *Error
 	client       *Client
 }
 
@@ -31,9 +37,14 @@ func (cs *CommandSubscription) Remove() *Error {
 	return nil
 }
 
-func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) *CommandSubscription {
+func (cs *CommandSubscription) sendError(err *Error) {
+	cs.ErrorChan <- err
+}
+
+func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
+		ErrorChan:    make(chan *Error),
 		client:       client,
 	}
 	commandSubsMutex.Lock()
@@ -41,37 +52,33 @@ func newCommandSubscription(subsId string, tspChan chan []byte, client *Client) 
 	commandSubsMutex.Unlock()
 
 	go func() {
-		for rawComm := range tspChan {
-			if client.transport.IsWS() {
-				comm := &Command{
-					client: client,
+	loop:
+		for {
+			select {
+			case rawComm, ok := <-tspSubs.DataChan:
+				if !ok {
+					break loop
 				}
-				err := json.Unmarshal(rawComm, &commandResponse{Command: comm})
 
+				comm := client.NewCommand()
+				err := json.Unmarshal(rawComm, comm)
 				if err != nil {
-					log.Println("couldn't unmarshal command data in subscription:", err)
+					subs.ErrorChan <- &Error{name: InvalidSubscriptionEventData, reason: err.Error()}
 					continue
 				}
 
 				subs.CommandsChan <- comm
-			} else {
-				var comms []*Command
-				err := json.Unmarshal(rawComm, &comms)
-				for _, v := range comms {
-					v.client = client
-				}
-				if err != nil {
-					log.Println("couldn't unmarshal array of command data in subscription:", err)
-					continue
+			case err, ok := <-tspSubs.ErrChan:
+				if !ok {
+					break loop
 				}
 
-				for _, comm := range comms {
-					subs.CommandsChan <- comm
-				}
+				client.handleSubscriptionError(subs, err)
 			}
 		}
 
 		close(subs.CommandsChan)
+		close(subs.ErrorChan)
 	}()
 
 	return subs

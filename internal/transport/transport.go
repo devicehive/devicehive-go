@@ -1,3 +1,7 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transport
 
 import (
@@ -11,7 +15,7 @@ const (
 
 type Transporter interface {
 	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(resource string, params *RequestParams) (eventChan chan []byte, subscriptionId string, err *Error)
+	Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
 	IsHTTP() bool
 	IsWS() bool

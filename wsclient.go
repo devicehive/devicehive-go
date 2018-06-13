@@ -1,17 +1,22 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package devicehive_go
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/transportadapter"
 	"time"
+
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
 type WSClient struct {
 	transportAdapter *transportadapter.WSAdapter
 	// Channel for receiving responses
-	DataChan         chan []byte
+	DataChan chan []byte
 	// Channel for receiving errors
-	ErrorChan        chan error
+	ErrorChan chan error
 }
 
 func (wsc *WSClient) unsubscribe(resourceName, subscriptionId string) {
@@ -34,7 +39,7 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 	}
 
 	go func() {
-		tspChan, subscriptionId, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
+		tspSubs, subscriptionId, rawErr := wsc.transportAdapter.Subscribe(resourceName, 0, data)
 		if rawErr != nil {
 			wsc.ErrorChan <- newTransportErr(rawErr)
 			return
@@ -46,7 +51,7 @@ func (wsc *WSClient) subscribe(resourceName string, params *SubscribeParams) *Er
 
 		wsc.DataChan <- res
 
-		for b := range tspChan {
+		for b := range tspSubs.DataChan {
 			wsc.DataChan <- b
 		}
 	}()
@@ -264,7 +269,6 @@ func (wsc *WSClient) GetDeviceType(deviceTypeId int) *Error {
 	})
 
 }
-
 
 // In case params is nil default values defined at DeviceHive take place
 func (wsc *WSClient) ListDeviceTypes(params *ListParams) *Error {

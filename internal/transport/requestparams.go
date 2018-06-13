@@ -1,7 +1,11 @@
+// Copyright 2018 DataArt. All rights reserved.
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
+
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/utils"
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -17,7 +21,7 @@ type RequestParams struct {
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-var randLocker = sync.Mutex{}
+var randLocker sync.Mutex
 
 func (p *RequestParams) requestId() string {
 	reqId := p.RequestId
