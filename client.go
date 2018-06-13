@@ -153,7 +153,7 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
 
-	if rawErr != nil && rawErr.Error() == transportadapter.TokenExpiredHTTPErr {
+	if rawErr != nil && rawErr.Error() == TokenExpiredErr {
 		resBytes, err := c.refreshRetry(resourceName, data)
 		return resBytes, err
 	} else if rawErr != nil {

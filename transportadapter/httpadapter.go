@@ -14,8 +14,6 @@ import (
 	"github.com/devicehive/devicehive-go/transport"
 )
 
-const TokenExpiredHTTPErr = "401 token expired"
-
 type HTTPAdapter struct {
 	transport   *transport.HTTP
 	accessToken string
