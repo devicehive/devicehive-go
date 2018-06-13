@@ -13,7 +13,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/devicehive/devicehive-go/utils"
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func isJSONArray(b []byte) bool {

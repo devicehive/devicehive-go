@@ -28,9 +28,9 @@ func (m *PendingRequestsMap) Delete(key string) {
 
 func (m *PendingRequestsMap) CreateRequest(key string) *PendingRequest {
 	req := &PendingRequest{
-		Data:       make(chan []byte, 16),
-		Signal:     make(chan struct{}),
-		Err:        make(chan error),
+		Data:   make(chan []byte, 16),
+		Signal: make(chan struct{}),
+		Err:    make(chan error),
 	}
 
 	m.mu.Lock()

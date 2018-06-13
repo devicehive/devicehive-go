@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/devicehive/devicehive-go/transport"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
 type HTTPAdapter struct {
