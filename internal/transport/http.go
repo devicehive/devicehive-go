@@ -208,6 +208,10 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 		timeout = time.Duration(params.WaitTimeoutSeconds) * time.Second * 2
 	}
 
+	if params == nil {
+		params = &RequestParams{}
+	}
+
 	go func() {
 	loop:
 		for {

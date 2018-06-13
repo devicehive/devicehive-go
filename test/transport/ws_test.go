@@ -121,7 +121,7 @@ func TestWSSubscribe(t *testing.T) {
 	}
 
 	select {
-	case rawNotif, ok := <-tspChan:
+	case rawNotif, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(rawNotif != nil)
 	case <-time.After(1 * time.Second):
@@ -129,7 +129,7 @@ func TestWSSubscribe(t *testing.T) {
 	}
 
 	select {
-	case rawNotif, ok := <-tspChan:
+	case rawNotif, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(rawNotif != nil)
 	case <-time.After(1 * time.Second):

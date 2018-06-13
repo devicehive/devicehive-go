@@ -92,7 +92,7 @@ func TestHTTPSubscription(t *testing.T) {
 	is.True(subscriptionId != "")
 
 	select {
-	case data, ok := <-tspChan:
+	case data, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(data != nil)
 	case <-time.After(2 * time.Second):
@@ -100,7 +100,7 @@ func TestHTTPSubscription(t *testing.T) {
 	}
 
 	select {
-	case data, ok := <-tspChan:
+	case data, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(data != nil)
 	case <-time.After(2 * time.Second):
