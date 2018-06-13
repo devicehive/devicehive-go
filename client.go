@@ -6,6 +6,7 @@ package devicehive_go
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/devicehive/devicehive-go/transport"
@@ -78,14 +79,42 @@ func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscriptio
 	return subs, nil
 }
 
-func (c *Client) authenticate(token string) (bool, *Error) {
-	_, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+func (c *Client) handleSubscriptionError(subs subscriber, err error) {
+	if err.Error() == TokenExpiredErr && subscriptionReauth.reauthNeeded() {
+		if res := c.reauthenticateSubscription(subs); res {
+			subscriptionReauth.reauthPoint()
+		}
+	} else {
+		subs.sendError(newError(err))
+	}
+}
 
-	if rawErr != nil {
-		return false, newError(rawErr)
+func (c *Client) reauthenticateSubscription(subs subscriber) bool {
+	accessToken, err := c.RefreshToken()
+	if err != nil {
+		removeSubscriptionWithError(subs, err)
+		return false
 	}
 
-	return true, nil
+	if success, err := c.authenticate(accessToken); err != nil {
+		removeSubscriptionWithError(subs, err)
+		return false
+	} else if !success {
+		removeSubscriptionWithError(subs, newError(errors.New("re-authentication failed")))
+		return false
+	}
+
+	return true
+}
+
+func (c *Client) authenticate(token string) (bool, *Error) {
+	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+
+	if rawErr != nil {
+		return result, newError(rawErr)
+	}
+
+	return result, nil
 }
 
 func (c *Client) subscribe(resourceName string, params *SubscribeParams) (subscription *transport.Subscription, subscriptionId string, err *Error) {
@@ -124,9 +153,11 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
 
-	if rawErr != nil && rawErr.Error() == "401 token expired" {
+	if rawErr != nil && rawErr.Error() == TokenExpiredErr {
 		resBytes, err := c.refreshRetry(resourceName, data)
 		return resBytes, err
+	} else if rawErr != nil {
+		return nil, newError(rawErr)
 	}
 
 	return resBytes, nil
@@ -160,7 +191,7 @@ func (c *Client) getModel(resourceName string, model interface{}, data map[strin
 
 	parseErr := json.Unmarshal(rawRes, model)
 	if parseErr != nil {
-		return newJSONErr()
+		return newJSONErr(parseErr)
 	}
 
 	return nil
@@ -223,7 +254,7 @@ func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 
 	for _, v := range list {
@@ -248,7 +279,7 @@ func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error
 
 	jsonErr := json.Unmarshal(res, devType)
 	if jsonErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(jsonErr)
 	}
 
 	return devType, nil
@@ -286,7 +317,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 	var list []*DeviceType
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = c
@@ -333,7 +364,7 @@ func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
 
 	jsonErr := json.Unmarshal(res, ntwk)
 	if jsonErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(jsonErr)
 	}
 
 	return ntwk, nil
@@ -371,7 +402,7 @@ func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 	var list []*Network
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = c
@@ -405,7 +436,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 	conf := &Configuration{}
 	parseErr := json.Unmarshal(rawRes, conf)
 	if parseErr != nil {
-		return -1, newJSONErr()
+		return -1, newJSONErr(parseErr)
 	}
 
 	return conf.EntityVersion, nil
@@ -434,10 +465,10 @@ func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time
 		data["deviceTypeIds"] = deviceTypeIds
 	}
 	if expiration.Unix() > 0 {
-		data["expiration"] = expiration.UTC().Format(timestampLayout)
+		data["expiration"] = &ISO8601Time{expiration}
 	}
 	if refreshExpiration.Unix() > 0 {
-		data["refreshExpiration"] = refreshExpiration.UTC().Format(timestampLayout)
+		data["refreshExpiration"] = &ISO8601Time{refreshExpiration}
 	}
 
 	return c.tokenRequest("tokenCreate", map[string]interface{}{
@@ -456,7 +487,7 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 
 func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
 	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
-		"refreshToken": c.refreshToken,
+		"refreshToken": refreshToken,
 	})
 
 	if err != nil {
@@ -467,7 +498,7 @@ func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, 
 	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
-		return "", newJSONErr()
+		return "", newJSONErr(parseErr)
 	}
 
 	return tok.Access, nil
@@ -491,7 +522,7 @@ func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) 
 	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
-		return "", "", newJSONErr()
+		return "", "", newJSONErr(parseErr)
 	}
 
 	return tok.Access, tok.Refresh, nil
@@ -520,7 +551,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 
 	jsonErr := json.Unmarshal(res, usr)
 	if jsonErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(jsonErr)
 	}
 
 	return usr, nil
@@ -568,7 +599,7 @@ func (c *Client) ListUsers(params *ListParams) ([]*User, *Error) {
 	var list []*User
 	pErr = json.Unmarshal(rawRes, &list)
 	if pErr != nil {
-		return nil, newJSONErr()
+		return nil, newJSONErr(pErr)
 	}
 	for _, v := range list {
 		v.client = c

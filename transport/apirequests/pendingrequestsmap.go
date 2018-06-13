@@ -11,7 +11,6 @@ import (
 func NewClientsMap() *PendingRequestsMap {
 	return &PendingRequestsMap{
 		clients: make(map[string]*PendingRequest),
-		mu:      sync.Mutex{},
 	}
 }
 
@@ -31,7 +30,6 @@ func (m *PendingRequestsMap) CreateRequest(key string) *PendingRequest {
 	req := &PendingRequest{
 		Data:       make(chan []byte, 16),
 		Signal:     make(chan struct{}),
-		DataLocker: sync.Mutex{},
 		Err:        make(chan error),
 	}
 

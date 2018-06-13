@@ -14,7 +14,6 @@ import (
 func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
 	return &WSSubscriptionsMap{
 		PendingRequestsMap: clients,
-		mu:                 sync.Mutex{},
 	}
 }
 

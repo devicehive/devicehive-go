@@ -21,7 +21,7 @@ type RequestParams struct {
 }
 
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-var randLocker = sync.Mutex{}
+var randLocker sync.Mutex
 
 func (p *RequestParams) requestId() string {
 	reqId := p.RequestId

@@ -11,7 +11,7 @@ import (
 	"github.com/devicehive/devicehive-go/transport"
 )
 
-var commandSubsMutex = sync.Mutex{}
+var commandSubsMutex sync.Mutex
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
@@ -35,6 +35,10 @@ func (cs *CommandSubscription) Remove() *Error {
 	delete(commandSubscriptions, cs)
 
 	return nil
+}
+
+func (cs *CommandSubscription) sendError(err *Error) {
+	cs.ErrorChan <- err
 }
 
 func newCommandSubscription(subsId string, tspSubs *transport.Subscription, client *Client) *CommandSubscription {
@@ -69,7 +73,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 					break loop
 				}
 
-				subs.ErrorChan <- newError(err)
+				client.handleSubscriptionError(subs, err)
 			}
 		}
 

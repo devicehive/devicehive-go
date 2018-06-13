@@ -19,7 +19,7 @@ func New(tsp transport.Transporter) TransportAdapter {
 	}
 
 	http := &HTTPAdapter{
-		transport: tsp,
+		transport: tsp.(*transport.HTTP),
 	}
 	return http
 }

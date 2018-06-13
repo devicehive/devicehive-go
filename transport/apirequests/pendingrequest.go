@@ -13,13 +13,8 @@ type PendingRequest struct {
 	DataLocker sync.Mutex
 }
 
-func (c *PendingRequest) Close() {
-	c.DataLocker.Lock()
-	defer c.DataLocker.Unlock()
-	close(c.Data)
-	close(c.Signal)
-
-	if c.Err != nil {
-		close(c.Err)
-	}
+func (r *PendingRequest) Close() {
+	r.DataLocker.Lock()
+	defer r.DataLocker.Unlock()
+	close(r.Signal)
 }

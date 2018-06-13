@@ -11,6 +11,9 @@ import (
 	"testing"
 )
 
+var testTokens = []byte(`{"accessToken":"test","refreshToken":"test"}`)
+var response401 = []byte(`{"timestamp":"2018-05-25T05:20:44.181","status":401,"error":"Unauthorized","message":"Token expired"}`)
+
 func TestReauthorizationByCreds(t *testing.T) {
 	httpSrv, httpAddr, httpClose := stubs.StartHTTPTestServer()
 	defer httpClose()
@@ -19,30 +22,28 @@ func TestReauthorizationByCreds(t *testing.T) {
 	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
 		requestCount++
 
-		tokens := []byte(`{"accessToken":"test","refreshToken":"test"}`)
-		response401 := []byte(`{"timestamp":"2018-05-25T05:20:44.181","status":401,"error":"Unauthorized","message":"Token expired","path":"/api/rest/user"}`)
-		if requestCount == 1 {
-			rw.Write(tokens)
-		} else if requestCount == 2 {
+		if requestCount == 2 {
+			rw.Write(testTokens)
+		} else if requestCount == 3 {
 			rw.WriteHeader(401)
 			rw.Write(response401)
-		} else if requestCount == 3 {
+		} else if requestCount == 4 {
 			if reqData["login"] == "" || reqData["password"] == "" {
 				t.Fatal("Not a token creation by credentials request")
 			} else {
-				rw.Write(tokens)
+				rw.Write(testTokens)
 			}
 		} else {
 			rw.Write([]byte(`{"id":1,"login":"dhadmin"}`))
 		}
 	})
 
-	newClient, err := dh.ConnectWithCreds(httpAddr, "dhadmin", "test_password")
+	client, err := dh.ConnectWithCreds(httpAddr, "dhadmin", "test_password")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user, err := newClient.GetCurrentUser()
+	user, err := client.GetCurrentUser()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,8 +61,6 @@ func TestReauthorizationByRefreshToken(t *testing.T) {
 	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
 		requestCount++
 
-		tokens := []byte(`{"accessToken":"test","refreshToken":"test"}`)
-		response401 := []byte(`{"timestamp":"2018-05-25T05:20:44.181","status":401,"error":"Unauthorized","message":"Token expired","path":"/api/rest/user"}`)
 		if requestCount == 1 {
 			rw.WriteHeader(401)
 			rw.Write(response401)
@@ -69,19 +68,19 @@ func TestReauthorizationByRefreshToken(t *testing.T) {
 			if reqData["refreshToken"] == "" {
 				t.Fatal("Not a token refresh request")
 			} else {
-				rw.Write(tokens)
+				rw.Write(testTokens)
 			}
 		} else {
 			rw.Write([]byte(`{"id":1,"login":"dhadmin"}`))
 		}
 	})
 
-	newClient, err := dh.ConnectWithToken(httpAddr, "test", "test")
+	client, err := dh.ConnectWithToken(httpAddr, "test", "test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user, err := newClient.GetCurrentUser()
+	user, err := client.GetCurrentUser()
 	if err != nil {
 		t.Fatal(err)
 	}

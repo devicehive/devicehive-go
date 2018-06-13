@@ -21,4 +21,5 @@ const (
 	ConnectionFailedErr              = "connection failed"
 	DefaultPollingWaitTimeoutSeconds = 30
 	WrongURLErr                      = "wrong url"
+	TokenExpiredErr                  = "401 token expired"
 )
