@@ -197,9 +197,9 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 	return subscription, subscriptionId, nil
 }
 
-func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) (resChan chan []byte, errChan chan error) {
-	resChan = make(chan []byte)
-	errChan = make(chan error)
+func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) (chan []byte, chan error) {
+	resChan := make(chan []byte)
+	errChan := make(chan error)
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
