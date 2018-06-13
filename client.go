@@ -9,8 +9,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/devicehive/devicehive-go/transport"
-	"github.com/devicehive/devicehive-go/transportadapter"
+	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
 // Main struct which serves as entry point to DeviceHive API

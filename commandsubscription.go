@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/devicehive/devicehive-go/transport"
+	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
 var commandSubsMutex sync.Mutex

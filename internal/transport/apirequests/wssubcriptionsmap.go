@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/devicehive/devicehive-go/utils"
+	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
 func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {

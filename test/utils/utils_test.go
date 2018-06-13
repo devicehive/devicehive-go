@@ -5,7 +5,7 @@
 package utils
 
 import (
-	"github.com/devicehive/devicehive-go/utils"
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"github.com/matryer/is"
 	"testing"
 )

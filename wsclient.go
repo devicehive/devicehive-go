@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/devicehive/devicehive-go/transportadapter"
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
 type WSClient struct {

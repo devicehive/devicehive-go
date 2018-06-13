@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/devicehive/devicehive-go/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
 const (

@@ -5,8 +5,8 @@
 package devicehive_go
 
 import (
-	"github.com/devicehive/devicehive-go/transport"
-	"github.com/devicehive/devicehive-go/transportadapter"
+	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
 // Creates low-level WS API which sends requests concurrently and writes all responses to a single channel.

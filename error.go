@@ -4,7 +4,7 @@
 
 package devicehive_go
 
-import "github.com/devicehive/devicehive-go/transport"
+import "github.com/devicehive/devicehive-go/internal/transport"
 
 func newError(err error) *Error {
 	if err == nil {

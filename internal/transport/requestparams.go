@@ -5,7 +5,7 @@
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/utils"
+	"github.com/devicehive/devicehive-go/internal/utils"
 	"math/rand"
 	"strconv"
 	"sync"
