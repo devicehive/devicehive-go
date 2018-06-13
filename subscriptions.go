@@ -22,12 +22,12 @@ func removeSubscriptionWithError(s subscriber, err *Error) {
 
 type subscriptionReauthenticator struct {
 	lastReauth      time.Time
-	lastReauthMutex sync.Mutex
+	lastReauthMutex sync.RWMutex
 }
 
 func (sr *subscriptionReauthenticator) reauthNeeded() bool {
-	sr.lastReauthMutex.Lock()
-	defer sr.lastReauthMutex.Unlock()
+	sr.lastReauthMutex.RLock()
+	defer sr.lastReauthMutex.RUnlock()
 	return time.Now().Sub(sr.lastReauth) > 5*time.Second
 }
 

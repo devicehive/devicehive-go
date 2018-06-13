@@ -22,7 +22,7 @@ const (
 	defaultHTTPMethod = "GET"
 )
 
-var pollingAccessTokenMutex sync.Mutex
+var pollingAccessTokenMutex sync.RWMutex
 
 func newHTTP(addr string) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
@@ -215,9 +215,9 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 	go func() {
 	loop:
 		for {
-			pollingAccessTokenMutex.Lock()
+			pollingAccessTokenMutex.RLock()
 			params.AccessToken = t.pollingAccessToken
-			pollingAccessTokenMutex.Unlock()
+			pollingAccessTokenMutex.RUnlock()
 
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
