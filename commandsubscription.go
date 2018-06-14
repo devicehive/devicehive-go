@@ -11,7 +11,7 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-var commandSubsMutex sync.Mutex
+var commandSubsMutex sync.RWMutex
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
@@ -22,17 +22,18 @@ type CommandSubscription struct {
 
 // Sends request to unsubscribe
 func (cs *CommandSubscription) Remove() *Error {
-	commandSubsMutex.Lock()
-	defer commandSubsMutex.Unlock()
-
+	commandSubsMutex.RLock()
 	subsId := commandSubscriptions[cs]
+	commandSubsMutex.RUnlock()
 	err := cs.client.unsubscribe("command/unsubscribe", subsId)
 
 	if err != nil {
 		return err
 	}
 
+	commandSubsMutex.Lock()
 	delete(commandSubscriptions, cs)
+	commandSubsMutex.Unlock()
 
 	return nil
 }

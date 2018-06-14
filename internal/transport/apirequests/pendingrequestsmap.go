@@ -16,7 +16,7 @@ func NewClientsMap() *PendingRequestsMap {
 
 type PendingRequestsMap struct {
 	clients map[string]*PendingRequest
-	mu      sync.Mutex
+	mu      sync.RWMutex
 }
 
 func (m *PendingRequestsMap) Delete(key string) {
@@ -41,16 +41,16 @@ func (m *PendingRequestsMap) CreateRequest(key string) *PendingRequest {
 }
 
 func (m *PendingRequestsMap) Get(key string) (*PendingRequest, bool) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
 	req, ok := m.clients[key]
 	return req, ok
 }
 
 func (m *PendingRequestsMap) ForEach(f func(req *PendingRequest)) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
 	for _, req := range m.clients {
 		f(req)

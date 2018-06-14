@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var notifSubsMutex sync.Mutex
+var notifSubsMutex sync.RWMutex
 var notificationSubscriptions = make(map[*NotificationSubscription]string)
 
 type NotificationSubscription struct {
@@ -20,17 +20,18 @@ type NotificationSubscription struct {
 }
 
 func (ns *NotificationSubscription) Remove() *Error {
-	notifSubsMutex.Lock()
-	defer notifSubsMutex.Unlock()
-
+	notifSubsMutex.RLock()
 	subsId := notificationSubscriptions[ns]
+	notifSubsMutex.RUnlock()
 	err := ns.client.unsubscribe("notification/unsubscribe", subsId)
 
 	if err != nil {
 		return err
 	}
 
+	notifSubsMutex.Lock()
 	delete(notificationSubscriptions, ns)
+	notifSubsMutex.Unlock()
 
 	return nil
 }

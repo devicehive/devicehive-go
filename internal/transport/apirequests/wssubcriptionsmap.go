@@ -20,37 +20,36 @@ func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
 type WSSubscriptionsMap struct {
 	*PendingRequestsMap
 	buffer [][]byte
-	mu     sync.Mutex
+	mu     sync.RWMutex
 }
 
 func (s *WSSubscriptionsMap) BufferPut(b []byte) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.buffer = append(s.buffer, b)
+	s.mu.Unlock()
 }
 
 func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	subs := s.PendingRequestsMap.CreateRequest(key)
 
 	subsData, newBuffer := s.extractSubscriberData(key)
 
 	go func() {
-		subs.DataLocker.Lock()
-		defer subs.DataLocker.Unlock()
 		for _, b := range subsData {
 			subs.Data <- b
 		}
 	}()
 
+	s.mu.Lock()
 	s.buffer = newBuffer
+	s.mu.Unlock()
 
 	return subs
 }
 
 func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	for _, b := range s.buffer {
 		ids, err := utils.ParseIDs(b)
 		if err != nil {
