@@ -28,7 +28,7 @@ func (m *PendingRequestsMap) Delete(key string) {
 
 func (m *PendingRequestsMap) CreateRequest(key string) *PendingRequest {
 	req := &PendingRequest{
-		Data:   make(chan []byte, 16),
+		Data:   make(chan []byte),
 		Signal: make(chan struct{}),
 		Err:    make(chan error),
 	}

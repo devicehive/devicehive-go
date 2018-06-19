@@ -14,9 +14,13 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
+type Timestamp struct {
+	Value string `json:"timestamp"`
+}
+
 type HTTPAdapter struct {
-	transport   *transport.HTTP
-	accessToken string
+	transport   	   *transport.HTTP
+	accessToken 	   string
 }
 
 type httpResponse struct {
@@ -58,13 +62,13 @@ func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds i
 		return nil, "", tspErr
 	}
 
-	subscription = a.transformSubscription(tspSubs)
+	subscription = a.transformSubscription(resourceName, subscriptionId, params, tspSubs)
 
 	return subscription, subscriptionId, nil
 }
 
-func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *transport.Subscription {
-	dataChan := make(chan []byte, 16)
+func (a *HTTPAdapter) transformSubscription(resourceName, subscriptionId string, params map[string]interface{}, subs *transport.Subscription) *transport.Subscription {
+	dataChan := make(chan []byte)
 	errChan := make(chan error)
 
 	go func() {
@@ -82,6 +86,9 @@ func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *trans
 					continue
 				}
 
+				a.setResourceWithLastTimestamp(resourceName, subscriptionId, params, list)
+				subs.ContinuePolling()
+
 				for _, data := range list {
 					dataChan <- data
 				}
@@ -91,6 +98,7 @@ func (a *HTTPAdapter) transformSubscription(subs *transport.Subscription) *trans
 				}
 
 				errChan <- err
+				subs.ContinuePolling()
 			}
 		}
 
@@ -117,6 +125,29 @@ func (a *HTTPAdapter) handleSubscriptionEventData(data []byte) ([]json.RawMessag
 	}
 
 	return list, nil
+}
+
+func (a *HTTPAdapter) setResourceWithLastTimestamp(resourceName, subscriptionId string, params map[string]interface{}, list []json.RawMessage) {
+	l := len(list)
+	if l == 0 {
+		return
+	}
+
+	timestamp := &Timestamp{}
+	json.Unmarshal(list[l - 1], timestamp)
+
+	if timestamp.Value == "" {
+		return
+	}
+
+	if params == nil {
+		params = make(map[string]interface{})
+	}
+	params["timestamp"] = timestamp.Value
+
+	resource, _ := a.resolveResource(resourceName, params)
+
+	a.transport.SetPollingResource(subscriptionId, resource)
 }
 
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {

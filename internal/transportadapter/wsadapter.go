@@ -68,7 +68,7 @@ func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int
 }
 
 func (a *WSAdapter) transformSubscription(resourceName string, subs *transport.Subscription) *transport.Subscription {
-	dataChan := make(chan []byte, 16)
+	dataChan := make(chan []byte)
 
 	go func() {
 		for d := range subs.DataChan {

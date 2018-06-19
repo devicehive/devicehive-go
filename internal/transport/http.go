@@ -16,13 +16,12 @@ import (
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"fmt"
 )
 
 const (
 	defaultHTTPMethod = "GET"
 )
-
-var pollingAccessTokenMutex sync.RWMutex
 
 func newHTTP(addr string) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
@@ -38,13 +37,17 @@ func newHTTP(addr string) (*HTTP, error) {
 	return &HTTP{
 		url:           u,
 		subscriptions: apirequests.NewClientsMap(),
+		pollResources: make(map[string]string),
 	}, nil
 }
 
 type HTTP struct {
-	url                *url.URL
-	subscriptions      *apirequests.PendingRequestsMap
-	pollingAccessToken string
+	url                		*url.URL
+	subscriptions      		*apirequests.PendingRequestsMap
+	pollingAccessToken 		string
+	pollingAccessTokenMutex sync.RWMutex
+	pollResourcesMutex 		sync.RWMutex
+	pollResources	   		map[string]string
 }
 
 func (t *HTTP) IsHTTP() bool {
@@ -56,9 +59,15 @@ func (t *HTTP) IsWS() bool {
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
-	pollingAccessTokenMutex.Lock()
+	t.pollingAccessTokenMutex.Lock()
 	t.pollingAccessToken = accessToken
-	pollingAccessTokenMutex.Unlock()
+	t.pollingAccessTokenMutex.Unlock()
+}
+
+func (t *HTTP) SetPollingResource(subscriptionId, resource string) {
+	t.pollResourcesMutex.Lock()
+	t.pollResources[subscriptionId] = resource
+	t.pollResourcesMutex.Unlock()
 }
 
 func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
@@ -168,10 +177,19 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
 	subs := t.subscriptions.CreateRequest(subscriptionId)
+	signalChan := make(chan struct{})
+	tspSubscription := &Subscription{
+		DataChan: subs.Data,
+		ErrChan:  subs.Err,
+		signal:   signalChan,
+	}
+
+	t.SetPollingResource(subscriptionId, resource)
 
 	go func() {
 		done := make(chan struct{})
-		resChan, errChan := t.poll(resource, params, done)
+		resChan, errChan, continueChan := t.poll(subscriptionId, params, done)
+		continueChan <- struct{}{}
 
 	loop:
 		for {
@@ -180,6 +198,8 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 				subs.Err <- err
 			case res := <-resChan:
 				subs.Data <- res
+			case <- signalChan:
+				continueChan <- struct{}{}
 			case <-subs.Signal:
 				close(subs.Data)
 				close(subs.Err)
@@ -189,17 +209,13 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 		}
 	}()
 
-	subscription = &Subscription{
-		DataChan: subs.Data,
-		ErrChan:  subs.Err,
-	}
-
-	return subscription, subscriptionId, nil
+	return tspSubscription, subscriptionId, nil
 }
 
-func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) (chan []byte, chan error) {
+func (t *HTTP) poll(subsId string, params *RequestParams, done chan struct{}) (chan []byte, chan error, chan struct{}) {
 	resChan := make(chan []byte)
 	errChan := make(chan error)
+	continueChan := make(chan struct{})
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
@@ -215,9 +231,17 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 	go func() {
 	loop:
 		for {
-			pollingAccessTokenMutex.RLock()
+			t.pollingAccessTokenMutex.RLock()
 			params.AccessToken = t.pollingAccessToken
-			pollingAccessTokenMutex.RUnlock()
+			t.pollingAccessTokenMutex.RUnlock()
+
+			<- continueChan
+
+			t.pollResourcesMutex.RLock()
+			resource := t.pollResources[subsId]
+			t.pollResourcesMutex.RUnlock()
+
+			fmt.Println("Polling", resource)
 
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
@@ -233,7 +257,7 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 		}
 	}()
 
-	return resChan, errChan
+	return resChan, errChan, continueChan
 }
 
 func (t *HTTP) Unsubscribe(subscriptionId string) {
