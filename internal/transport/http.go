@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
-	"fmt"
 )
 
 const (
@@ -240,8 +239,6 @@ func (t *HTTP) poll(subsId string, params *RequestParams, done chan struct{}) (c
 			t.pollResourcesMutex.RLock()
 			resource := t.pollResources[subsId]
 			t.pollResourcesMutex.RUnlock()
-
-			fmt.Println("Polling", resource)
 
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
