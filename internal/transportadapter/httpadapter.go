@@ -19,8 +19,8 @@ type Timestamp struct {
 }
 
 type HTTPAdapter struct {
-	transport   	   *transport.HTTP
-	accessToken 	   string
+	transport   *transport.HTTP
+	accessToken string
 }
 
 type httpResponse struct {
@@ -134,7 +134,7 @@ func (a *HTTPAdapter) setResourceWithLastTimestamp(resourceName, subscriptionId 
 	}
 
 	timestamp := &Timestamp{}
-	json.Unmarshal(list[l - 1], timestamp)
+	json.Unmarshal(list[l-1], timestamp)
 
 	if timestamp.Value == "" {
 		return

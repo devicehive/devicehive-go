@@ -41,12 +41,12 @@ func newHTTP(addr string) (*HTTP, error) {
 }
 
 type HTTP struct {
-	url                		*url.URL
-	subscriptions      		*apirequests.PendingRequestsMap
-	pollingAccessToken 		string
+	url                     *url.URL
+	subscriptions           *apirequests.PendingRequestsMap
+	pollingAccessToken      string
 	pollingAccessTokenMutex sync.RWMutex
-	pollResourcesMutex 		sync.RWMutex
-	pollResources	   		map[string]string
+	pollResourcesMutex      sync.RWMutex
+	pollResources           map[string]string
 }
 
 func (t *HTTP) IsHTTP() bool {
@@ -197,7 +197,7 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 				subs.Err <- err
 			case res := <-resChan:
 				subs.Data <- res
-			case <- signalChan:
+			case <-signalChan:
 				continueChan <- struct{}{}
 			case <-subs.Signal:
 				close(subs.Data)
@@ -234,7 +234,7 @@ func (t *HTTP) poll(subsId string, params *RequestParams, done chan struct{}) (c
 			params.AccessToken = t.pollingAccessToken
 			t.pollingAccessTokenMutex.RUnlock()
 
-			<- continueChan
+			<-continueChan
 
 			t.pollResourcesMutex.RLock()
 			resource := t.pollResources[subsId]
