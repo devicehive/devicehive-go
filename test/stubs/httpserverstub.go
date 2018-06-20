@@ -11,14 +11,14 @@ import (
 	"net/http/httptest"
 )
 
-func StartHTTPTestServer() (srv *HTTPTestServer, addr string, closeSrv func()) {
+func StartHTTPTestServer() (srv *HTTPTestServer, addr string) {
 	srv = &HTTPTestServer{}
 	addr = srv.Start()
 
-	return srv, addr, srv.Close
+	return srv, addr
 }
 
-type httpRequestHandler func(reqData map[string]interface{}, rw http.ResponseWriter)
+type httpRequestHandler func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request)
 
 type HTTPTestServer struct {
 	reqHandler httpRequestHandler
@@ -48,7 +48,7 @@ func (s *HTTPTestServer) Start() (srvAddr string) {
 			}
 		}
 
-		s.reqHandler(data, w)
+		s.reqHandler(data, w, r)
 	})
 	srv := httptest.NewServer(h)
 
@@ -65,7 +65,7 @@ func (s *HTTPTestServer) SetRequestHandler(h httpRequestHandler) {
 	s.reqHandler = h
 }
 
-func defaultHTTPHandler(reqData map[string]interface{}, rw http.ResponseWriter) {
+func defaultHTTPHandler(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(reqData)
 
 	if err != nil {

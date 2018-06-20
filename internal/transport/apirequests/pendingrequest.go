@@ -5,9 +5,9 @@
 package apirequests
 
 type PendingRequest struct {
-	Data       chan []byte
-	Err        chan error
-	Signal     chan struct{}
+	Data   chan []byte
+	Err    chan error
+	Signal chan struct{}
 }
 
 func (r *PendingRequest) Close() {
