@@ -48,7 +48,7 @@ func TestHTTPTimeout(t *testing.T) {
 	is := is.New(t)
 
 	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
-		<-time.After(testWSTimeout + 1*time.Second)
+		<-time.After(testHTTPTimeout + 1*time.Second)
 		rw.Write([]byte("{\"result\": \"success\"}"))
 	})
 
@@ -68,17 +68,14 @@ func TestHTTPSubscription(t *testing.T) {
 
 	is := is.New(t)
 
-	pollRequestsCount := 0
-	const allowedPollRequestsCount = 3
+	pollReqHandled := false
 	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
-		if pollRequestsCount >= allowedPollRequestsCount {
-			t.Error("HTTP transport must stop polling after unsubscribe")
-			return
+		if pollReqHandled {
+			t.Fatal("HTTP transport must stop polling after unsubscription")
 		}
 
-		<-time.After(testWSTimeout + 1*time.Second)
 		rw.Write([]byte(`[{"id": 1,"command": "command 1"},{"id": 2,"command": "command 2"}]`))
-		pollRequestsCount++
+		pollReqHandled = true
 	})
 
 	httpTsp, err := transport.Create(addr)
@@ -95,15 +92,9 @@ func TestHTTPSubscription(t *testing.T) {
 	case data, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(data != nil)
-	case <-time.After(2 * time.Second):
-		t.Error("subscription event timeout")
-	}
-
-	select {
-	case data, ok := <-tspChan.DataChan:
-		is.True(ok)
-		is.True(data != nil)
-	case <-time.After(2 * time.Second):
+	case err := <- tspChan.ErrChan:
+		t.Fatal(err)
+	case <-time.After(testHTTPTimeout):
 		t.Error("subscription event timeout")
 	}
 
