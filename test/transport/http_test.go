@@ -16,12 +16,12 @@ import (
 const testHTTPTimeout = 300 * time.Millisecond
 
 func TestHTTPRequestId(t *testing.T) {
-	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
-	defer srvClose()
+	httpTestSrv, addr := stubs.StartHTTPTestServer()
+	defer httpTestSrv.Close()
 
 	is := is.New(t)
 
-	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 		is.True(reqData["requestId"] != "")
 		rw.Write([]byte("{}"))
 	})
@@ -42,12 +42,12 @@ func TestHTTPRequestId(t *testing.T) {
 }
 
 func TestHTTPTimeout(t *testing.T) {
-	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
-	defer srvClose()
+	httpTestSrv, addr := stubs.StartHTTPTestServer()
+	defer httpTestSrv.Close()
 
 	is := is.New(t)
 
-	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 		<-time.After(testWSTimeout + 1*time.Second)
 		rw.Write([]byte("{\"result\": \"success\"}"))
 	})
@@ -63,14 +63,14 @@ func TestHTTPTimeout(t *testing.T) {
 }
 
 func TestHTTPSubscription(t *testing.T) {
-	httpTestSrv, addr, srvClose := stubs.StartHTTPTestServer()
-	defer srvClose()
+	httpTestSrv, addr := stubs.StartHTTPTestServer()
+	defer httpTestSrv.Close()
 
 	is := is.New(t)
 
 	pollRequestsCount := 0
 	const allowedPollRequestsCount = 3
-	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 		if pollRequestsCount >= allowedPollRequestsCount {
 			t.Error("HTTP transport must stop polling after unsubscribe")
 			return

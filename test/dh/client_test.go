@@ -15,11 +15,11 @@ var testTokens = []byte(`{"accessToken":"test","refreshToken":"test"}`)
 var response401 = []byte(`{"timestamp":"2018-05-25T05:20:44.181","status":401,"error":"Unauthorized","message":"Token expired"}`)
 
 func TestReauthorizationByCreds(t *testing.T) {
-	httpSrv, httpAddr, httpClose := stubs.StartHTTPTestServer()
-	defer httpClose()
+	httpSrv, httpAddr := stubs.StartHTTPTestServer()
+	defer httpSrv.Close()
 
 	requestCount := 0
-	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 		requestCount++
 
 		if requestCount == 2 {
@@ -54,11 +54,11 @@ func TestReauthorizationByCreds(t *testing.T) {
 }
 
 func TestReauthorizationByRefreshToken(t *testing.T) {
-	httpSrv, httpAddr, httpClose := stubs.StartHTTPTestServer()
-	defer httpClose()
+	httpSrv, httpAddr := stubs.StartHTTPTestServer()
+	defer httpSrv.Close()
 
 	requestCount := 0
-	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter) {
+	httpSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
 		requestCount++
 
 		if requestCount == 1 {

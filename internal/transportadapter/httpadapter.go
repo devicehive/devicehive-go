@@ -86,7 +86,7 @@ func (a *HTTPAdapter) transformSubscription(resourceName, subscriptionId string,
 					continue
 				}
 
-				a.setResourceWithLastTimestamp(resourceName, subscriptionId, params, list)
+				a.setResourceWithLastEntityTimestamp(resourceName, subscriptionId, params, list)
 				subs.ContinuePolling()
 
 				for _, data := range list {
@@ -127,7 +127,7 @@ func (a *HTTPAdapter) handleSubscriptionEventData(data []byte) ([]json.RawMessag
 	return list, nil
 }
 
-func (a *HTTPAdapter) setResourceWithLastTimestamp(resourceName, subscriptionId string, params map[string]interface{}, list []json.RawMessage) {
+func (a *HTTPAdapter) setResourceWithLastEntityTimestamp(resourceName, subscriptionId string, params map[string]interface{}, list []json.RawMessage) {
 	l := len(list)
 	if l == 0 {
 		return
