@@ -144,7 +144,7 @@ func (t *WS) handleServerMessages() {
 
 			reconnErr := t.reconnect()
 			if reconnErr != nil {
-				t.terminateRequests(err)
+				t.terminateRequests(reconnErr)
 				return
 			}
 
