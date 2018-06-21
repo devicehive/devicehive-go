@@ -21,7 +21,7 @@ type Transporter interface {
 	IsWS() bool
 }
 
-func Create(addr string) (Transporter, error) {
+func Create(addr string, p *Params) (Transporter, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -31,5 +31,5 @@ func Create(addr string) (Transporter, error) {
 		return newHTTP(addr)
 	}
 
-	return newWS(addr)
+	return newWS(addr, p)
 }

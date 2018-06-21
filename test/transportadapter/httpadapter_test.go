@@ -1,15 +1,15 @@
 package transportadapter
 
 import (
-	"testing"
-	"github.com/devicehive/devicehive-go/test/stubs"
-	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/internal/transportadapter"
-	"github.com/devicehive/devicehive-go"
-	"time"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"github.com/devicehive/devicehive-go"
+	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transportadapter"
+	"github.com/devicehive/devicehive-go/test/stubs"
+	"net/http"
+	"testing"
+	"time"
 )
 
 func TestHTTPSubscriptionLastEntityTimestamp(t *testing.T) {
@@ -31,7 +31,7 @@ func TestHTTPSubscriptionLastEntityTimestamp(t *testing.T) {
 		}
 	})
 
-	httpTsp, err := transport.Create(addr)
+	httpTsp, err := transport.Create(addr, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,12 +46,12 @@ func TestHTTPSubscriptionLastEntityTimestamp(t *testing.T) {
 		t.Fatal(subsErr)
 	}
 
-
 	lastId := ""
-	loop: for {
+loop:
+	for {
 		select {
-		case d := <- subs.DataChan:
-			res := &struct{
+		case d := <-subs.DataChan:
+			res := &struct {
 				Id json.Number `json:"id"`
 			}{}
 			json.Unmarshal(d, res)
@@ -62,7 +62,7 @@ func TestHTTPSubscriptionLastEntityTimestamp(t *testing.T) {
 			}
 
 			lastId = string(res.Id)
-		case err := <- subs.ErrChan:
+		case err := <-subs.ErrChan:
 			t.Fatal(err)
 		}
 	}

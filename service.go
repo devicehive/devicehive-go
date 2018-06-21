@@ -12,8 +12,8 @@ import (
 // Method uses access token directly to connect
 // If access token is empty it will get access token by refresh token
 // It will recreate access token on expiration by given refresh token
-func ConnectWithToken(url, accessToken, refreshToken string) (*Client, *Error) {
-	c, err := connect(url)
+func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams) (*Client, *Error) {
+	c, err := connect(url, p)
 
 	if err != nil {
 		return nil, err
@@ -36,8 +36,8 @@ func ConnectWithToken(url, accessToken, refreshToken string) (*Client, *Error) {
 
 // Method obtains access token by credentials and then connects
 // It will recreate access token on expiration by given credentials
-func ConnectWithCreds(url, login, password string) (*Client, *Error) {
-	c, err := connect(url)
+func ConnectWithCreds(url, login, password string, p *ConnectionParams) (*Client, *Error) {
+	c, err := connect(url, p)
 
 	if err != nil {
 		return nil, err
@@ -55,8 +55,16 @@ func ConnectWithCreds(url, login, password string) (*Client, *Error) {
 	return auth(accTok, c)
 }
 
-func connect(url string) (*Client, *Error) {
-	tsp, tspErr := transport.Create(url)
+func connect(url string, p *ConnectionParams) (*Client, *Error) {
+	var tspParams *transport.Params
+	if p != nil {
+		tspParams = &transport.Params{
+			ReconnectionTries:    p.ReconnectionTries,
+			ReconnectionInterval: p.ReconnectionInterval,
+		}
+	}
+
+	tsp, tspErr := transport.Create(url, tspParams)
 
 	if tspErr != nil {
 		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}

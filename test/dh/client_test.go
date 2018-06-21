@@ -38,7 +38,7 @@ func TestReauthorizationByCreds(t *testing.T) {
 		}
 	})
 
-	client, err := dh.ConnectWithCreds(httpAddr, "dhadmin", "test_password")
+	client, err := dh.ConnectWithCreds(httpAddr, "dhadmin", "test_password", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestReauthorizationByRefreshToken(t *testing.T) {
 		}
 	})
 
-	client, err := dh.ConnectWithToken(httpAddr, "test", "test")
+	client, err := dh.ConnectWithToken(httpAddr, "test", "test", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

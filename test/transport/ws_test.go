@@ -26,7 +26,7 @@ func TestWSRequestId(t *testing.T) {
 		c.WriteJSON(reqData)
 	})
 
-	wsTsp, err := transport.Create(addr)
+	wsTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -47,7 +47,7 @@ func TestWSTimeout(t *testing.T) {
 		})
 	})
 
-	wsTsp, err := transport.Create(addr)
+	wsTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -67,7 +67,7 @@ func TestWSInvalidResponse(t *testing.T) {
 		c.WriteMessage(websocket.TextMessage, []byte("invalid response"))
 	})
 
-	wsTsp, err := transport.Create(addr)
+	wsTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -87,7 +87,7 @@ func TestWSConnectionClose(t *testing.T) {
 		c.Close()
 	})
 
-	wsTsp, err := transport.Create(addr)
+	wsTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -111,7 +111,7 @@ func TestWSSubscribe(t *testing.T) {
 		c.WriteJSON(stubs.ResponseStub.NotificationInsertEvent(res["subscriptionId"], reqData["deviceId"]))
 	})
 
-	wsTsp, err := transport.Create(addr)
+	wsTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
