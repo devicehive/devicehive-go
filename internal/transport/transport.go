@@ -17,8 +17,6 @@ type Transporter interface {
 	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
 	Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
-	IsHTTP() bool
-	IsWS() bool
 }
 
 func Create(addr string, p *Params) (Transporter, error) {

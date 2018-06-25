@@ -11,7 +11,7 @@ import (
 )
 
 func New(tsp transport.Transporter) TransportAdapter {
-	if tsp.IsWS() {
+	if tsp, ok := tsp.(*transport.WS); ok {
 		ws := &WSAdapter{
 			transport: tsp,
 		}

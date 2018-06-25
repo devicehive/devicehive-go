@@ -49,14 +49,6 @@ type HTTP struct {
 	pollResources           map[string]string
 }
 
-func (t *HTTP) IsHTTP() bool {
-	return true
-}
-
-func (t *HTTP) IsWS() bool {
-	return false
-}
-
 func (t *HTTP) SetPollingToken(accessToken string) {
 	t.pollingAccessTokenMutex.Lock()
 	t.pollingAccessToken = accessToken
@@ -153,7 +145,6 @@ func (t *HTTP) addRequestHeaders(req *http.Request, params *RequestParams) {
 
 func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
 	res, resErr := client.Do(req)
-
 	if resErr != nil {
 		if isTimeoutErr(resErr) {
 			return nil, NewError(TimeoutErr, resErr.Error())
@@ -164,7 +155,6 @@ func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error
 	defer res.Body.Close()
 
 	rawRes, rErr := ioutil.ReadAll(res.Body)
-
 	if rErr != nil {
 		return nil, NewError(InvalidResponseErr, rErr.Error())
 	}

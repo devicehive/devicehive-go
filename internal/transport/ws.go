@@ -44,14 +44,6 @@ type WS struct {
 	reconnectionInterval time.Duration
 }
 
-func (t *WS) IsHTTP() bool {
-	return false
-}
-
-func (t *WS) IsWS() bool {
-	return true
-}
-
 func (t *WS) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
