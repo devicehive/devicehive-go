@@ -128,8 +128,7 @@ func (t *WS) handleServerMessages() {
 
 		serverDown := mt == -1
 		if serverDown {
-			reconnectDisabled := t.reconnectionTries == 0 || t.reconnectionInterval == 0
-			if reconnectDisabled {
+			if t.reconnectDisabled() {
 				t.terminateRequests(err)
 				return
 			}
@@ -145,6 +144,10 @@ func (t *WS) handleServerMessages() {
 
 		t.resolveReceiver(msg)
 	}
+}
+
+func (t *WS) reconnectDisabled() bool {
+	return t.reconnectionTries == 0 || t.reconnectionInterval == 0
 }
 
 func (t *WS) reconnect() error {

@@ -26,7 +26,7 @@ func Create(addr string, p *Params) (Transporter, error) {
 	}
 
 	if u.Scheme == "http" || u.Scheme == "https" {
-		return newHTTP(addr)
+		return newHTTP(addr, p)
 	}
 
 	return newWS(addr, p)
