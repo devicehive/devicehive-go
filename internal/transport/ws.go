@@ -15,18 +15,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func newWS(addr string) (tsp *WS, err error) {
+func newWS(addr string, params *Params) (tsp *WS, err error) {
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
-
 	if err != nil {
 		return nil, err
 	}
 
 	tsp = &WS{
 		conn:          conn,
+		address:       addr,
 		requests:      apirequests.NewClientsMap(),
 		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
 	}
+	tsp.setParams(params)
 
 	go tsp.handleServerMessages()
 
@@ -34,10 +35,13 @@ func newWS(addr string) (tsp *WS, err error) {
 }
 
 type WS struct {
-	conn          *websocket.Conn
-	connMu        sync.Mutex
-	requests      *apirequests.PendingRequestsMap
-	subscriptions *apirequests.WSSubscriptionsMap
+	conn                 *websocket.Conn
+	address              string
+	connMu               sync.Mutex
+	requests             *apirequests.PendingRequestsMap
+	subscriptions        *apirequests.WSSubscriptionsMap
+	reconnectionTries    int
+	reconnectionInterval time.Duration
 }
 
 func (t *WS) IsHTTP() bool {
@@ -125,14 +129,48 @@ func (t *WS) Unsubscribe(subscriptionId string) {
 func (t *WS) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
-		connClosed := mt == websocket.CloseMessage || mt == -1
-		if connClosed {
+		if mt == websocket.CloseMessage {
 			t.terminateRequests(err)
 			return
 		}
 
+		serverDown := mt == -1
+		if serverDown {
+			reconnectDisabled := t.reconnectionTries == 0 || t.reconnectionInterval == 0
+			if reconnectDisabled {
+				t.terminateRequests(err)
+				return
+			}
+
+			reconnErr := t.reconnect()
+			if reconnErr != nil {
+				t.terminateRequests(reconnErr)
+				return
+			}
+
+			continue
+		}
+
 		t.resolveReceiver(msg)
 	}
+}
+
+func (t *WS) reconnect() error {
+	var reconnErr error
+	for i := 0; i < t.reconnectionTries; i++ {
+		conn, _, err := websocket.DefaultDialer.Dial(t.address, nil)
+		if err != nil {
+			reconnErr = err
+			time.Sleep(t.reconnectionInterval)
+			continue
+		}
+
+		t.conn = conn
+		reconnErr = nil
+		break
+	}
+
+	return reconnErr
 }
 
 func (t *WS) terminateRequests(err error) {
@@ -165,5 +203,19 @@ func (t *WS) resolveReceiver(msg []byte) {
 		} else {
 			t.subscriptions.BufferPut(msg)
 		}
+	}
+}
+
+func (t *WS) setParams(p *Params) {
+	if p == nil {
+		return
+	}
+
+	if p.ReconnectionTries != 0 {
+		t.reconnectionTries = p.ReconnectionTries
+	}
+
+	if p.ReconnectionInterval != 0 {
+		t.reconnectionInterval = p.ReconnectionInterval
 	}
 }

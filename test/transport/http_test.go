@@ -26,7 +26,7 @@ func TestHTTPRequestId(t *testing.T) {
 		rw.Write([]byte("{}"))
 	})
 
-	httpTsp, err := transport.Create(addr)
+	httpTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -52,7 +52,7 @@ func TestHTTPTimeout(t *testing.T) {
 		rw.Write([]byte("{\"result\": \"success\"}"))
 	})
 
-	httpTsp, err := transport.Create(addr)
+	httpTsp, err := transport.Create(addr, nil)
 
 	is.NoErr(err)
 
@@ -78,7 +78,7 @@ func TestHTTPSubscription(t *testing.T) {
 		pollReqHandled = true
 	})
 
-	httpTsp, err := transport.Create(addr)
+	httpTsp, err := transport.Create(addr, nil)
 	is.NoErr(err)
 
 	tspChan, subscriptionId, tspErr := httpTsp.Subscribe("device/command/poll?deviceId=device-1", nil)
@@ -92,7 +92,7 @@ func TestHTTPSubscription(t *testing.T) {
 	case data, ok := <-tspChan.DataChan:
 		is.True(ok)
 		is.True(data != nil)
-	case err := <- tspChan.ErrChan:
+	case err := <-tspChan.ErrChan:
 		t.Fatal(err)
 	case <-time.After(testHTTPTimeout):
 		t.Error("subscription event timeout")
