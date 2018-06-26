@@ -50,7 +50,7 @@ type HTTP struct {
 	pollResourcesMutex      sync.RWMutex
 	pollResources           map[string]string
 	requestRetriesInterval  time.Duration
-	requestRetries			int
+	requestRetries          int
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
