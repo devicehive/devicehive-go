@@ -184,7 +184,7 @@ func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Respo
 	for i := 0; i < t.requestRetries; i++ {
 		time.Sleep(t.requestRetriesInterval)
 		res, err := client.Do(req)
-		if isTimeoutErr(err) {
+		if isTimeoutErr(err) || res.StatusCode == 502 {
 			continue
 		} else if err != nil {
 			reqErr = err
