@@ -194,7 +194,9 @@ func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Respo
 }
 
 func (t *HTTP) retryRequired(res *http.Response, err error) bool {
-	if err == nil {
+	if res == nil && err == nil {
+		return false
+	} else if err == nil {
 		return res.StatusCode == 502
 	}
 
