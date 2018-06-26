@@ -36,6 +36,10 @@ type httpTimeoutErr interface {
 }
 
 func isTimeoutErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	timeoutErr, ok := err.(httpTimeoutErr)
 	return ok && timeoutErr.Timeout()
 }

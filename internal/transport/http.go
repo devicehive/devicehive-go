@@ -168,10 +168,8 @@ func (t *HTTP) request(client *http.Client, req *http.Request) ([]byte, *Error) 
 
 func (t *HTTP) doRequest(client *http.Client, req *http.Request) (*http.Response, error) {
 	res, err := client.Do(req)
-	if err != nil {
-		if isTimeoutErr(err) && t.requestRetryEnabled() {
-			res, err = t.retryRequest(client, req)
-		}
+	if isTimeoutErr(err) && t.requestRetryEnabled() {
+		res, err = t.retryRequest(client, req)
 	}
 
 	return res, err
@@ -186,11 +184,9 @@ func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Respo
 	for i := 0; i < t.requestRetries; i++ {
 		time.Sleep(t.requestRetriesInterval)
 		res, err := client.Do(req)
-		if err != nil {
-			if isTimeoutErr(err) {
-				continue
-			}
-
+		if isTimeoutErr(err) {
+			continue
+		} else if err != nil {
 			reqErr = err
 			break
 		}
