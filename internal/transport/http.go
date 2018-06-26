@@ -168,15 +168,11 @@ func (t *HTTP) request(client *http.Client, req *http.Request) ([]byte, *Error) 
 
 func (t *HTTP) doRequest(client *http.Client, req *http.Request) (*http.Response, error) {
 	res, err := client.Do(req)
-	if isTimeoutErr(err) && t.requestRetryEnabled() {
+	if t.retryRequired(res, err) {
 		res, err = t.retryRequest(client, req)
 	}
 
 	return res, err
-}
-
-func (t *HTTP) requestRetryEnabled() bool {
-	return t.requestRetries != 0 && t.requestRetriesInterval != 0
 }
 
 func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Response, error) {
@@ -184,7 +180,7 @@ func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Respo
 	for i := 0; i < t.requestRetries; i++ {
 		time.Sleep(t.requestRetriesInterval)
 		res, err := client.Do(req)
-		if isTimeoutErr(err) || res.StatusCode == 502 {
+		if t.retryRequired(res, err) {
 			continue
 		} else if err != nil {
 			reqErr = err
@@ -195,6 +191,18 @@ func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Respo
 	}
 
 	return nil, reqErr
+}
+
+func (t *HTTP) retryRequired(res *http.Response, err error) bool {
+	if err == nil {
+		return res.StatusCode == 502
+	}
+
+	return t.requestRetryEnabled() && (isTimeoutErr(err) || isHostErr(err))
+}
+
+func (t *HTTP) requestRetryEnabled() bool {
+	return t.requestRetries != 0 && t.requestRetriesInterval != 0
 }
 
 func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
