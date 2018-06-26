@@ -17,7 +17,7 @@ func WSConnect(url string) (*WSClient, *Error) {
 		return nil, &Error{name: ConnectionFailedErr, reason: tspErr.Error()}
 	}
 
-	if tsp.IsHTTP() {
+	if _, ok := tsp.(*transport.WS); ok {
 		return nil, &Error{name: WrongURLErr, reason: "ws:// protocol is required"}
 	}
 

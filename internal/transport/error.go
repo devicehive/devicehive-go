@@ -4,6 +4,12 @@
 
 package transport
 
+import (
+	"net"
+	"net/url"
+	"strings"
+)
+
 const (
 	ConnClosedErr      = "connection closed"
 	InvalidResponseErr = "invalid response"
@@ -31,11 +37,23 @@ func (e *Error) Error() string {
 	return e.reason
 }
 
-type httpTimeoutErr interface {
-	Timeout() bool
+func isTimeoutErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	timeoutErr, ok := err.(net.Error)
+	return ok && timeoutErr.Timeout()
 }
 
-func isTimeoutErr(err error) bool {
-	timeoutErr, ok := err.(httpTimeoutErr)
-	return ok && timeoutErr.Timeout()
+func isHostErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	urlErr, ok := err.(*url.Error)
+	noSuchHost := strings.HasSuffix(urlErr.Error(), "no such host")
+	noData := strings.Contains(urlErr.Error(), "name is valid, but no data")
+
+	return ok && (noSuchHost || noData)
 }

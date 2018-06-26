@@ -22,22 +22,24 @@ const (
 	defaultHTTPMethod = "GET"
 )
 
-func newHTTP(addr string) (*HTTP, error) {
+func newHTTP(addr string, p *Params) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
 		addr += "/"
 	}
 
 	u, err := url.Parse(addr)
-
 	if err != nil {
 		return nil, err
 	}
 
-	return &HTTP{
+	t := &HTTP{
 		url:           u,
 		subscriptions: apirequests.NewClientsMap(),
 		pollResources: make(map[string]string),
-	}, nil
+	}
+	t.setParams(p)
+
+	return t, nil
 }
 
 type HTTP struct {
@@ -47,14 +49,8 @@ type HTTP struct {
 	pollingAccessTokenMutex sync.RWMutex
 	pollResourcesMutex      sync.RWMutex
 	pollResources           map[string]string
-}
-
-func (t *HTTP) IsHTTP() bool {
-	return true
-}
-
-func (t *HTTP) IsWS() bool {
-	return false
+	requestRetriesInterval  time.Duration
+	requestRetries          int
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
@@ -89,7 +85,7 @@ func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Dura
 
 	t.addRequestHeaders(req, params)
 
-	return t.doRequest(client, req)
+	return t.request(client, req)
 }
 
 func (t *HTTP) getRequestMethod(params *RequestParams) string {
@@ -151,9 +147,8 @@ func (t *HTTP) addRequestHeaders(req *http.Request, params *RequestParams) {
 	}
 }
 
-func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
-	res, resErr := client.Do(req)
-
+func (t *HTTP) request(client *http.Client, req *http.Request) ([]byte, *Error) {
+	res, resErr := t.doRequest(client, req)
 	if resErr != nil {
 		if isTimeoutErr(resErr) {
 			return nil, NewError(TimeoutErr, resErr.Error())
@@ -164,12 +159,52 @@ func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error
 	defer res.Body.Close()
 
 	rawRes, rErr := ioutil.ReadAll(res.Body)
-
 	if rErr != nil {
 		return nil, NewError(InvalidResponseErr, rErr.Error())
 	}
 
 	return rawRes, nil
+}
+
+func (t *HTTP) doRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	res, err := client.Do(req)
+	if t.retryRequired(res, err) {
+		res, err = t.retryRequest(client, req)
+	}
+
+	return res, err
+}
+
+func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	var reqErr error
+	for i := 0; i < t.requestRetries; i++ {
+		time.Sleep(t.requestRetriesInterval)
+		res, err := client.Do(req)
+		if t.retryRequired(res, err) {
+			continue
+		} else if err != nil {
+			reqErr = err
+			break
+		}
+
+		return res, nil
+	}
+
+	return nil, reqErr
+}
+
+func (t *HTTP) retryRequired(res *http.Response, err error) bool {
+	if res == nil && err == nil {
+		return false
+	} else if err == nil {
+		return res.StatusCode == 502
+	}
+
+	return t.requestRetryEnabled() && (isTimeoutErr(err) || isHostErr(err))
+}
+
+func (t *HTTP) requestRetryEnabled() bool {
+	return t.requestRetries != 0 && t.requestRetriesInterval != 0
 }
 
 func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
@@ -263,5 +298,19 @@ func (t *HTTP) Unsubscribe(subscriptionId string) {
 	if ok {
 		subscriber.Close()
 		t.subscriptions.Delete(subscriptionId)
+	}
+}
+
+func (t *HTTP) setParams(p *Params) {
+	if p == nil {
+		return
+	}
+
+	if p.ReconnectionTries != 0 {
+		t.requestRetries = p.ReconnectionTries
+	}
+
+	if p.ReconnectionInterval != 0 {
+		t.requestRetriesInterval = p.ReconnectionInterval
 	}
 }
