@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
 type WSAdapter struct {
@@ -147,10 +148,10 @@ func (a *WSAdapter) extractResponsePayload(resourceName string, rawRes []byte) [
 	return res[payloadKey]
 }
 
-func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams) {
+func (a *WSAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams) {
 	resource, _ = a.resolveResource(resourceName, data)
 	reqData := a.buildRequestData(resourceName, data)
-	reqParams = &transport.RequestParams{
+	reqParams = &apirequests.RequestParams{
 		Data: reqData,
 	}
 

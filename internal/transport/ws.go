@@ -25,7 +25,7 @@ func newWS(addr string, params *Params) (tsp *WS, err error) {
 		conn:          conn,
 		address:       addr,
 		requests:      apirequests.NewClientsMap(),
-		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
+		subscriptions: apirequests.NewWSSubscriptionsMap(),
 	}
 	tsp.setParams(params)
 
@@ -44,19 +44,19 @@ type WS struct {
 	reconnectionInterval time.Duration
 }
 
-func (t *WS) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
 		timeout = DefaultTimeout
 	}
 
 	if params == nil {
-		params = &RequestParams{}
+		params = &apirequests.RequestParams{}
 	}
 
-	reqId := params.requestId()
+	reqId := params.CreateRequestId()
 	req := t.requests.CreateRequest(reqId)
 
-	data := params.mapData()
+	data := params.MapData()
 	data["action"] = resource
 	data["requestId"] = reqId
 
@@ -79,7 +79,7 @@ func (t *WS) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 }
 
-func (t *WS) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *WS) Subscribe(resource string, params *apirequests.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -91,7 +91,14 @@ func (t *WS) Subscribe(resource string, params *RequestParams) (subscription *Su
 	}
 	subscriptionId = strconv.FormatInt(ids.Subscription, 10)
 
-	return t.subscribe(subscriptionId), subscriptionId, nil
+	subscription = t.subscribe(subscriptionId)
+
+	wssub, _ := t.subscriptions.Get(subscriptionId)
+	wssub.SubscriptionResource = resource
+	wssub.SubscriptionParams = params
+	wssub.SubscriptionId = subscriptionId
+
+	return subscription, subscriptionId, nil
 }
 
 func (t *WS) subscribe(subscriptionId string) *Subscription {
@@ -160,6 +167,7 @@ func (t *WS) reconnect() error {
 			continue
 		}
 
+		t.resubscribe()
 		t.conn = conn
 		reconnErr = nil
 		break
@@ -168,14 +176,29 @@ func (t *WS) reconnect() error {
 	return reconnErr
 }
 
+func (t *WS) resubscribe() {
+	t.subscriptions.ForEach(func(sub *apirequests.WSSubscription) {
+		_, subId, err := t.Subscribe(sub.SubscriptionResource, sub.SubscriptionParams)
+
+		if err != nil {
+			sub.Err <- err
+			return
+		}
+
+		newSub, _ := t.subscriptions.Get(subId)
+		newSub.PendingRequest = sub.PendingRequest
+		t.subscriptions.Delete(sub.SubscriptionId)
+	})
+}
+
 func (t *WS) terminateRequests(err error) {
 	t.requests.ForEach(func(req *apirequests.PendingRequest) {
 		req.Err <- err
 		req.Close()
 	})
 
-	t.subscriptions.ForEach(func(req *apirequests.PendingRequest) {
-		req.Close()
+	t.subscriptions.ForEach(func(s *apirequests.WSSubscription) {
+		s.Close()
 	})
 }
 

@@ -4,10 +4,12 @@
 
 package transportadapter
 
-import "github.com/devicehive/devicehive-go/internal/transport"
+import (
+	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+)
 
 type RequestResponseHandler interface {
 	handleResponseError(rawRes []byte) error
 	extractResponsePayload(resourceName string, rawRes []byte) []byte
-	prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *transport.RequestParams)
+	prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams)
 }
