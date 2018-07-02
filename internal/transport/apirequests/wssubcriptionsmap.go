@@ -21,6 +21,7 @@ type WSSubscriptionsMap struct {
 	subscriptions       map[string]*WSSubscription
 	subscriptionsLocker sync.RWMutex
 	buffer              [][]byte
+	bufferLocker		sync.RWMutex
 	mu                  sync.RWMutex
 }
 
@@ -49,9 +50,9 @@ func (s *WSSubscriptionsMap) ForEach(f func(req *WSSubscription)) {
 }
 
 func (s *WSSubscriptionsMap) BufferPut(b []byte) {
-	s.mu.Lock()
+	s.bufferLocker.Lock()
 	s.buffer = append(s.buffer, b)
-	s.mu.Unlock()
+	s.bufferLocker.Unlock()
 }
 
 func (s *WSSubscriptionsMap) CreateSubscription(key string) *WSSubscription {
@@ -70,16 +71,16 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *WSSubscription {
 		}
 	}()
 
-	s.mu.Lock()
+	s.bufferLocker.Lock()
 	s.buffer = newBuffer
-	s.mu.Unlock()
+	s.bufferLocker.Unlock()
 
 	return subs
 }
 
 func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.bufferLocker.RLock()
+	defer s.bufferLocker.RUnlock()
 	for _, b := range s.buffer {
 		ids, err := utils.ParseIDs(b)
 		if err != nil {

@@ -42,6 +42,7 @@ type WS struct {
 	subscriptions        *apirequests.WSSubscriptionsMap
 	reconnectionTries    int
 	reconnectionInterval time.Duration
+	accessToken			 string
 }
 
 func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
@@ -65,6 +66,10 @@ func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout
 	t.connMu.Unlock()
 	if wErr != nil {
 		return nil, NewError(InvalidRequestErr, wErr.Error())
+	}
+
+	if resource == "authenticate" {
+		t.accessToken = params.Data.(map[string]interface{})["token"].(string)
 	}
 
 	select {
@@ -137,16 +142,14 @@ func (t *WS) handleServerMessages() {
 		if serverDown {
 			if t.reconnectDisabled() {
 				t.terminateRequests(err)
-				return
+			} else {
+				reconnErr := t.reconnect()
+				if reconnErr != nil {
+					t.terminateRequests(reconnErr)
+				}
 			}
 
-			reconnErr := t.reconnect()
-			if reconnErr != nil {
-				t.terminateRequests(reconnErr)
-				return
-			}
-
-			continue
+			return
 		}
 
 		t.resolveReceiver(msg)
@@ -160,15 +163,21 @@ func (t *WS) reconnectDisabled() bool {
 func (t *WS) reconnect() error {
 	var reconnErr error
 	for i := 0; i < t.reconnectionTries; i++ {
+		time.Sleep(t.reconnectionInterval)
 		conn, _, err := websocket.DefaultDialer.Dial(t.address, nil)
 		if err != nil {
 			reconnErr = err
-			time.Sleep(t.reconnectionInterval)
 			continue
 		}
 
-		t.resubscribe()
 		t.conn = conn
+		go t.handleServerMessages()
+
+		reauthErr := t.reauthenticate()
+		if reauthErr != nil {
+			return reauthErr
+		}
+		t.resubscribe()
 		reconnErr = nil
 		break
 	}
@@ -176,10 +185,19 @@ func (t *WS) reconnect() error {
 	return reconnErr
 }
 
+func (t *WS) reauthenticate() *Error {
+	_, err := t.Request("authenticate", &apirequests.RequestParams{
+		Data: map[string]interface{}{
+			"token": t.accessToken,
+		},
+	}, 0)
+
+	return err
+}
+
 func (t *WS) resubscribe() {
 	t.subscriptions.ForEach(func(sub *apirequests.WSSubscription) {
 		_, subId, err := t.Subscribe(sub.SubscriptionResource, sub.SubscriptionParams)
-
 		if err != nil {
 			sub.Err <- err
 			return
