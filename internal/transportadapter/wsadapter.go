@@ -15,8 +15,26 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
+func newWSAdapter(tsp *transport.WS) *WSAdapter {
+	a := &WSAdapter{
+		transport: tsp,
+	}
+
+	tsp.AfterReconnection(func() {
+		res, err := a.Authenticate(a.accessToken, 0)
+		if res {
+			tsp.Resubscribe()
+		} else {
+			tsp.TerminateRequests(err)
+		}
+	})
+
+	return a
+}
+
 type WSAdapter struct {
-	transport transport.Transporter
+	transport *transport.WS
+	accessToken string
 }
 
 type wsResponse struct {
@@ -34,6 +52,7 @@ func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, err
 		return false, err
 	}
 
+	a.accessToken = token
 	return true, nil
 }
 

@@ -42,7 +42,7 @@ type WS struct {
 	subscriptions        *apirequests.WSSubscriptionsMap
 	reconnectionTries    int
 	reconnectionInterval time.Duration
-	accessToken			 string
+	afterReconn			 func()
 }
 
 func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
@@ -66,10 +66,6 @@ func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout
 	t.connMu.Unlock()
 	if wErr != nil {
 		return nil, NewError(InvalidRequestErr, wErr.Error())
-	}
-
-	if resource == "authenticate" {
-		t.accessToken = params.Data.(map[string]interface{})["token"].(string)
 	}
 
 	select {
@@ -134,18 +130,23 @@ func (t *WS) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
 		if mt == websocket.CloseMessage {
-			t.terminateRequests(err)
+			t.TerminateRequests(err)
 			return
 		}
 
 		serverDown := mt == -1
 		if serverDown {
 			if t.reconnectDisabled() {
-				t.terminateRequests(err)
+				t.TerminateRequests(err)
 			} else {
 				reconnErr := t.reconnect()
 				if reconnErr != nil {
-					t.terminateRequests(reconnErr)
+					t.TerminateRequests(reconnErr)
+				} else {
+					go t.handleServerMessages()
+					if t.afterReconn != nil {
+						t.afterReconn()
+					}
 				}
 			}
 
@@ -171,13 +172,6 @@ func (t *WS) reconnect() error {
 		}
 
 		t.conn = conn
-		go t.handleServerMessages()
-
-		reauthErr := t.reauthenticate()
-		if reauthErr != nil {
-			return reauthErr
-		}
-		t.resubscribe()
 		reconnErr = nil
 		break
 	}
@@ -185,17 +179,7 @@ func (t *WS) reconnect() error {
 	return reconnErr
 }
 
-func (t *WS) reauthenticate() *Error {
-	_, err := t.Request("authenticate", &apirequests.RequestParams{
-		Data: map[string]interface{}{
-			"token": t.accessToken,
-		},
-	}, 0)
-
-	return err
-}
-
-func (t *WS) resubscribe() {
+func (t *WS) Resubscribe() {
 	t.subscriptions.ForEach(func(sub *apirequests.WSSubscription) {
 		_, subId, err := t.Subscribe(sub.SubscriptionResource, sub.SubscriptionParams)
 		if err != nil {
@@ -209,7 +193,7 @@ func (t *WS) resubscribe() {
 	})
 }
 
-func (t *WS) terminateRequests(err error) {
+func (t *WS) TerminateRequests(err error) {
 	t.requests.ForEach(func(req *apirequests.PendingRequest) {
 		req.Err <- err
 		req.Close()
@@ -254,4 +238,8 @@ func (t *WS) setParams(p *Params) {
 	if p.ReconnectionInterval != 0 {
 		t.reconnectionInterval = p.ReconnectionInterval
 	}
+}
+
+func (t *WS) AfterReconnection(callback func()) {
+	t.afterReconn = callback
 }
