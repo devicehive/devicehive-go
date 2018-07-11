@@ -42,7 +42,7 @@ type WS struct {
 	subscriptions        *apirequests.WSSubscriptionsMap
 	reconnectionTries    int
 	reconnectionInterval time.Duration
-	afterReconn			 func()
+	afterReconn          func()
 }
 
 func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {

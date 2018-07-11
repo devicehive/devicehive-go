@@ -33,7 +33,7 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 }
 
 type WSAdapter struct {
-	transport *transport.WS
+	transport   *transport.WS
 	accessToken string
 }
 

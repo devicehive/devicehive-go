@@ -21,7 +21,7 @@ type WSSubscriptionsMap struct {
 	subscriptions       map[string]*WSSubscription
 	subscriptionsLocker sync.RWMutex
 	buffer              [][]byte
-	bufferLocker		sync.RWMutex
+	bufferLocker        sync.RWMutex
 	mu                  sync.RWMutex
 }
 
