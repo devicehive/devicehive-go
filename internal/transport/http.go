@@ -65,7 +65,7 @@ func (t *HTTP) SetPollingResource(subscriptionId, resource string) {
 	t.pollResourcesMutex.Unlock()
 }
 
-func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *HTTP) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	client := &http.Client{}
 	addr, err := t.createRequestAddr(resource)
 	if err != nil {
@@ -88,7 +88,7 @@ func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Dura
 	return t.request(client, req)
 }
 
-func (t *HTTP) getRequestMethod(params *RequestParams) string {
+func (t *HTTP) getRequestMethod(params *apirequests.RequestParams) string {
 	if params == nil || params.Method == "" {
 		return defaultHTTPMethod
 	}
@@ -96,7 +96,7 @@ func (t *HTTP) getRequestMethod(params *RequestParams) string {
 	return params.Method
 }
 
-func (t *HTTP) createRequest(method, addr string, params *RequestParams) (*http.Request, error) {
+func (t *HTTP) createRequest(method, addr string, params *apirequests.RequestParams) (*http.Request, error) {
 	if method == "GET" {
 		return http.NewRequest(method, addr, nil)
 	}
@@ -109,7 +109,7 @@ func (t *HTTP) createRequest(method, addr string, params *RequestParams) (*http.
 	return http.NewRequest(method, addr, reqDataReader)
 }
 
-func (t *HTTP) createRequestDataReader(params *RequestParams) (*bytes.Reader, error) {
+func (t *HTTP) createRequestDataReader(params *apirequests.RequestParams) (*bytes.Reader, error) {
 	var rawReqData []byte
 
 	if params != nil && params.Data != nil {
@@ -141,7 +141,7 @@ func (t *HTTP) createRequestAddr(resource string) (addr string, err *Error) {
 	return u.String(), nil
 }
 
-func (t *HTTP) addRequestHeaders(req *http.Request, params *RequestParams) {
+func (t *HTTP) addRequestHeaders(req *http.Request, params *apirequests.RequestParams) {
 	if params != nil && params.AccessToken != "" {
 		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
 	}
@@ -207,7 +207,7 @@ func (t *HTTP) requestRetryEnabled() bool {
 	return t.requestRetries != 0 && t.requestRetriesInterval != 0
 }
 
-func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *HTTP) Subscribe(resource string, params *apirequests.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
 	subs := t.subscriptions.CreateRequest(subscriptionId)
@@ -246,7 +246,7 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 	return tspSubscription, subscriptionId, nil
 }
 
-func (t *HTTP) poll(subsId string, params *RequestParams, done chan struct{}) (chan []byte, chan error, chan struct{}) {
+func (t *HTTP) poll(subsId string, params *apirequests.RequestParams, done chan struct{}) (chan []byte, chan error, chan struct{}) {
 	resChan := make(chan []byte)
 	errChan := make(chan error)
 	continueChan := make(chan struct{})
@@ -259,7 +259,7 @@ func (t *HTTP) poll(subsId string, params *RequestParams, done chan struct{}) (c
 	}
 
 	if params == nil {
-		params = &RequestParams{}
+		params = &apirequests.RequestParams{}
 	}
 
 	go func() {

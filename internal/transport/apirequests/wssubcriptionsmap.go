@@ -11,26 +11,57 @@ import (
 	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
-func NewWSSubscriptionsMap(clients *PendingRequestsMap) *WSSubscriptionsMap {
+func NewWSSubscriptionsMap() *WSSubscriptionsMap {
 	return &WSSubscriptionsMap{
-		PendingRequestsMap: clients,
+		subscriptions: make(map[string]*WSSubscription),
 	}
 }
 
 type WSSubscriptionsMap struct {
-	*PendingRequestsMap
-	buffer [][]byte
-	mu     sync.RWMutex
+	subscriptions       map[string]*WSSubscription
+	subscriptionsLocker sync.RWMutex
+	buffer              [][]byte
+	bufferLocker        sync.RWMutex
+	mu                  sync.RWMutex
+}
+
+func (s *WSSubscriptionsMap) Get(key string) (*WSSubscription, bool) {
+	s.subscriptionsLocker.RLock()
+	wssub, ok := s.subscriptions[key]
+	s.subscriptionsLocker.RUnlock()
+
+	return wssub, ok
+}
+
+func (s *WSSubscriptionsMap) Delete(key string) {
+	s.subscriptionsLocker.Lock()
+	defer s.subscriptionsLocker.Unlock()
+
+	delete(s.subscriptions, key)
+}
+
+func (s *WSSubscriptionsMap) ForEach(f func(req *WSSubscription)) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, sub := range s.subscriptions {
+		f(sub)
+	}
 }
 
 func (s *WSSubscriptionsMap) BufferPut(b []byte) {
-	s.mu.Lock()
+	s.bufferLocker.Lock()
 	s.buffer = append(s.buffer, b)
-	s.mu.Unlock()
+	s.bufferLocker.Unlock()
 }
 
-func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
-	subs := s.PendingRequestsMap.CreateRequest(key)
+func (s *WSSubscriptionsMap) CreateSubscription(key string) *WSSubscription {
+	subs := &WSSubscription{
+		PendingRequest: NewPendingRequest(),
+	}
+	s.subscriptionsLocker.Lock()
+	s.subscriptions[key] = subs
+	s.subscriptionsLocker.Unlock()
 
 	subsData, newBuffer := s.extractSubscriberData(key)
 
@@ -40,16 +71,16 @@ func (s *WSSubscriptionsMap) CreateSubscription(key string) *PendingRequest {
 		}
 	}()
 
-	s.mu.Lock()
+	s.bufferLocker.Lock()
 	s.buffer = newBuffer
-	s.mu.Unlock()
+	s.bufferLocker.Unlock()
 
 	return subs
 }
 
 func (s *WSSubscriptionsMap) extractSubscriberData(subsId string) (subsData [][]byte, newBuffer [][]byte) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.bufferLocker.RLock()
+	defer s.bufferLocker.RUnlock()
 	for _, b := range s.buffer {
 		ids, err := utils.ParseIDs(b)
 		if err != nil {

@@ -12,9 +12,7 @@ import (
 
 func New(tsp transport.Transporter) TransportAdapter {
 	if tsp, ok := tsp.(*transport.WS); ok {
-		ws := &WSAdapter{
-			transport: tsp,
-		}
+		ws := newWSAdapter(tsp)
 		return ws
 	}
 

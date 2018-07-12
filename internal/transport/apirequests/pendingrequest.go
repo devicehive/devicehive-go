@@ -4,6 +4,14 @@
 
 package apirequests
 
+func NewPendingRequest() *PendingRequest {
+	return &PendingRequest{
+		Data:   make(chan []byte),
+		Signal: make(chan struct{}),
+		Err:    make(chan error),
+	}
+}
+
 type PendingRequest struct {
 	Data   chan []byte
 	Err    chan error
