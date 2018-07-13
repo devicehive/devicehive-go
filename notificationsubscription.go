@@ -23,13 +23,15 @@ func (ns *NotificationSubscription) Remove() *Error {
 	notifSubsMutex.RLock()
 	subsId := notificationSubscriptions[ns]
 	notifSubsMutex.RUnlock()
-	err := ns.client.unsubscribe("notification/unsubscribe", subsId)
 
+	err := ns.client.unsubscribe("notification/unsubscribe", subsId)
 	if err != nil {
 		return err
 	}
 
 	notifSubsMutex.Lock()
+	close(ns.NotificationChan)
+	close(ns.ErrorChan)
 	delete(notificationSubscriptions, ns)
 	notifSubsMutex.Unlock()
 

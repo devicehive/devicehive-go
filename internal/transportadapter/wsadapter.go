@@ -24,9 +24,10 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 		res, err := a.Authenticate(a.accessToken, 0)
 		if res {
 			tsp.Resubscribe()
-		} else {
-			tsp.TerminateRequests(err)
+			return
 		}
+
+		tsp.TerminateRequests(err)
 	})
 
 	return a
