@@ -25,13 +25,15 @@ func (cs *CommandSubscription) Remove() *Error {
 	commandSubsMutex.RLock()
 	subsId := commandSubscriptions[cs]
 	commandSubsMutex.RUnlock()
-	err := cs.client.unsubscribe("command/unsubscribe", subsId)
 
+	err := cs.client.unsubscribe("command/unsubscribe", subsId)
 	if err != nil {
 		return err
 	}
 
 	commandSubsMutex.Lock()
+	close(cs.CommandsChan)
+	close(cs.ErrorChan)
 	delete(commandSubscriptions, cs)
 	commandSubsMutex.Unlock()
 
