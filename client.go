@@ -79,6 +79,17 @@ func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscriptio
 	return subs, nil
 }
 
+func (c *Client) setCreds(login, password string) {
+	c.login = login
+	c.password = password
+	c.transportAdapter.SetCreds(login, password)
+}
+
+func (c *Client) setRefreshToken(refTok string) {
+	c.refreshToken = refTok
+	c.transportAdapter.SetRefreshToken(refTok)
+}
+
 func (c *Client) handleSubscriptionError(subs subscriber, err error) {
 	if err.Error() == TokenExpiredErr && subscriptionReauth.reauthNeeded() {
 		if res := c.reauthenticateSubscription(subs); res {
