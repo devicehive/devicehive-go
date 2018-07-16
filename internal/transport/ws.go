@@ -200,6 +200,7 @@ func (t *WS) TerminateRequests(err error) {
 	})
 
 	t.subscriptions.ForEach(func(s *apirequests.WSSubscription) {
+		s.Err <- err
 		s.Close()
 	})
 }
