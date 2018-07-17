@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"testing"
 	"time"
+	"sync"
 )
 
 func TestWSReconnection(t *testing.T) {
 	var srv *http.Server
 	var conn *websocket.Conn
+	var mu sync.Mutex
 	port := rand.Int31n(45535) + 20000
 	addr := fmt.Sprintf("localhost:%d", port)
 
@@ -29,7 +31,9 @@ func TestWSReconnection(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			mu.Lock()
 			conn = c
+			mu.Unlock()
 		})
 
 		srv.ListenAndServe()
@@ -44,7 +48,10 @@ func TestWSReconnection(t *testing.T) {
 	}
 	transportadapter.New(httpTsp)
 
+	mu.Lock()
 	conn.Close()
+	mu.Unlock()
+
 	srv.Close()
 
 	done := make(chan struct{})
