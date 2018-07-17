@@ -188,7 +188,9 @@ func (t *WS) Resubscribe() {
 		}
 
 		newSub, _ := t.subscriptions.Get(subId)
+		newSub.ChansLocker.Lock()
 		newSub.PendingRequest = sub.PendingRequest
+		newSub.ChansLocker.Unlock()
 		t.subscriptions.Delete(sub.SubscriptionId)
 	})
 }
@@ -220,7 +222,9 @@ func (t *WS) resolveReceiver(msg []byte) {
 	} else if ids.Subscription != 0 {
 		subsId := strconv.FormatInt(ids.Subscription, 10)
 		if subs, ok := t.subscriptions.Get(subsId); ok {
+			subs.ChansLocker.RLock()
 			subs.Data <- msg
+			subs.ChansLocker.RUnlock()
 		} else {
 			t.subscriptions.BufferPut(msg)
 		}

@@ -57,7 +57,7 @@ func TestWSReconnection(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			close(done)
+			done <- struct{}{}
 		}))
 	}()
 
@@ -122,6 +122,7 @@ func TestWSResubscription(t *testing.T) {
 func TestWSReconnectionTokenRefresh(t *testing.T) {
 	var srv *http.Server
 	var conn *websocket.Conn
+	var mu sync.Mutex
 	port := rand.Int31n(45535) + 20000
 	addr := fmt.Sprintf("localhost:%d", port)
 	wsUpgrader := &websocket.Upgrader{}
@@ -137,7 +138,9 @@ func TestWSReconnectionTokenRefresh(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			mu.Lock()
 			conn = c
+			mu.Unlock()
 		})
 
 		srv.ListenAndServe()
@@ -154,7 +157,10 @@ func TestWSReconnectionTokenRefresh(t *testing.T) {
 
 	adapter.SetCreds("testLogin", "testPassword")
 
+	mu.Lock()
 	conn.Close()
+	mu.Unlock()
+
 	srv.Close()
 
 	done := make(chan struct{})
@@ -191,7 +197,7 @@ func TestWSReconnectionTokenRefresh(t *testing.T) {
 				t.Fatal("WS adapter must request new token by credentials")
 			}
 
-			close(done)
+			done <- struct{}{}
 		}))
 	}()
 
