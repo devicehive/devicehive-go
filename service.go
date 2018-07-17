@@ -19,7 +19,7 @@ func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams
 		return nil, err
 	}
 
-	c.refreshToken = refreshToken
+	c.setRefreshToken(refreshToken)
 
 	if accessToken != "" {
 		return auth(accessToken, c)

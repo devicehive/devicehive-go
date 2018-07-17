@@ -27,4 +27,6 @@ type TransportAdapter interface {
 	Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error)
 	Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error
 	Authenticate(token string, timeout time.Duration) (result bool, err error)
+	SetCreds(login, password string)
+	SetRefreshToken(refTok string)
 }

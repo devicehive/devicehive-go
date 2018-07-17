@@ -29,6 +29,10 @@ type httpResponse struct {
 	Status  int    `json:"status"`
 }
 
+func (a *HTTPAdapter) SetCreds(login, password string) {}
+
+func (a *HTTPAdapter) SetRefreshToken(refTok string) {}
+
 func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
 	a.transport.SetPollingToken(token)
 	a.accessToken = token

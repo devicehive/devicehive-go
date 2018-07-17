@@ -21,27 +21,60 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 	}
 
 	tsp.AfterReconnection(func() {
-		res, err := a.Authenticate(a.accessToken, 0)
-		if res {
-			tsp.Resubscribe()
-			return
-		}
+		err := a.authenticatedResubscribe()
 
-		tsp.TerminateRequests(err)
+		if err != nil && err.Error() == "401 token expired" {
+			tok, err := a.RefreshToken()
+			if err != nil {
+				tsp.TerminateRequests(err)
+				return
+			}
+
+			a.accessToken = tok
+			err = a.authenticatedResubscribe()
+			if err != nil {
+				tsp.TerminateRequests(err)
+				return
+			}
+		} else if err != nil {
+			tsp.TerminateRequests(err)
+		}
 	})
 
 	return a
 }
 
 type WSAdapter struct {
-	transport   *transport.WS
-	accessToken string
+	transport    *transport.WS
+	accessToken  string
+	login        string
+	password     string
+	refreshToken string
 }
 
 type wsResponse struct {
 	Status string `json:"status"`
 	Error  string `json:"error"`
 	Code   int    `json:"code"`
+}
+
+func (a *WSAdapter) SetCreds(login, password string) {
+	a.login = login
+	a.password = password
+}
+
+func (a *WSAdapter) SetRefreshToken(refTok string) {
+	a.refreshToken = refTok
+}
+
+func (a *WSAdapter) authenticatedResubscribe() error {
+	res, err := a.Authenticate(a.accessToken, 0)
+	if res {
+		a.transport.Resubscribe()
+		return nil
+	}
+
+	return err
 }
 
 func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
@@ -125,6 +158,54 @@ func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout tim
 	a.transport.Unsubscribe(subscriptionId)
 
 	return nil
+}
+
+func (a *WSAdapter) RefreshToken() (accessToken string, err error) {
+	if a.refreshToken == "" {
+		accessToken, _, err = a.tokensByCreds(a.login, a.password)
+		return accessToken, err
+	}
+
+	return a.accessTokenByRefresh(a.refreshToken)
+}
+
+func (a *WSAdapter) tokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
+	rawRes, err := a.Request("tokenByCreds", map[string]interface{}{
+		"login":    login,
+		"password": pass,
+	}, 0)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	tok := &token{}
+	parseErr := json.Unmarshal(rawRes, tok)
+
+	if parseErr != nil {
+		return "", "", parseErr
+	}
+
+	return tok.Access, tok.Refresh, nil
+}
+
+func (a *WSAdapter) accessTokenByRefresh(refreshToken string) (accessToken string, err error) {
+	rawRes, err := a.Request("tokenRefresh", map[string]interface{}{
+		"refreshToken": refreshToken,
+	}, 0)
+
+	if err != nil {
+		return "", err
+	}
+
+	tok := &token{}
+	parseErr := json.Unmarshal(rawRes, tok)
+
+	if parseErr != nil {
+		return "", parseErr
+	}
+
+	return tok.Access, nil
 }
 
 func (a *WSAdapter) handleResponseError(rawRes []byte) error {

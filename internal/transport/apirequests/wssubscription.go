@@ -4,9 +4,12 @@
 
 package apirequests
 
+import "sync"
+
 type WSSubscription struct {
 	*PendingRequest
 	SubscriptionResource string
 	SubscriptionParams   *RequestParams
 	SubscriptionId       string
+	ChansLocker 		 sync.RWMutex
 }
