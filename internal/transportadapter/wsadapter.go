@@ -45,10 +45,10 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 }
 
 type WSAdapter struct {
-	transport   *transport.WS
-	accessToken string
-	login string
-	password string
+	transport    *transport.WS
+	accessToken  string
+	login        string
+	password     string
 	refreshToken string
 }
 

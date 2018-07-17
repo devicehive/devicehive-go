@@ -7,9 +7,9 @@ import (
 	"github.com/gorilla/websocket"
 	"math/rand"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
-	"sync"
 )
 
 func TestWSReconnection(t *testing.T) {
@@ -116,6 +116,89 @@ func TestWSResubscription(t *testing.T) {
 	case <-s.DataChan:
 	case <-time.After(3 * time.Second):
 		t.Fatal("Resubscription timeout")
+	}
+}
+
+func TestWSReconnectionTokenRefresh(t *testing.T) {
+	var srv *http.Server
+	var conn *websocket.Conn
+	port := rand.Int31n(45535) + 20000
+	addr := fmt.Sprintf("localhost:%d", port)
+	wsUpgrader := &websocket.Upgrader{}
+
+	go func() {
+		srv = &http.Server{
+			Addr: addr,
+		}
+
+		srv.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c, err := wsUpgrader.Upgrade(w, r, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			conn = c
+		})
+
+		srv.ListenAndServe()
+	}()
+
+	httpTsp, err := transport.Create("ws://"+addr, &transport.Params{
+		ReconnectionInterval: 500 * time.Millisecond,
+		ReconnectionTries:    1000000,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	adapter := transportadapter.New(httpTsp)
+
+	adapter.SetCreds("testLogin", "testPassword")
+
+	conn.Close()
+	srv.Close()
+
+	done := make(chan struct{})
+	go func() {
+		http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c, err := wsUpgrader.Upgrade(w, r, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req := make(map[string]interface{})
+			err = c.ReadJSON(&req)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = c.WriteJSON(map[string]interface{}{
+				"action":    "authenticate",
+				"requestId": req["requestId"],
+				"code":      401,
+				"status":    "error",
+				"error":     "Token expired",
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = c.ReadJSON(&req)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if action, ok := req["action"].(string); !ok || action != "token" {
+				t.Fatal("WS adapter must request new token by credentials")
+			}
+
+			close(done)
+		}))
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("Token creation timeout")
 	}
 }
 
