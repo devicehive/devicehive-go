@@ -21,6 +21,7 @@ type Client struct {
 	password                  string
 	PollingWaitTimeoutSeconds int
 	subscriptionTimestamp     time.Time
+	defaultRequestTimeout     time.Duration
 }
 
 // Constructor, doesn't create device at DH
@@ -119,7 +120,7 @@ func (c *Client) reauthenticateSubscription(subs subscriber) bool {
 }
 
 func (c *Client) authenticate(token string) (bool, *Error) {
-	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
+	result, rawErr := c.transportAdapter.Authenticate(token, c.defaultRequestTimeout)
 
 	if rawErr != nil {
 		return result, newError(rawErr)
@@ -153,7 +154,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (subscr
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
+	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, c.defaultRequestTimeout)
 	if err != nil {
 		return newError(err)
 	}
@@ -162,7 +163,7 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, c.defaultRequestTimeout)
 
 	if rawErr != nil && rawErr.Error() == TokenExpiredErr {
 		resBytes, err := c.refreshRetry(resourceName, data)
@@ -185,7 +186,7 @@ func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) 
 		return nil, err
 	}
 
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, c.defaultRequestTimeout)
 	if rawErr != nil {
 		return nil, newError(rawErr)
 	}

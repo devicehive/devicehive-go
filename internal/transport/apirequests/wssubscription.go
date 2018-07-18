@@ -11,5 +11,5 @@ type WSSubscription struct {
 	SubscriptionResource string
 	SubscriptionParams   *RequestParams
 	SubscriptionId       string
-	ChansLocker 		 sync.RWMutex
+	ChansLocker          sync.RWMutex
 }

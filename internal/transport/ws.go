@@ -22,10 +22,11 @@ func newWS(addr string, params *Params) (tsp *WS, err error) {
 	}
 
 	tsp = &WS{
-		conn:          conn,
-		address:       addr,
-		requests:      apirequests.NewClientsMap(),
-		subscriptions: apirequests.NewWSSubscriptionsMap(),
+		conn:           conn,
+		address:        addr,
+		requests:       apirequests.NewClientsMap(),
+		subscriptions:  apirequests.NewWSSubscriptionsMap(),
+		defaultTimeout: DefaultTimeout,
 	}
 	tsp.setParams(params)
 
@@ -43,11 +44,12 @@ type WS struct {
 	reconnectionTries    int
 	reconnectionInterval time.Duration
 	afterReconn          func()
+	defaultTimeout       time.Duration
 }
 
 func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	}
 
 	if params == nil {
@@ -242,6 +244,10 @@ func (t *WS) setParams(p *Params) {
 
 	if p.ReconnectionInterval != 0 {
 		t.reconnectionInterval = p.ReconnectionInterval
+	}
+
+	if p.DefaultTimeout != 0 {
+		t.defaultTimeout = p.DefaultTimeout
 	}
 }
 

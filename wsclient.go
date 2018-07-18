@@ -16,12 +16,13 @@ type WSClient struct {
 	// Channel for receiving responses
 	DataChan chan []byte
 	// Channel for receiving errors
-	ErrorChan chan error
+	ErrorChan             chan error
+	defaultRequestTimeout time.Duration
 }
 
 func (wsc *WSClient) unsubscribe(resourceName, subscriptionId string) {
 	go func() {
-		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
+		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, wsc.defaultRequestTimeout)
 		if err != nil {
 			wsc.ErrorChan <- newError(err)
 		}
@@ -66,7 +67,7 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 	}
 
 	go func() {
-		resBytes, err := wsc.transportAdapter.Request(resourceName, data, Timeout)
+		resBytes, err := wsc.transportAdapter.Request(resourceName, data, wsc.defaultRequestTimeout)
 		if err != nil {
 			wsc.ErrorChan <- newError(err)
 			return

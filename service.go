@@ -56,13 +56,8 @@ func ConnectWithCreds(url, login, password string, p *ConnectionParams) (*Client
 }
 
 func connect(url string, p *ConnectionParams) (*Client, *Error) {
-	var tspParams *transport.Params
-	if p != nil {
-		tspParams = &transport.Params{
-			ReconnectionTries:    p.ReconnectionTries,
-			ReconnectionInterval: p.ReconnectionInterval,
-		}
-	}
+	timeout := p.Timeout()
+	tspParams := createTransportParams(p)
 
 	tsp, tspErr := transport.Create(url, tspParams)
 
@@ -73,6 +68,7 @@ func connect(url string, p *ConnectionParams) (*Client, *Error) {
 	client := &Client{
 		transportAdapter:          transportadapter.New(tsp),
 		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
+		defaultRequestTimeout:     timeout,
 	}
 
 	info, err := client.GetInfo()
@@ -95,4 +91,17 @@ func auth(accTok string, c *Client) (*Client, *Error) {
 	}
 
 	return nil, nil
+}
+
+func createTransportParams(p *ConnectionParams) *transport.Params {
+	var tspParams *transport.Params
+	if p != nil {
+		tspParams = &transport.Params{
+			ReconnectionTries:    p.ReconnectionTries,
+			ReconnectionInterval: p.ReconnectionInterval,
+			DefaultTimeout:       p.Timeout(),
+		}
+	}
+
+	return tspParams
 }

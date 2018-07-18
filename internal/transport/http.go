@@ -33,9 +33,10 @@ func newHTTP(addr string, p *Params) (*HTTP, error) {
 	}
 
 	t := &HTTP{
-		url:           u,
-		subscriptions: apirequests.NewClientsMap(),
-		pollResources: make(map[string]string),
+		url:            u,
+		subscriptions:  apirequests.NewClientsMap(),
+		pollResources:  make(map[string]string),
+		defaultTimeout: DefaultTimeout,
 	}
 	t.setParams(p)
 
@@ -51,6 +52,7 @@ type HTTP struct {
 	pollResources           map[string]string
 	requestRetriesInterval  time.Duration
 	requestRetries          int
+	defaultTimeout          time.Duration
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
@@ -73,7 +75,7 @@ func (t *HTTP) Request(resource string, params *apirequests.RequestParams, timeo
 	}
 
 	if timeout == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	}
 	client.Timeout = timeout
 
@@ -253,7 +255,7 @@ func (t *HTTP) poll(subsId string, params *apirequests.RequestParams, done chan 
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	} else {
 		timeout = time.Duration(params.WaitTimeoutSeconds) * time.Second * 2
 	}
@@ -312,5 +314,9 @@ func (t *HTTP) setParams(p *Params) {
 
 	if p.ReconnectionInterval != 0 {
 		t.requestRetriesInterval = p.ReconnectionInterval
+	}
+
+	if p.DefaultTimeout != 0 {
+		t.defaultTimeout = p.DefaultTimeout
 	}
 }
