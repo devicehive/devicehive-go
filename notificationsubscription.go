@@ -16,6 +16,7 @@ var notificationSubscriptions = make(map[*NotificationSubscription]string)
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
 	ErrorChan        chan *Error
+	done			 chan struct{}
 	client           *Client
 }
 
@@ -30,8 +31,7 @@ func (ns *NotificationSubscription) Remove() *Error {
 	}
 
 	notifSubsMutex.Lock()
-	close(ns.NotificationChan)
-	close(ns.ErrorChan)
+	close(ns.done)
 	delete(notificationSubscriptions, ns)
 	notifSubsMutex.Unlock()
 
@@ -46,6 +46,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
 		ErrorChan:        make(chan *Error),
+		done:		  	  make(chan struct{}),
 		client:           client,
 	}
 
@@ -76,6 +77,8 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 				}
 
 				client.handleSubscriptionError(subs, err)
+			case <- subs.done:
+				break loop
 			}
 		}
 
