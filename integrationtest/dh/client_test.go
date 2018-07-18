@@ -67,7 +67,6 @@ func TestSubscriptions(t *testing.T) {
 }
 
 func TestCommandSubscriptionRemove(t *testing.T) {
-	t.Skip()
 	is := is.New(t)
 
 	subs, err := client.SubscribeCommands(nil)
@@ -90,7 +89,6 @@ func TestCommandSubscriptionRemove(t *testing.T) {
 }
 
 func TestNotificationSubscriptionRemove(t *testing.T) {
-	t.Skip()
 	is := is.New(t)
 
 	subs, err := client.SubscribeNotifications(nil)
