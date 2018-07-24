@@ -22,6 +22,9 @@ type Timestamp struct {
 type HTTPAdapter struct {
 	transport   *transport.HTTP
 	accessToken string
+	refreshToken string
+	login string
+	password string
 }
 
 type httpResponse struct {
@@ -29,9 +32,14 @@ type httpResponse struct {
 	Status  int    `json:"status"`
 }
 
-func (a *HTTPAdapter) SetCreds(login, password string) {}
+func (a *HTTPAdapter) SetCreds(login, password string) {
+	a.login = login
+	a.password = password
+}
 
-func (a *HTTPAdapter) SetRefreshToken(refTok string) {}
+func (a *HTTPAdapter) SetRefreshToken(refTok string) {
+	a.refreshToken = refTok
+}
 
 func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
 	a.transport.SetPollingToken(token)
@@ -40,6 +48,32 @@ func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, e
 }
 
 func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
+	res, err := a.request(resourceName, data, timeout)
+	if err != nil && err.Error() == TokenExpiredErr {
+		res, err := a.refreshRetry(resourceName, data, timeout)
+		return res, err
+	} else if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (a *HTTPAdapter) refreshRetry(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
+	accessToken, err := a.RefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := a.Authenticate(accessToken, 0)
+	if !res || err != nil {
+		return nil, err
+	}
+
+	return a.request(resourceName, data, 0)
+}
+
+func (a *HTTPAdapter) request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
 	resource, tspReqParams := a.prepareRequestData(resourceName, data)
 
 	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
@@ -256,4 +290,52 @@ func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]in
 	}
 
 	return resource, reqParams
+}
+
+func (a *HTTPAdapter) RefreshToken() (accessToken string, err error) {
+	if a.refreshToken == "" {
+		accessToken, _, err = a.TokensByCreds(a.login, a.password)
+		return accessToken, err
+	}
+
+	return a.AccessTokenByRefresh(a.refreshToken)
+}
+
+func (a *HTTPAdapter) TokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
+	rawRes, err := a.Request("tokenByCreds", map[string]interface{}{
+		"login":    login,
+		"password": pass,
+	}, 0)
+
+	if err != nil {
+		return "", "", err
+	}
+
+	tok := &token{}
+	parseErr := json.Unmarshal(rawRes, tok)
+
+	if parseErr != nil {
+		return "", "", parseErr
+	}
+
+	return tok.Access, tok.Refresh, nil
+}
+
+func (a *HTTPAdapter) AccessTokenByRefresh(refreshToken string) (accessToken string, err error) {
+	rawRes, err := a.Request("tokenRefresh", map[string]interface{}{
+		"refreshToken": refreshToken,
+	}, 0)
+
+	if err != nil {
+		return "", err
+	}
+
+	tok := &token{}
+	parseErr := json.Unmarshal(rawRes, tok)
+
+	if parseErr != nil {
+		return "", parseErr
+	}
+
+	return tok.Access, nil
 }

@@ -14,7 +14,6 @@ import (
 // It will recreate access token on expiration by given refresh token
 func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams) (*Client, *Error) {
 	c, err := connect(url, p)
-
 	if err != nil {
 		return nil, err
 	}
@@ -38,19 +37,17 @@ func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams
 // It will recreate access token on expiration by given credentials
 func ConnectWithCreds(url, login, password string, p *ConnectionParams) (*Client, *Error) {
 	c, err := connect(url, p)
-
 	if err != nil {
 		return nil, err
 	}
+
+	c.setCreds(login, password)
 
 	accTok, _, err := c.tokensByCreds(login, password)
 
 	if err != nil {
 		return nil, err
 	}
-
-	c.login = login
-	c.password = password
 
 	return auth(accTok, c)
 }

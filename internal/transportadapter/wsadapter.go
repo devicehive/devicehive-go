@@ -162,14 +162,14 @@ func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout tim
 
 func (a *WSAdapter) RefreshToken() (accessToken string, err error) {
 	if a.refreshToken == "" {
-		accessToken, _, err = a.tokensByCreds(a.login, a.password)
+		accessToken, _, err = a.TokensByCreds(a.login, a.password)
 		return accessToken, err
 	}
 
-	return a.accessTokenByRefresh(a.refreshToken)
+	return a.AccessTokenByRefresh(a.refreshToken)
 }
 
-func (a *WSAdapter) tokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
+func (a *WSAdapter) TokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
 	rawRes, err := a.Request("tokenByCreds", map[string]interface{}{
 		"login":    login,
 		"password": pass,
@@ -189,7 +189,7 @@ func (a *WSAdapter) tokensByCreds(login, pass string) (accessToken, refreshToken
 	return tok.Access, tok.Refresh, nil
 }
 
-func (a *WSAdapter) accessTokenByRefresh(refreshToken string) (accessToken string, err error) {
+func (a *WSAdapter) AccessTokenByRefresh(refreshToken string) (accessToken string, err error) {
 	rawRes, err := a.Request("tokenRefresh", map[string]interface{}{
 		"refreshToken": refreshToken,
 	}, 0)

@@ -29,4 +29,7 @@ type TransportAdapter interface {
 	Authenticate(token string, timeout time.Duration) (result bool, err error)
 	SetCreds(login, password string)
 	SetRefreshToken(refTok string)
+	RefreshToken() (accessToken string, err error)
+	TokensByCreds(login, pass string) (accessToken, refreshToken string, err error)
+	AccessTokenByRefresh(refreshToken string) (accessToken string, err error)
 }

@@ -16,9 +16,6 @@ import (
 // Main struct which serves as entry point to DeviceHive API
 type Client struct {
 	transportAdapter          transportadapter.TransportAdapter
-	refreshToken              string
-	login                     string
-	password                  string
 	PollingWaitTimeoutSeconds int
 	subscriptionTimestamp     time.Time
 	defaultRequestTimeout     time.Duration
@@ -81,13 +78,10 @@ func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscriptio
 }
 
 func (c *Client) setCreds(login, password string) {
-	c.login = login
-	c.password = password
 	c.transportAdapter.SetCreds(login, password)
 }
 
 func (c *Client) setRefreshToken(refTok string) {
-	c.refreshToken = refTok
 	c.transportAdapter.SetRefreshToken(refTok)
 }
 
@@ -121,7 +115,6 @@ func (c *Client) reauthenticateSubscription(subs subscriber) bool {
 
 func (c *Client) authenticate(token string) (bool, *Error) {
 	result, rawErr := c.transportAdapter.Authenticate(token, c.defaultRequestTimeout)
-
 	if rawErr != nil {
 		return result, newError(rawErr)
 	}
@@ -163,29 +156,6 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, c.defaultRequestTimeout)
-
-	if rawErr != nil && rawErr.Error() == TokenExpiredErr {
-		resBytes, err := c.refreshRetry(resourceName, data)
-		return resBytes, err
-	} else if rawErr != nil {
-		return nil, newError(rawErr)
-	}
-
-	return resBytes, nil
-}
-
-func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) ([]byte, *Error) {
-	accessToken, err := c.RefreshToken()
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.authenticate(accessToken)
-	if !res || err != nil {
-		return nil, err
-	}
-
 	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, c.defaultRequestTimeout)
 	if rawErr != nil {
 		return nil, newError(rawErr)
@@ -483,44 +453,49 @@ func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time
 		data["refreshExpiration"] = &ISO8601Time{refreshExpiration}
 	}
 
-	return c.tokenRequest("tokenCreate", map[string]interface{}{
+	rawRes, err := c.request("tokenCreate", map[string]interface{}{
 		"payload": data,
-	})
-}
-
-func (c *Client) RefreshToken() (accessToken string, err *Error) {
-	if c.refreshToken == "" {
-		accessToken, _, err = c.tokensByCreds(c.login, c.password)
-		return accessToken, err
-	}
-
-	return c.accessTokenByRefresh(c.refreshToken)
-}
-
-func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
-		"refreshToken": refreshToken,
 	})
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	tok := &token{}
 	parseErr := json.Unmarshal(rawRes, tok)
 
 	if parseErr != nil {
-		return "", newJSONErr(parseErr)
+		return "", "", newJSONErr(parseErr)
 	}
 
-	return tok.Access, nil
+	return tok.Access, tok.Refresh, nil
+}
+
+func (c *Client) RefreshToken() (accessToken string, err *Error) {
+	accessToken, rawErr := c.transportAdapter.RefreshToken()
+	if rawErr != nil {
+		err = newError(rawErr)
+	}
+
+	return accessToken, err
+}
+
+func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
+	accessToken, rawErr := c.transportAdapter.AccessTokenByRefresh(refreshToken)
+	if rawErr != nil {
+		err = newError(rawErr)
+	}
+
+	return accessToken, err
 }
 
 func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	return c.tokenRequest("tokenByCreds", map[string]interface{}{
-		"login":    login,
-		"password": pass,
-	})
+	accessToken, refreshToken, rawErr := c.transportAdapter.TokensByCreds(login, pass)
+	if rawErr != nil {
+		err = newError(rawErr)
+	}
+
+	return accessToken, refreshToken, err
 }
 
 func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
