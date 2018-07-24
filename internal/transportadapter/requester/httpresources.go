@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style
 // license that can be found in the LICENSE file.
 
-package transportadapter
+package requester
 
 var httpResources = map[string][2]string{
 	"tokenCreate":            {"token/create", "POST"},

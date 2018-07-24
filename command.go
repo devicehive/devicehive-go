@@ -4,9 +4,6 @@
 
 package devicehive_go
 
-type commandResponse struct {
-	Command *Command `json:"command"`
-}
 type Command struct {
 	Id          int         `json:"id,omitempty"`
 	Command     string      `json:"command,omitempty"`

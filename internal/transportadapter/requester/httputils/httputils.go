@@ -1,26 +1,16 @@
-// Copyright 2018 DataArt. All rights reserved.
-// Use of this source code is governed by an Apache-style
-// license that can be found in the LICENSE file.
-
-package transportadapter
+package httputils
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"log"
+	"bytes"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"text/template"
+	"fmt"
 	"net/url"
 	"strings"
-	"text/template"
-
-	"github.com/devicehive/devicehive-go/internal/utils"
 )
 
-func isJSONArray(b []byte) bool {
-	return json.Unmarshal(b, &[]interface{}{}) == nil
-}
-
-func prepareHttpResource(resourceTemplate string, queryParams map[string]string) string {
+func PrepareHttpResource(resourceTemplate string, queryParams map[string]string) string {
 	t := template.New("resource")
 
 	t, err := t.Parse(resourceTemplate)
@@ -39,7 +29,7 @@ func prepareHttpResource(resourceTemplate string, queryParams map[string]string)
 	return resource.String()
 }
 
-func prepareQueryParams(data map[string]interface{}) map[string]string {
+func PrepareQueryParams(data map[string]interface{}) map[string]string {
 	preparedData := make(map[string]string)
 
 	for k, v := range data {
@@ -57,7 +47,7 @@ func prepareQueryParams(data map[string]interface{}) map[string]string {
 	return preparedData
 }
 
-func createQueryString(resourcesQueryParams map[string][]string, resourceName string, queryParams map[string]string) string {
+func CreateQueryString(resourcesQueryParams map[string][]string, resourceName string, queryParams map[string]string) string {
 	var params []string
 	paramNames, ok := resourcesQueryParams[resourceName]
 

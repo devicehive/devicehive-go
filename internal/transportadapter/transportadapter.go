@@ -16,10 +16,7 @@ func New(tsp transport.Transporter) TransportAdapter {
 		return ws
 	}
 
-	http := &HTTPAdapter{
-		transport: tsp.(*transport.HTTP),
-	}
-	return http
+	return newHTTPAdapter(tsp.(*transport.HTTP))
 }
 
 type TransportAdapter interface {

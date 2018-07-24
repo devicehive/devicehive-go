@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style
 // license that can be found in the LICENSE file.
 
-package transportadapter
+package requester
 
 var httpRequestPayloadBuilders = map[string]func(map[string]interface{}) interface{}{
 	"tokenCreate": func(data map[string]interface{}) interface{} {

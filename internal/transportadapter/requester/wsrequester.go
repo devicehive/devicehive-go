@@ -7,14 +7,20 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 )
 
+func NewWSRequester(tsp *transport.WS) *WSRequester {
+	return &WSRequester{
+		transport: tsp,
+	}
+}
+
 type WSRequester struct {
 	transport transport.Transporter
 }
 
-func (a *WSRequester) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	resource, tspReqParams := a.PrepareRequestData(resourceName, data)
+func (r *WSRequester) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
+	resource, tspReqParams := r.PrepareRequestData(resourceName, data)
 
-	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
+	resBytes, tspErr := r.transport.Request(resource, tspReqParams, timeout)
 	if tspErr != nil {
 		return nil, tspErr
 	}
@@ -29,8 +35,8 @@ func (a *WSRequester) Request(resourceName string, data map[string]interface{}, 
 	return resBytes, nil
 }
 
-func (a *WSRequester) PrepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams) {
-	resource, _ = a.resolveResource(resourceName, data)
+func (r *WSRequester) PrepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams) {
+	resource, _ = r.resolveResource(resourceName, data)
 	reqParams = &apirequests.RequestParams{
 		Data: data,
 	}
@@ -38,7 +44,7 @@ func (a *WSRequester) PrepareRequestData(resourceName string, data map[string]in
 	return resource, reqParams
 }
 
-func (a *WSRequester) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
+func (r *WSRequester) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
 	if wsResources[resName] == "" {
 		return resName, ""
 	}

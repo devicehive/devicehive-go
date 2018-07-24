@@ -16,7 +16,7 @@ import (
 func newWSAdapter(tsp *transport.WS) *WSAdapter {
 	a := &WSAdapter{
 		transport: tsp,
-		reqstr: requester.New(tsp),
+		reqstr: requester.NewWSRequester(tsp),
 	}
 
 	tsp.AfterReconnection(func() {
@@ -49,7 +49,7 @@ type WSAdapter struct {
 	login        string
 	password     string
 	refreshToken string
-	reqstr       requester.Requester
+	reqstr       *requester.WSRequester
 }
 
 func (a *WSAdapter) SetCreds(login, password string) {

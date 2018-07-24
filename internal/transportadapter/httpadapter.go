@@ -6,17 +6,22 @@ package transportadapter
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/requester"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 )
 
 type Timestamp struct {
 	Value string `json:"timestamp"`
+}
+
+func newHTTPAdapter(tsp *transport.HTTP) *HTTPAdapter {
+	return &HTTPAdapter{
+		transport: tsp,
+		reqstr: requester.NewHTTPRequester(tsp),
+	}
 }
 
 type HTTPAdapter struct {
@@ -25,11 +30,7 @@ type HTTPAdapter struct {
 	refreshToken string
 	login string
 	password string
-}
-
-type httpResponse struct {
-	Message string `json:"message"`
-	Status  int    `json:"status"`
+	reqstr       *requester.HTTPRequester
 }
 
 func (a *HTTPAdapter) SetCreds(login, password string) {
@@ -74,25 +75,11 @@ func (a *HTTPAdapter) refreshRetry(resourceName string, data map[string]interfac
 }
 
 func (a *HTTPAdapter) request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, data)
-
-	resBytes, tspErr := a.transport.Request(resource, tspReqParams, timeout)
-	if tspErr != nil {
-		return nil, tspErr
-	}
-
-	err := a.handleResponseError(resBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	resBytes = a.extractResponsePayload(resourceName, resBytes)
-
-	return resBytes, nil
+	return a.reqstr.Request(resourceName, data, timeout, a.accessToken)
 }
 
 func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
-	resource, tspReqParams := a.prepareRequestData(resourceName, params)
+	resource, tspReqParams := a.reqstr.PrepareRequestData(resourceName, params, a.accessToken)
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
 
@@ -156,7 +143,7 @@ func (a *HTTPAdapter) transformSubscription(resourceName, subscriptionId string,
 func (a *HTTPAdapter) handleSubscriptionEventData(data []byte) ([]json.RawMessage, error) {
 	var list []json.RawMessage
 	if err := json.Unmarshal(data, &list); err != nil {
-		if resErr := a.handleResponseError(data); resErr != nil {
+		if resErr := responsehandler.HTTPHandleResponseError(data); resErr != nil {
 			return nil, resErr
 		} else {
 			return nil, err
@@ -184,7 +171,7 @@ func (a *HTTPAdapter) setResourceWithLastEntityTimestamp(resourceName, subscript
 	}
 	params["timestamp"] = timestamp.Value
 
-	resource, _ := a.resolveResource(resourceName, params)
+	resource, _ := a.reqstr.ResolveResource(resourceName, params)
 
 	a.transport.SetPollingResource(subscriptionId, resource)
 }
@@ -192,104 +179,6 @@ func (a *HTTPAdapter) setResourceWithLastEntityTimestamp(resourceName, subscript
 func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout time.Duration) error {
 	a.transport.Unsubscribe(subscriptionId)
 	return nil
-}
-
-func (a *HTTPAdapter) handleResponseError(rawRes []byte) error {
-	if len(rawRes) == 0 {
-		return nil
-	}
-
-	if isJSONArray(rawRes) {
-		return nil
-	}
-
-	httpRes, err := a.formatHTTPResponse(rawRes)
-	if httpRes == nil && err == nil {
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	if httpRes.Status >= 400 {
-		errMsg := strings.ToLower(httpRes.Message)
-		errCode := httpRes.Status
-		r := fmt.Sprintf("%d %s", errCode, errMsg)
-		return errors.New(r)
-	}
-
-	return nil
-}
-
-func (a *HTTPAdapter) formatHTTPResponse(rawRes []byte) (*httpResponse, error) {
-	res := make(map[string]interface{})
-	err := json.Unmarshal(rawRes, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, ok := res["message"]; !ok {
-		return nil, nil
-	}
-
-	httpRes := &httpResponse{
-		Message: res["message"].(string),
-	}
-	if e, ok := res["error"].(float64); ok {
-		httpRes.Status = int(e)
-	} else {
-		httpRes.Status = int(res["status"].(float64))
-	}
-
-	return httpRes, nil
-}
-
-func (a *HTTPAdapter) resolveResource(resName string, data map[string]interface{}) (resource, method string) {
-	rsrc, ok := httpResources[resName]
-
-	if !ok {
-		return resName, ""
-	}
-
-	queryParams := prepareQueryParams(data)
-
-	resource = prepareHttpResource(rsrc[0], queryParams)
-	method = rsrc[1]
-
-	queryString := createQueryString(httpResourcesQueryParams, resName, queryParams)
-	if queryString != "" {
-		resource += "?" + queryString
-	}
-
-	return resource, method
-}
-
-func (a *HTTPAdapter) buildRequestData(resourceName string, rawData map[string]interface{}) interface{} {
-	payloadBuilder, ok := httpRequestPayloadBuilders[resourceName]
-
-	if ok {
-		return payloadBuilder(rawData)
-	}
-
-	return rawData
-}
-
-func (a *HTTPAdapter) extractResponsePayload(resourceName string, rawRes []byte) []byte {
-	return rawRes
-}
-
-func (a *HTTPAdapter) prepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams) {
-	resource, method := a.resolveResource(resourceName, data)
-	reqData := a.buildRequestData(resourceName, data)
-	reqParams = &apirequests.RequestParams{
-		Data:   reqData,
-		Method: method,
-	}
-
-	if resourceName != "tokenRefresh" && resourceName != "tokenByCreds" {
-		reqParams.AccessToken = a.accessToken
-	}
-
-	return resource, reqParams
 }
 
 func (a *HTTPAdapter) RefreshToken() (accessToken string, err error) {

@@ -498,23 +498,6 @@ func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken st
 	return accessToken, refreshToken, err
 }
 
-func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	rawRes, err := c.request(resourceName, data)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", "", newJSONErr(parseErr)
-	}
-
-	return tok.Access, tok.Refresh, nil
-}
-
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*User, *Error) {
 	usr := c.NewUser()
 	usr.Login = login
