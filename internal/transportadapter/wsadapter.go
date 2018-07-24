@@ -23,7 +23,7 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 	tsp.AfterReconnection(func() {
 		err := a.authenticatedResubscribe()
 
-		if err != nil && err.Error() == "401 token expired" {
+		if err != nil && err.Error() == TokenExpiredErr {
 			tok, err := a.RefreshToken()
 			if err != nil {
 				tsp.TerminateRequests(err)
