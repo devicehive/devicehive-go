@@ -16,7 +16,7 @@ var notificationSubscriptions = make(map[*NotificationSubscription]string)
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
 	ErrorChan        chan *Error
-	done			 chan struct{}
+	done             chan struct{}
 	client           *Client
 }
 
@@ -46,7 +46,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
 		ErrorChan:        make(chan *Error),
-		done:		  	  make(chan struct{}),
+		done:             make(chan struct{}),
 		client:           client,
 	}
 
@@ -77,7 +77,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 				}
 
 				client.handleSubscriptionError(subs, err)
-			case <- subs.done:
+			case <-subs.done:
 				break loop
 			}
 		}

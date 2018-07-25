@@ -1,10 +1,10 @@
 package requester
 
 import (
-	"time"
+	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
+	"time"
 )
 
 func NewWSRequester(tsp *transport.WS) *WSRequester {
@@ -17,8 +17,8 @@ type WSRequester struct {
 	transport transport.Transporter
 }
 
-func (r *WSRequester) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	resource, tspReqParams := r.PrepareRequestData(resourceName, data)
+func (r *WSRequester) Request(resourceName string, data map[string]interface{}, timeout time.Duration, accessToken string) ([]byte, error) {
+	resource, tspReqParams := r.PrepareRequestData(resourceName, data, accessToken)
 
 	resBytes, tspErr := r.transport.Request(resource, tspReqParams, timeout)
 	if tspErr != nil {
@@ -35,7 +35,7 @@ func (r *WSRequester) Request(resourceName string, data map[string]interface{}, 
 	return resBytes, nil
 }
 
-func (r *WSRequester) PrepareRequestData(resourceName string, data map[string]interface{}) (resource string, reqParams *apirequests.RequestParams) {
+func (r *WSRequester) PrepareRequestData(resourceName string, data map[string]interface{}, accessToken string) (resource string, reqParams *apirequests.RequestParams) {
 	resource, _ = r.resolveResource(resourceName, data)
 	reqParams = &apirequests.RequestParams{
 		Data: data,

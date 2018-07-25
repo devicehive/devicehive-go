@@ -5,18 +5,20 @@
 package transportadapter
 
 import (
-	"encoding/json"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/authmanager"
+	"github.com/devicehive/devicehive-go/internal/requester"
+	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/requester"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 )
 
 func newWSAdapter(tsp *transport.WS) *WSAdapter {
+	reqstr := requester.NewWSRequester(tsp)
 	a := &WSAdapter{
 		transport: tsp,
-		reqstr: requester.NewWSRequester(tsp),
+		reqstr:    reqstr,
+		authMng:   authmanager.New(reqstr),
 	}
 
 	tsp.AfterReconnection(func() {
@@ -29,7 +31,7 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 				return
 			}
 
-			a.accessToken = tok
+			a.authMng.SetAccessToken(tok)
 			err = a.authenticatedResubscribe()
 			if err != nil {
 				tsp.TerminateRequests(err)
@@ -44,31 +46,17 @@ func newWSAdapter(tsp *transport.WS) *WSAdapter {
 }
 
 type WSAdapter struct {
-	transport    *transport.WS
-	accessToken  string
-	login        string
-	password     string
-	refreshToken string
-	reqstr       *requester.WSRequester
+	transport *transport.WS
+	authMng   *authmanager.AuthManager
+	reqstr    *requester.WSRequester
 }
 
 func (a *WSAdapter) SetCreds(login, password string) {
-	a.login = login
-	a.password = password
+	a.authMng.SetCreds(login, password)
 }
 
 func (a *WSAdapter) SetRefreshToken(refTok string) {
-	a.refreshToken = refTok
-}
-
-func (a *WSAdapter) authenticatedResubscribe() error {
-	res, err := a.Authenticate(a.accessToken, 0)
-	if res {
-		a.transport.Resubscribe()
-		return nil
-	}
-
-	return err
+	a.authMng.SetRefreshToken(refTok)
 }
 
 func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
@@ -80,16 +68,26 @@ func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, err
 		return false, err
 	}
 
-	a.accessToken = token
+	a.authMng.SetAccessToken(token)
 	return true, nil
 }
 
+func (a *WSAdapter) authenticatedResubscribe() error {
+	res, err := a.Authenticate(a.authMng.AccessToken(), 0)
+	if res {
+		a.transport.Resubscribe()
+		return nil
+	}
+
+	return err
+}
+
 func (a *WSAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	return a.reqstr.Request(resourceName, data, timeout)
+	return a.reqstr.Request(resourceName, data, timeout, a.authMng.AccessToken())
 }
 
 func (a *WSAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
-	resource, tspReqParams := a.reqstr.PrepareRequestData(resourceName, params)
+	resource, tspReqParams := a.reqstr.PrepareRequestData(resourceName, params, a.authMng.AccessToken())
 
 	tspSubs, subscriptionId, tspErr := a.transport.Subscribe(resource, tspReqParams)
 	if tspErr != nil {
@@ -141,49 +139,5 @@ func (a *WSAdapter) Unsubscribe(resourceName, subscriptionId string, timeout tim
 }
 
 func (a *WSAdapter) RefreshToken() (accessToken string, err error) {
-	if a.refreshToken == "" {
-		accessToken, _, err = a.TokensByCreds(a.login, a.password)
-		return accessToken, err
-	}
-
-	return a.AccessTokenByRefresh(a.refreshToken)
-}
-
-func (a *WSAdapter) TokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
-	rawRes, err := a.Request("tokenByCreds", map[string]interface{}{
-		"login":    login,
-		"password": pass,
-	}, 0)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", "", parseErr
-	}
-
-	return tok.Access, tok.Refresh, nil
-}
-
-func (a *WSAdapter) AccessTokenByRefresh(refreshToken string) (accessToken string, err error) {
-	rawRes, err := a.Request("tokenRefresh", map[string]interface{}{
-		"refreshToken": refreshToken,
-	}, 0)
-
-	if err != nil {
-		return "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", parseErr
-	}
-
-	return tok.Access, nil
+	return a.authMng.RefreshToken()
 }

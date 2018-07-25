@@ -2,9 +2,9 @@ package responsehandler
 
 import (
 	"encoding/json"
-	"strings"
-	"fmt"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 type wsResponse struct {

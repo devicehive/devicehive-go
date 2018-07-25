@@ -1,10 +1,10 @@
 package responsehandler
 
 import (
-	"strings"
-	"fmt"
-	"errors"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
 )
 
 type httpResponse struct {

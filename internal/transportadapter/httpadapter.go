@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/authmanager"
+	"github.com/devicehive/devicehive-go/internal/requester"
+	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/requester"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 )
 
 type Timestamp struct {
@@ -18,33 +19,31 @@ type Timestamp struct {
 }
 
 func newHTTPAdapter(tsp *transport.HTTP) *HTTPAdapter {
+	reqstr := requester.NewHTTPRequester(tsp)
 	return &HTTPAdapter{
 		transport: tsp,
-		reqstr: requester.NewHTTPRequester(tsp),
+		reqstr:    reqstr,
+		authMng:   authmanager.New(reqstr),
 	}
 }
 
 type HTTPAdapter struct {
-	transport   *transport.HTTP
-	accessToken string
-	refreshToken string
-	login string
-	password string
-	reqstr       *requester.HTTPRequester
+	transport *transport.HTTP
+	authMng   *authmanager.AuthManager
+	reqstr    *requester.HTTPRequester
 }
 
 func (a *HTTPAdapter) SetCreds(login, password string) {
-	a.login = login
-	a.password = password
+	a.authMng.SetCreds(login, password)
 }
 
 func (a *HTTPAdapter) SetRefreshToken(refTok string) {
-	a.refreshToken = refTok
+	a.authMng.SetRefreshToken(refTok)
 }
 
 func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
 	a.transport.SetPollingToken(token)
-	a.accessToken = token
+	a.authMng.SetAccessToken(token)
 	return true, nil
 }
 
@@ -75,11 +74,11 @@ func (a *HTTPAdapter) refreshRetry(resourceName string, data map[string]interfac
 }
 
 func (a *HTTPAdapter) request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	return a.reqstr.Request(resourceName, data, timeout, a.accessToken)
+	return a.reqstr.Request(resourceName, data, timeout, a.authMng.AccessToken())
 }
 
 func (a *HTTPAdapter) Subscribe(resourceName string, pollingWaitTimeoutSeconds int, params map[string]interface{}) (subscription *transport.Subscription, subscriptionId string, err *transport.Error) {
-	resource, tspReqParams := a.reqstr.PrepareRequestData(resourceName, params, a.accessToken)
+	resource, tspReqParams := a.reqstr.PrepareRequestData(resourceName, params, a.authMng.AccessToken())
 
 	tspReqParams.WaitTimeoutSeconds = pollingWaitTimeoutSeconds
 
@@ -182,49 +181,5 @@ func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout t
 }
 
 func (a *HTTPAdapter) RefreshToken() (accessToken string, err error) {
-	if a.refreshToken == "" {
-		accessToken, _, err = a.TokensByCreds(a.login, a.password)
-		return accessToken, err
-	}
-
-	return a.AccessTokenByRefresh(a.refreshToken)
-}
-
-func (a *HTTPAdapter) TokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
-	rawRes, err := a.Request("tokenByCreds", map[string]interface{}{
-		"login":    login,
-		"password": pass,
-	}, 0)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", "", parseErr
-	}
-
-	return tok.Access, tok.Refresh, nil
-}
-
-func (a *HTTPAdapter) AccessTokenByRefresh(refreshToken string) (accessToken string, err error) {
-	rawRes, err := a.Request("tokenRefresh", map[string]interface{}{
-		"refreshToken": refreshToken,
-	}, 0)
-
-	if err != nil {
-		return "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", parseErr
-	}
-
-	return tok.Access, nil
+	return a.authMng.RefreshToken()
 }

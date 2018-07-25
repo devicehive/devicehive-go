@@ -1,13 +1,13 @@
 package httputils
 
 import (
-	"log"
 	"bytes"
-	"github.com/devicehive/devicehive-go/internal/utils"
-	"text/template"
 	"fmt"
+	"github.com/devicehive/devicehive-go/internal/utils"
+	"log"
 	"net/url"
 	"strings"
+	"text/template"
 )
 
 func PrepareHttpResource(resourceTemplate string, queryParams map[string]string) string {

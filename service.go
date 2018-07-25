@@ -24,7 +24,7 @@ func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams
 		return auth(accessToken, c)
 	}
 
-	accessToken, err = c.accessTokenByRefresh(refreshToken)
+	accessToken, err = c.RefreshToken()
 
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func ConnectWithCreds(url, login, password string, p *ConnectionParams) (*Client
 
 	c.setCreds(login, password)
 
-	accTok, _, err := c.tokensByCreds(login, password)
+	accTok, err := c.RefreshToken()
 
 	if err != nil {
 		return nil, err

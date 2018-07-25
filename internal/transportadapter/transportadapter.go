@@ -27,6 +27,4 @@ type TransportAdapter interface {
 	SetCreds(login, password string)
 	SetRefreshToken(refTok string)
 	RefreshToken() (accessToken string, err error)
-	TokensByCreds(login, pass string) (accessToken, refreshToken string, err error)
-	AccessTokenByRefresh(refreshToken string) (accessToken string, err error)
 }

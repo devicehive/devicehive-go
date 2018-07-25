@@ -1,11 +1,11 @@
 package requester
 
 import (
+	"github.com/devicehive/devicehive-go/internal/requester/httputils"
+	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"time"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/requester/httputils"
-	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
+	"time"
 )
 
 func NewHTTPRequester(tsp transport.Transporter) *HTTPRequester {

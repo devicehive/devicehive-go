@@ -480,24 +480,6 @@ func (c *Client) RefreshToken() (accessToken string, err *Error) {
 	return accessToken, err
 }
 
-func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	accessToken, rawErr := c.transportAdapter.AccessTokenByRefresh(refreshToken)
-	if rawErr != nil {
-		err = newError(rawErr)
-	}
-
-	return accessToken, err
-}
-
-func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	accessToken, refreshToken, rawErr := c.transportAdapter.TokensByCreds(login, pass)
-	if rawErr != nil {
-		err = newError(rawErr)
-	}
-
-	return accessToken, refreshToken, err
-}
-
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*User, *Error) {
 	usr := c.NewUser()
 	usr.Login = login

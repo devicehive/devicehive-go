@@ -17,7 +17,7 @@ var commandSubscriptions = make(map[*CommandSubscription]string)
 type CommandSubscription struct {
 	CommandsChan chan *Command
 	ErrorChan    chan *Error
-	done		 chan struct{}
+	done         chan struct{}
 	client       *Client
 }
 
@@ -48,7 +48,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
 		ErrorChan:    make(chan *Error),
-		done:		  make(chan struct{}),
+		done:         make(chan struct{}),
 		client:       client,
 	}
 	commandSubsMutex.Lock()
