@@ -21,23 +21,20 @@ type CommandSubscription struct {
 	client       *Client
 }
 
-// Sends request to unsubscribe
+// Sends request to unsubscribe from current commands subscription
 func (cs *CommandSubscription) Remove() *Error {
 	commandSubsMutex.RLock()
 	subsId := commandSubscriptions[cs]
 	commandSubsMutex.RUnlock()
 
 	err := cs.client.unsubscribe("command/unsubscribe", subsId)
-	if err != nil {
-		return err
-	}
 
 	commandSubsMutex.Lock()
 	close(cs.done)
 	delete(commandSubscriptions, cs)
 	commandSubsMutex.Unlock()
 
-	return nil
+	return err
 }
 
 func (cs *CommandSubscription) sendError(err *Error) {

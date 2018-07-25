@@ -20,22 +20,20 @@ type NotificationSubscription struct {
 	client           *Client
 }
 
+// Sends request to unsubscribe from current notifications subscription
 func (ns *NotificationSubscription) Remove() *Error {
 	notifSubsMutex.RLock()
 	subsId := notificationSubscriptions[ns]
 	notifSubsMutex.RUnlock()
 
 	err := ns.client.unsubscribe("notification/unsubscribe", subsId)
-	if err != nil {
-		return err
-	}
 
 	notifSubsMutex.Lock()
 	close(ns.done)
 	delete(notificationSubscriptions, ns)
 	notifSubsMutex.Unlock()
 
-	return nil
+	return err
 }
 
 func (ns *NotificationSubscription) sendError(err *Error) {
