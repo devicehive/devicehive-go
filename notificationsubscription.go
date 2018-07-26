@@ -74,7 +74,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 					break loop
 				}
 
-				client.handleSubscriptionError(subs, err)
+				subs.sendError(newError(err))
 			case <-subs.done:
 				break loop
 			}

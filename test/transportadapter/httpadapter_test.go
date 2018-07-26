@@ -67,3 +67,49 @@ loop:
 		}
 	}
 }
+
+func TestSubscriptionReauthentication(t *testing.T) {
+	httpTestSrv, addr := stubs.StartHTTPTestServer()
+	defer httpTestSrv.Close()
+
+	requestsCount := 0
+	httpTestSrv.SetRequestHandler(func(reqData map[string]interface{}, rw http.ResponseWriter, r *http.Request) {
+		if requestsCount == 0 {
+			rw.WriteHeader(401)
+			rw.Write([]byte(`{"status": 401,"error": "Unauthorized","message": "Token expired"}`))
+		} else if requestsCount == 1 {
+			if _, ok := reqData["refreshToken"]; !ok {
+				t.Fatal("HTTPAdapter must send token refresh request after it gets 401 Unauthorized")
+			}
+
+			rw.WriteHeader(201)
+			rw.Write([]byte(`{"accessToken":"test access token"}`))
+		} else {
+			rw.WriteHeader(200)
+			rw.Write([]byte(`[{"id":1,"name":"test command"}]`))
+		}
+
+		requestsCount++
+	})
+
+	httpTsp, err := transport.Create(addr, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tspAdapter := transportadapter.New(httpTsp).(*transportadapter.HTTPAdapter)
+	tspAdapter.SetRefreshToken("test refresh token")
+
+	subs, _, tspErr := tspAdapter.Subscribe("subscribeCommands", 1, nil)
+	if tspErr != nil {
+		t.Fatal(tspErr)
+	}
+
+	select {
+	case <-subs.DataChan:
+	case e := <-subs.ErrChan:
+		t.Fatal(e)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Timeout")
+	}
+}

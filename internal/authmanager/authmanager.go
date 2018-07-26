@@ -7,11 +7,13 @@ import (
 
 func New(reqstr requester.Requester) *AuthManager {
 	return &AuthManager{
+		Reauth: &ReauthenticationState{},
 		reqstr: reqstr,
 	}
 }
 
 type AuthManager struct {
+	Reauth       *ReauthenticationState
 	reqstr       requester.Requester
 	accessToken  string
 	login        string

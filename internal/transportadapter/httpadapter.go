@@ -41,15 +41,9 @@ func (a *HTTPAdapter) SetRefreshToken(refTok string) {
 	a.authMng.SetRefreshToken(refTok)
 }
 
-func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
-	a.transport.SetPollingToken(token)
-	a.authMng.SetAccessToken(token)
-	return true, nil
-}
-
 func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
 	res, err := a.request(resourceName, data, timeout)
-	if err != nil && err.Error() == TokenExpiredErr {
+	if a.isReauthNeeded(err) {
 		res, err := a.refreshRetry(resourceName, data, timeout)
 		return res, err
 	} else if err != nil {
@@ -60,13 +54,8 @@ func (a *HTTPAdapter) Request(resourceName string, data map[string]interface{}, 
 }
 
 func (a *HTTPAdapter) refreshRetry(resourceName string, data map[string]interface{}, timeout time.Duration) ([]byte, error) {
-	accessToken, err := a.RefreshToken()
+	err := a.reauthenticate()
 	if err != nil {
-		return nil, err
-	}
-
-	res, err := a.Authenticate(accessToken, 0)
-	if !res || err != nil {
 		return nil, err
 	}
 
@@ -106,13 +95,18 @@ func (a *HTTPAdapter) transformSubscription(resourceName, subscriptionId string,
 				}
 
 				list, err := a.handleSubscriptionEventData(d)
-				if err != nil {
+				if a.isReauthNeeded(err) {
+					err := a.reauthenticate()
+					if err != nil {
+						errChan <- err
+					}
+					break
+				} else if err != nil {
 					errChan <- err
-					continue
+					break
 				}
 
 				a.setResourceWithLastEntityTimestamp(resourceName, subscriptionId, params, list)
-				subs.ContinuePolling()
 
 				for _, data := range list {
 					dataChan <- data
@@ -123,8 +117,9 @@ func (a *HTTPAdapter) transformSubscription(resourceName, subscriptionId string,
 				}
 
 				errChan <- err
-				subs.ContinuePolling()
 			}
+
+			subs.ContinuePolling()
 		}
 
 		close(dataChan)
@@ -180,6 +175,28 @@ func (a *HTTPAdapter) Unsubscribe(resourceName, subscriptionId string, timeout t
 	return nil
 }
 
+func (a *HTTPAdapter) reauthenticate() error {
+	defer a.authMng.Reauth.Checkpoint()
+
+	accessToken, err := a.RefreshToken()
+	if err != nil {
+		return err
+	}
+
+	_, err = a.Authenticate(accessToken, 0)
+	return err
+}
+
 func (a *HTTPAdapter) RefreshToken() (accessToken string, err error) {
 	return a.authMng.RefreshToken()
+}
+
+func (a *HTTPAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
+	a.transport.SetPollingToken(token)
+	a.authMng.SetAccessToken(token)
+	return true, nil
+}
+
+func (a *HTTPAdapter) isReauthNeeded(err error) bool {
+	return err != nil && err.Error() == TokenExpiredErr && a.authMng.Reauth.Needed()
 }

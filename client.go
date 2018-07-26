@@ -6,7 +6,6 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/transport"
@@ -83,34 +82,6 @@ func (c *Client) setCreds(login, password string) {
 
 func (c *Client) setRefreshToken(refTok string) {
 	c.transportAdapter.SetRefreshToken(refTok)
-}
-
-func (c *Client) handleSubscriptionError(subs subscriber, err error) {
-	if err.Error() == TokenExpiredErr && subscriptionReauth.reauthNeeded() {
-		if res := c.reauthenticateSubscription(subs); res {
-			subscriptionReauth.reauthPoint()
-		}
-	} else {
-		subs.sendError(newError(err))
-	}
-}
-
-func (c *Client) reauthenticateSubscription(subs subscriber) bool {
-	accessToken, err := c.RefreshToken()
-	if err != nil {
-		removeSubscriptionWithError(subs, err)
-		return false
-	}
-
-	if success, err := c.authenticate(accessToken); err != nil {
-		removeSubscriptionWithError(subs, err)
-		return false
-	} else if !success {
-		removeSubscriptionWithError(subs, newError(errors.New("re-authentication failed")))
-		return false
-	}
-
-	return true
 }
 
 func (c *Client) authenticate(token string) (bool, *Error) {

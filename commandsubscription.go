@@ -74,7 +74,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 					break loop
 				}
 
-				client.handleSubscriptionError(subs, err)
+				subs.sendError(newError(err))
 			case <-subs.done:
 				break loop
 			}
