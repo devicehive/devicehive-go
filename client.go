@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
@@ -53,7 +54,7 @@ func (c *Client) NewNotification() *Notification {
 // Subscribes to notifications by custom filter
 // In case params is nil returns subscription for all notifications
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (*NotificationSubscription, *Error) {
-	tspSubs, subsId, err := c.subscribe("subscribeNotifications", params)
+	tspSubs, subsId, err := c.subscribe(resourcenames.SubscribeNotifications, params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func (c *Client) SubscribeNotifications(params *SubscribeParams) (*NotificationS
 // Subscribes to commands by custom filter
 // In case params is nil returns subscription for all commands
 func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscription, *Error) {
-	tspSubs, subsId, err := c.subscribe("subscribeCommands", params)
+	tspSubs, subsId, err := c.subscribe(resourcenames.SubscribeCommands, params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
@@ -153,7 +154,7 @@ func (c *Client) getModel(resourceName string, model interface{}, data map[strin
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	d := c.NewDevice()
 
-	err = c.getModel("getDevice", d, map[string]interface{}{
+	err = c.getModel(resourcenames.GetDevice, d, map[string]interface{}{
 		"deviceId": deviceId,
 	})
 	if err != nil {
@@ -177,7 +178,7 @@ func (c *Client) PutDevice(id, name string, data map[string]interface{}, network
 	device.DeviceTypeId = deviceTypeId
 	device.IsBlocked = blocked
 
-	_, err := c.request("putDevice", map[string]interface{}{
+	_, err := c.request(resourcenames.PutDevice, map[string]interface{}{
 		"deviceId": device.Id,
 		"device":   device,
 	})
@@ -200,7 +201,7 @@ func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listDevices", data)
+	rawRes, err := c.request(resourcenames.ListDevices, data)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +224,7 @@ func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error
 	devType.Name = name
 	devType.Description = description
 
-	res, err := c.request("insertDeviceType", map[string]interface{}{
+	res, err := c.request(resourcenames.InsertDeviceType, map[string]interface{}{
 		"deviceType": devType,
 	})
 	if err != nil {
@@ -241,7 +242,7 @@ func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error
 func (c *Client) GetDeviceType(deviceTypeId int) (*DeviceType, *Error) {
 	devType := c.NewDeviceType()
 
-	err := c.getModel("getDeviceType", devType, map[string]interface{}{
+	err := c.getModel(resourcenames.GetDeviceType, devType, map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
 	})
 	if err != nil {
@@ -262,7 +263,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listDeviceTypes", data)
+	rawRes, err := c.request(resourcenames.ListDeviceTypes, data)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +284,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 func (c *Client) GetInfo() (*ServerInfo, *Error) {
 	info := &ServerInfo{}
 
-	err := c.getModel("apiInfo", info, nil)
+	err := c.getModel(resourcenames.ApiInfo, info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +295,7 @@ func (c *Client) GetInfo() (*ServerInfo, *Error) {
 func (c *Client) GetClusterInfo() (*ClusterInfo, *Error) {
 	info := &ClusterInfo{}
 
-	err := c.getModel("apiInfoCluster", info, nil)
+	err := c.getModel(resourcenames.ClusterInfo, info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +309,7 @@ func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
 	ntwk.Name = name
 	ntwk.Description = description
 
-	res, err := c.request("insertNetwork", map[string]interface{}{
+	res, err := c.request(resourcenames.InsertNetwork, map[string]interface{}{
 		"network": ntwk,
 	})
 	if err != nil {
@@ -326,7 +327,7 @@ func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
 func (c *Client) GetNetwork(networkId int) (*Network, *Error) {
 	ntwk := c.NewNetwork()
 
-	err := c.getModel("getNetwork", ntwk, map[string]interface{}{
+	err := c.getModel(resourcenames.GetNetwork, ntwk, map[string]interface{}{
 		"networkId": networkId,
 	})
 	if err != nil {
@@ -347,7 +348,7 @@ func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listNetworks", data)
+	rawRes, err := c.request(resourcenames.ListNetworks, data)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +367,7 @@ func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 func (c *Client) GetProperty(name string) (*Configuration, *Error) {
 	conf := &Configuration{}
 
-	err := c.getModel("getConfig", conf, map[string]interface{}{
+	err := c.getModel(resourcenames.GetConfig, conf, map[string]interface{}{
 		"name": name,
 	})
 	if err != nil {
@@ -377,7 +378,7 @@ func (c *Client) GetProperty(name string) (*Configuration, *Error) {
 }
 
 func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error) {
-	rawRes, err := c.request("putConfig", map[string]interface{}{
+	rawRes, err := c.request(resourcenames.PutConfig, map[string]interface{}{
 		"name":  name,
 		"value": value,
 	})
@@ -396,7 +397,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 }
 
 func (c *Client) DeleteProperty(name string) *Error {
-	_, err := c.request("deleteConfig", map[string]interface{}{
+	_, err := c.request(resourcenames.DeleteConfig, map[string]interface{}{
 		"name": name,
 	})
 
@@ -424,7 +425,7 @@ func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time
 		data["refreshExpiration"] = &ISO8601Time{refreshExpiration}
 	}
 
-	rawRes, err := c.request("tokenCreate", map[string]interface{}{
+	rawRes, err := c.request(resourcenames.TokenCreate, map[string]interface{}{
 		"payload": data,
 	})
 
@@ -458,7 +459,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	usr.Data = data
 	usr.AllDeviceTypesAvailable = allDevTypesAvail
 
-	res, err := c.request("createUser", map[string]interface{}{
+	res, err := c.request(resourcenames.CreateUser, map[string]interface{}{
 		"user": map[string]interface{}{
 			"login":    login,
 			"role":     role,
@@ -483,7 +484,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 func (c *Client) GetUser(userId int) (*User, *Error) {
 	usr := c.NewUser()
 
-	err := c.getModel("getUser", usr, map[string]interface{}{
+	err := c.getModel(resourcenames.GetUser, usr, map[string]interface{}{
 		"userId": userId,
 	})
 	if err != nil {
@@ -496,7 +497,7 @@ func (c *Client) GetUser(userId int) (*User, *Error) {
 func (c *Client) GetCurrentUser() (*User, *Error) {
 	usr := c.NewUser()
 
-	err := c.getModel("getCurrentUser", usr, nil)
+	err := c.getModel(resourcenames.GetCurrentUser, usr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +515,7 @@ func (c *Client) ListUsers(params *ListParams) ([]*User, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listUsers", data)
+	rawRes, err := c.request(resourcenames.ListUsers, data)
 	if err != nil {
 		return nil, err
 	}

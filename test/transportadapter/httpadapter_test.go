@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/devicehive/devicehive-go"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transportadapter"
 	"github.com/devicehive/devicehive-go/test/stubs"
@@ -41,7 +42,7 @@ func TestHTTPSubscriptionLastEntityTimestamp(t *testing.T) {
 	params := map[string]interface{}{
 		"timestamp": now.String(),
 	}
-	subs, _, subsErr := tspAdapter.Subscribe("subscribeCommands", 1, params)
+	subs, _, subsErr := tspAdapter.Subscribe(resourcenames.SubscribeCommands, 1, params)
 	if subsErr != nil {
 		t.Fatal(subsErr)
 	}
@@ -100,7 +101,7 @@ func TestSubscriptionReauthentication(t *testing.T) {
 	tspAdapter := transportadapter.New(httpTsp).(*transportadapter.HTTPAdapter)
 	tspAdapter.SetRefreshToken("test refresh token")
 
-	subs, _, tspErr := tspAdapter.Subscribe("subscribeCommands", 1, nil)
+	subs, _, tspErr := tspAdapter.Subscribe(resourcenames.SubscribeCommands, 1, nil)
 	if tspErr != nil {
 		t.Fatal(tspErr)
 	}

@@ -6,6 +6,7 @@ package devicehive_go
 
 import (
 	"encoding/json"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"time"
 )
 
@@ -20,7 +21,7 @@ type Device struct {
 }
 
 func (d *Device) Remove() *Error {
-	_, err := d.client.request("deleteDevice", map[string]interface{}{
+	_, err := d.client.request(resourcenames.DeleteDevice, map[string]interface{}{
 		"deviceId": d.Id,
 	})
 
@@ -28,7 +29,7 @@ func (d *Device) Remove() *Error {
 }
 
 func (d *Device) Save() *Error {
-	_, err := d.client.request("putDevice", map[string]interface{}{
+	_, err := d.client.request(resourcenames.PutDevice, map[string]interface{}{
 		"deviceId": d.Id,
 		"device":   d,
 	})
@@ -49,7 +50,7 @@ func (d *Device) ListCommands(params *ListParams) ([]*Command, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("listCommands", data)
+	rawRes, err := d.client.request(resourcenames.ListCommands, data)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +90,7 @@ func (d *Device) SendCommand(name string, params map[string]interface{}, lifetim
 	}
 	comm.Command = name
 
-	rawRes, err := d.client.request("insertCommand", map[string]interface{}{
+	rawRes, err := d.client.request(resourcenames.InsertCommand, map[string]interface{}{
 		"deviceId": d.Id,
 		"command":  comm,
 	})
@@ -121,7 +122,7 @@ func (d *Device) ListNotifications(params *ListParams) ([]*Notification, *Error)
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := d.client.request("listNotifications", data)
+	rawRes, err := d.client.request(resourcenames.ListNotifications, data)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (d *Device) SendNotification(name string, params map[string]interface{}, ti
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	rawRes, err := d.client.request("insertNotification", map[string]interface{}{
+	rawRes, err := d.client.request(resourcenames.InsertNotification, map[string]interface{}{
 		"deviceId":     d.Id,
 		"notification": notif,
 	})

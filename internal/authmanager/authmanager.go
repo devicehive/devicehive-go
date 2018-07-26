@@ -3,6 +3,7 @@ package authmanager
 import (
 	"encoding/json"
 	"github.com/devicehive/devicehive-go/internal/requester"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 )
 
 func New(reqstr requester.Requester) *AuthManager {
@@ -48,7 +49,7 @@ func (a *AuthManager) RefreshToken() (accessToken string, err error) {
 }
 
 func (a *AuthManager) tokensByCreds(login, pass string) (accessToken, refreshToken string, err error) {
-	rawRes, err := a.request("tokenByCreds", map[string]interface{}{
+	rawRes, err := a.request(resourcenames.TokenByCreds, map[string]interface{}{
 		"login":    login,
 		"password": pass,
 	})
@@ -68,7 +69,7 @@ func (a *AuthManager) tokensByCreds(login, pass string) (accessToken, refreshTok
 }
 
 func (a *AuthManager) accessTokenByRefresh(refreshToken string) (accessToken string, err error) {
-	rawRes, err := a.request("tokenRefresh", map[string]interface{}{
+	rawRes, err := a.request(resourcenames.TokenRefresh, map[string]interface{}{
 		"refreshToken": refreshToken,
 	})
 

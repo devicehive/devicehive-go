@@ -6,6 +6,7 @@ package devicehive_go
 
 import (
 	"encoding/json"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 )
 
 type User struct {
@@ -21,7 +22,7 @@ type User struct {
 }
 
 func (u *User) Save() *Error {
-	_, err := u.client.request("updateUser", map[string]interface{}{
+	_, err := u.client.request(resourcenames.UpdateUser, map[string]interface{}{
 		"userId": u.Id,
 		"user":   u,
 	})
@@ -30,7 +31,7 @@ func (u *User) Save() *Error {
 }
 
 func (u *User) Remove() *Error {
-	_, err := u.client.request("deleteUser", map[string]interface{}{
+	_, err := u.client.request(resourcenames.DeleteUser, map[string]interface{}{
 		"userId": u.Id,
 	})
 
@@ -38,7 +39,7 @@ func (u *User) Remove() *Error {
 }
 
 func (u *User) UpdatePassword(password string) *Error {
-	_, err := u.client.request("updateUser", map[string]interface{}{
+	_, err := u.client.request(resourcenames.UpdateUser, map[string]interface{}{
 		"userId": u.Id,
 		"user": map[string]interface{}{
 			"password": password,
@@ -49,7 +50,7 @@ func (u *User) UpdatePassword(password string) *Error {
 }
 
 func (u *User) AssignNetwork(networkId int) *Error {
-	_, err := u.client.request("assignNetwork", map[string]interface{}{
+	_, err := u.client.request(resourcenames.AssignNetwork, map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
 	})
@@ -58,7 +59,7 @@ func (u *User) AssignNetwork(networkId int) *Error {
 }
 
 func (u *User) UnassignNetwork(networkId int) *Error {
-	_, err := u.client.request("unassignNetwork", map[string]interface{}{
+	_, err := u.client.request(resourcenames.UnassignNetwork, map[string]interface{}{
 		"userId":    u.Id,
 		"networkId": networkId,
 	})
@@ -67,7 +68,7 @@ func (u *User) UnassignNetwork(networkId int) *Error {
 }
 
 func (u *User) AssignDeviceType(deviceTypeId int) *Error {
-	_, err := u.client.request("assignDeviceType", map[string]interface{}{
+	_, err := u.client.request(resourcenames.AssignDeviceType, map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
 	})
@@ -76,7 +77,7 @@ func (u *User) AssignDeviceType(deviceTypeId int) *Error {
 }
 
 func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
-	_, err := u.client.request("unassignDeviceType", map[string]interface{}{
+	_, err := u.client.request(resourcenames.UnassignDeviceType, map[string]interface{}{
 		"userId":       u.Id,
 		"deviceTypeId": deviceTypeId,
 	})
@@ -85,7 +86,7 @@ func (u *User) UnassignDeviceType(deviceTypeId int) *Error {
 }
 
 func (u *User) ListNetworks() (list []*Network, err *Error) {
-	rawRes, err := u.client.request("getUser", map[string]interface{}{
+	rawRes, err := u.client.request(resourcenames.GetUser, map[string]interface{}{
 		"userId": u.Id,
 	})
 	if err != nil {
@@ -105,7 +106,7 @@ func (u *User) ListNetworks() (list []*Network, err *Error) {
 }
 
 func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
-	rawRes, err := u.client.request("getUserDeviceTypes", map[string]interface{}{
+	rawRes, err := u.client.request(resourcenames.GetUserDeviceTypes, map[string]interface{}{
 		"userId": u.Id,
 	})
 	if err != nil {
@@ -124,7 +125,7 @@ func (u *User) ListDeviceTypes() (list []*DeviceType, err *Error) {
 }
 
 func (u *User) AllowAllDeviceTypes() *Error {
-	_, err := u.client.request("allowAllDeviceTypes", map[string]interface{}{
+	_, err := u.client.request(resourcenames.AllowAllDeviceTypes, map[string]interface{}{
 		"userId": u.Id,
 	})
 	if err != nil {
@@ -136,7 +137,7 @@ func (u *User) AllowAllDeviceTypes() *Error {
 }
 
 func (u *User) DisallowAllDeviceTypes() *Error {
-	_, err := u.client.request("disallowAllDeviceTypes", map[string]interface{}{
+	_, err := u.client.request(resourcenames.DisallowAllDeviceTypes, map[string]interface{}{
 		"userId": u.Id,
 	})
 	if err != nil {

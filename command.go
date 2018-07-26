@@ -4,6 +4,8 @@
 
 package devicehive_go
 
+import "github.com/devicehive/devicehive-go/internal/resourcenames"
+
 type Command struct {
 	Id          int         `json:"id,omitempty"`
 	Command     string      `json:"command,omitempty"`
@@ -21,7 +23,7 @@ type Command struct {
 
 // Sends request to modify command at DeviceHive
 func (comm *Command) Save() *Error {
-	_, err := comm.client.request("updateCommand", map[string]interface{}{
+	_, err := comm.client.request(resourcenames.UpdateCommand, map[string]interface{}{
 		"deviceId":  comm.DeviceId,
 		"commandId": comm.Id,
 		"command":   comm,

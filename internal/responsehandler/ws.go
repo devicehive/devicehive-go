@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"strings"
 )
 
@@ -43,30 +44,30 @@ func WSExtractResponsePayload(resourceName string, rawRes []byte) []byte {
 }
 
 var wsResponsePayloads = map[string]string{
-	"getConfig":                   "configuration",
-	"putConfig":                   "configuration",
-	"deleteConfig":                "configuration",
-	"apiInfo":                     "info",
-	"apiInfoCluster":              "clusterInfo",
-	"listCommands":                "commands",
-	"insertCommand":               "command",
-	"listNotifications":           "notifications",
-	"insertNotification":          "notification",
-	"subscribeNotificationsEvent": "notification",
-	"subscribeCommandsEvent":      "command",
-	"getDevice":                   "device",
-	"commandEvent":                "command",
-	"notificationEvent":           "notification",
-	"listDevices":                 "devices",
-	"insertNetwork":               "network",
-	"getNetwork":                  "network",
-	"listNetworks":                "networks",
-	"insertDeviceType":            "deviceType",
-	"getDeviceType":               "deviceType",
-	"listDeviceTypes":             "deviceTypes",
-	"createUser":                  "user",
-	"getUser":                     "user",
-	"getCurrentUser":              "current",
-	"listUsers":                   "users",
-	"getUserDeviceTypes":          "deviceTypes",
+	resourcenames.GetConfig:          "configuration",
+	resourcenames.PutConfig:          "configuration",
+	resourcenames.DeleteConfig:       "configuration",
+	resourcenames.ApiInfo:            "info",
+	resourcenames.ClusterInfo:        "clusterInfo",
+	resourcenames.ListCommands:       "commands",
+	resourcenames.InsertCommand:      "command",
+	resourcenames.ListNotifications:  "notifications",
+	resourcenames.InsertNotification: "notification",
+	"subscribeNotificationsEvent":    "notification",
+	"subscribeCommandsEvent":         "command",
+	resourcenames.GetDevice:          "device",
+	"commandEvent":                   "command",
+	"notificationEvent":              "notification",
+	resourcenames.ListDevices:        "devices",
+	resourcenames.InsertNetwork:      "network",
+	resourcenames.GetNetwork:         "network",
+	resourcenames.ListNetworks:       "networks",
+	resourcenames.InsertDeviceType:   "deviceType",
+	resourcenames.GetDeviceType:      "deviceType",
+	resourcenames.ListDeviceTypes:    "deviceTypes",
+	resourcenames.CreateUser:         "user",
+	resourcenames.GetUser:            "user",
+	resourcenames.GetCurrentUser:     "current",
+	resourcenames.ListUsers:          "users",
+	resourcenames.GetUserDeviceTypes: "deviceTypes",
 }

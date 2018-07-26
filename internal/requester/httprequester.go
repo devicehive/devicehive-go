@@ -2,6 +2,7 @@ package requester
 
 import (
 	"github.com/devicehive/devicehive-go/internal/requester/httputils"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
@@ -42,7 +43,7 @@ func (r *HTTPRequester) PrepareRequestData(resourceName string, data map[string]
 		Method: method,
 	}
 
-	if resourceName != "tokenRefresh" && resourceName != "tokenByCreds" {
+	if resourceName != resourcenames.TokenRefresh && resourceName != resourcenames.TokenByCreds {
 		reqParams.AccessToken = accessToken
 	}
 

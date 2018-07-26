@@ -9,6 +9,7 @@ import (
 
 	"github.com/devicehive/devicehive-go/internal/authmanager"
 	"github.com/devicehive/devicehive-go/internal/requester"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
@@ -60,7 +61,7 @@ func (a *WSAdapter) SetRefreshToken(refTok string) {
 }
 
 func (a *WSAdapter) Authenticate(token string, timeout time.Duration) (bool, error) {
-	_, err := a.Request("auth", map[string]interface{}{
+	_, err := a.Request(resourcenames.Auth, map[string]interface{}{
 		"token": token,
 	}, timeout)
 

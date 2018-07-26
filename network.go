@@ -5,6 +5,7 @@
 package devicehive_go
 
 import (
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type Network struct {
 }
 
 func (n *Network) Save() *Error {
-	_, err := n.client.request("updateNetwork", map[string]interface{}{
+	_, err := n.client.request(resourcenames.UpdateNetwork, map[string]interface{}{
 		"networkId": n.Id,
 		"network":   n,
 	})
@@ -25,7 +26,7 @@ func (n *Network) Save() *Error {
 }
 
 func (n *Network) Remove() *Error {
-	_, err := n.client.request("deleteNetwork", map[string]interface{}{
+	_, err := n.client.request(resourcenames.DeleteNetwork, map[string]interface{}{
 		"networkId": n.Id,
 	})
 
@@ -33,7 +34,7 @@ func (n *Network) Remove() *Error {
 }
 
 func (n *Network) ForceRemove() *Error {
-	_, err := n.client.request("deleteNetwork", map[string]interface{}{
+	_, err := n.client.request(resourcenames.DeleteNetwork, map[string]interface{}{
 		"networkId": n.Id,
 		"force":     true,
 	})
