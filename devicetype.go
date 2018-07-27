@@ -5,6 +5,7 @@
 package devicehive_go
 
 import (
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type DeviceType struct {
 }
 
 func (dt *DeviceType) Save() *Error {
-	_, err := dt.client.request("updateDeviceType", map[string]interface{}{
+	_, err := dt.client.request(resourcenames.UpdateDeviceType, map[string]interface{}{
 		"deviceTypeId": dt.Id,
 		"deviceType":   dt,
 	})
@@ -25,7 +26,7 @@ func (dt *DeviceType) Save() *Error {
 }
 
 func (dt *DeviceType) Remove() *Error {
-	_, err := dt.client.request("deleteDeviceType", map[string]interface{}{
+	_, err := dt.client.request(resourcenames.DeleteDeviceType, map[string]interface{}{
 		"deviceTypeId": dt.Id,
 	})
 
@@ -33,7 +34,7 @@ func (dt *DeviceType) Remove() *Error {
 }
 
 func (dt *DeviceType) ForceRemove() *Error {
-	_, err := dt.client.request("deleteDeviceType", map[string]interface{}{
+	_, err := dt.client.request(resourcenames.DeleteDeviceType, map[string]interface{}{
 		"deviceTypeId": dt.Id,
 		"force":        true,
 	})

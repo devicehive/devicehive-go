@@ -4,17 +4,20 @@
 
 package apirequests
 
-import "sync"
+func NewPendingRequest() *PendingRequest {
+	return &PendingRequest{
+		Data:   make(chan []byte),
+		Signal: make(chan struct{}),
+		Err:    make(chan error),
+	}
+}
 
 type PendingRequest struct {
-	Data       chan []byte
-	Err        chan error
-	Signal     chan struct{}
-	DataLocker sync.Mutex
+	Data   chan []byte
+	Err    chan error
+	Signal chan struct{}
 }
 
 func (r *PendingRequest) Close() {
-	r.DataLocker.Lock()
-	defer r.DataLocker.Unlock()
 	close(r.Signal)
 }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style
 // license that can be found in the LICENSE file.
 
-package transport
+package requestparams
 
 import (
 	"github.com/devicehive/devicehive-go/internal/utils"
@@ -23,7 +23,7 @@ type RequestParams struct {
 var ranGen = rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
 var randLocker sync.Mutex
 
-func (p *RequestParams) requestId() string {
+func (p *RequestParams) CreateRequestId() string {
 	reqId := p.RequestId
 
 	if reqId == "" {
@@ -39,7 +39,7 @@ func (p *RequestParams) requestId() string {
 	return reqId
 }
 
-func (p *RequestParams) mapData() map[string]interface{} {
+func (p *RequestParams) MapData() map[string]interface{} {
 	data := utils.StructToJSONMap(p.Data)
 
 	if data == nil {

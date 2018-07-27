@@ -4,11 +4,6 @@
 
 package devicehive_go
 
-type notificationResponse struct {
-	Notification *Notification    `json:"notification"`
-	List         *[]*Notification `json:"notifications"`
-}
-
 type Notification struct {
 	Id           int                    `json:"id"`
 	Notification string                 `json:"notification"`

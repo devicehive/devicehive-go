@@ -10,23 +10,26 @@ import (
 	"sync"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 	"github.com/devicehive/devicehive-go/internal/utils"
 	"github.com/gorilla/websocket"
 )
 
-func newWS(addr string) (tsp *WS, err error) {
+func newWS(addr string, params *Params) (tsp *WS, err error) {
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
-
 	if err != nil {
 		return nil, err
 	}
 
 	tsp = &WS{
-		conn:          conn,
-		requests:      apirequests.NewClientsMap(),
-		subscriptions: apirequests.NewWSSubscriptionsMap(apirequests.NewClientsMap()),
+		conn:           conn,
+		address:        addr,
+		requests:       apirequests.NewClientsMap(),
+		subscriptions:  apirequests.NewWSSubscriptionsMap(),
+		defaultTimeout: DefaultTimeout,
 	}
+	tsp.setParams(params)
 
 	go tsp.handleServerMessages()
 
@@ -34,33 +37,30 @@ func newWS(addr string) (tsp *WS, err error) {
 }
 
 type WS struct {
-	conn          *websocket.Conn
-	connMu        sync.Mutex
-	requests      *apirequests.PendingRequestsMap
-	subscriptions *apirequests.WSSubscriptionsMap
+	conn                 *websocket.Conn
+	address              string
+	connMu               sync.Mutex
+	requests             *apirequests.PendingRequestsMap
+	subscriptions        *apirequests.WSSubscriptionsMap
+	reconnectionTries    int
+	reconnectionInterval time.Duration
+	afterReconn          func()
+	defaultTimeout       time.Duration
 }
 
-func (t *WS) IsHTTP() bool {
-	return false
-}
-
-func (t *WS) IsWS() bool {
-	return true
-}
-
-func (t *WS) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *WS) Request(resource string, params *requestparams.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	}
 
 	if params == nil {
-		params = &RequestParams{}
+		params = &requestparams.RequestParams{}
 	}
 
-	reqId := params.requestId()
+	reqId := params.CreateRequestId()
 	req := t.requests.CreateRequest(reqId)
 
-	data := params.mapData()
+	data := params.MapData()
 	data["action"] = resource
 	data["requestId"] = reqId
 
@@ -83,7 +83,7 @@ func (t *WS) Request(resource string, params *RequestParams, timeout time.Durati
 	}
 }
 
-func (t *WS) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *WS) Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -95,7 +95,14 @@ func (t *WS) Subscribe(resource string, params *RequestParams) (subscription *Su
 	}
 	subscriptionId = strconv.FormatInt(ids.Subscription, 10)
 
-	return t.subscribe(subscriptionId), subscriptionId, nil
+	subscription = t.subscribe(subscriptionId)
+
+	wssub, _ := t.subscriptions.Get(subscriptionId)
+	wssub.SubscriptionResource = resource
+	wssub.SubscriptionParams = params
+	wssub.SubscriptionId = subscriptionId
+
+	return subscription, subscriptionId, nil
 }
 
 func (t *WS) subscribe(subscriptionId string) *Subscription {
@@ -125,9 +132,27 @@ func (t *WS) Unsubscribe(subscriptionId string) {
 func (t *WS) handleServerMessages() {
 	for {
 		mt, msg, err := t.conn.ReadMessage()
-		connClosed := mt == websocket.CloseMessage || mt == -1
-		if connClosed {
-			t.terminateRequests(err)
+		if mt == websocket.CloseMessage {
+			t.TerminateRequests(err)
+			return
+		}
+
+		serverDown := mt == -1
+		if serverDown {
+			if t.reconnectDisabled() {
+				t.TerminateRequests(err)
+			} else {
+				reconnErr := t.reconnect()
+				if reconnErr != nil {
+					t.TerminateRequests(reconnErr)
+				} else {
+					go t.handleServerMessages()
+					if t.afterReconn != nil {
+						t.afterReconn()
+					}
+				}
+			}
+
 			return
 		}
 
@@ -135,14 +160,53 @@ func (t *WS) handleServerMessages() {
 	}
 }
 
-func (t *WS) terminateRequests(err error) {
+func (t *WS) reconnectDisabled() bool {
+	return t.reconnectionTries == 0 || t.reconnectionInterval == 0
+}
+
+func (t *WS) reconnect() error {
+	var reconnErr error
+	for i := 0; i < t.reconnectionTries; i++ {
+		time.Sleep(t.reconnectionInterval)
+		conn, _, err := websocket.DefaultDialer.Dial(t.address, nil)
+		if err != nil {
+			reconnErr = err
+			continue
+		}
+
+		t.conn = conn
+		reconnErr = nil
+		break
+	}
+
+	return reconnErr
+}
+
+func (t *WS) Resubscribe() {
+	t.subscriptions.ForEach(func(sub *apirequests.WSSubscription) {
+		_, subId, err := t.Subscribe(sub.SubscriptionResource, sub.SubscriptionParams)
+		if err != nil {
+			sub.Err <- err
+			return
+		}
+
+		newSub, _ := t.subscriptions.Get(subId)
+		newSub.ChansLocker.Lock()
+		newSub.PendingRequest = sub.PendingRequest
+		newSub.ChansLocker.Unlock()
+		t.subscriptions.Delete(sub.SubscriptionId)
+	})
+}
+
+func (t *WS) TerminateRequests(err error) {
 	t.requests.ForEach(func(req *apirequests.PendingRequest) {
 		req.Err <- err
 		req.Close()
 	})
 
-	t.subscriptions.ForEach(func(req *apirequests.PendingRequest) {
-		req.Close()
+	t.subscriptions.ForEach(func(s *apirequests.WSSubscription) {
+		s.Err <- err
+		s.Close()
 	})
 }
 
@@ -161,9 +225,33 @@ func (t *WS) resolveReceiver(msg []byte) {
 	} else if ids.Subscription != 0 {
 		subsId := strconv.FormatInt(ids.Subscription, 10)
 		if subs, ok := t.subscriptions.Get(subsId); ok {
+			subs.ChansLocker.RLock()
 			subs.Data <- msg
+			subs.ChansLocker.RUnlock()
 		} else {
 			t.subscriptions.BufferPut(msg)
 		}
 	}
+}
+
+func (t *WS) setParams(p *Params) {
+	if p == nil {
+		return
+	}
+
+	if p.ReconnectionTries != 0 {
+		t.reconnectionTries = p.ReconnectionTries
+	}
+
+	if p.ReconnectionInterval != 0 {
+		t.reconnectionInterval = p.ReconnectionInterval
+	}
+
+	if p.DefaultTimeout != 0 {
+		t.defaultTimeout = p.DefaultTimeout
+	}
+}
+
+func (t *WS) AfterReconnection(callback func()) {
+	t.afterReconn = callback
 }

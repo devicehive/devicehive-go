@@ -5,6 +5,7 @@
 package transport
 
 import (
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"net/url"
 	"time"
 )
@@ -14,22 +15,20 @@ const (
 )
 
 type Transporter interface {
-	Request(resource string, params *RequestParams, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
+	Request(resource string, params *requestparams.RequestParams, timeout time.Duration) (res []byte, err *Error)
+	Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
-	IsHTTP() bool
-	IsWS() bool
 }
 
-func Create(addr string) (Transporter, error) {
+func Create(addr string, p *Params) (Transporter, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
 	}
 
 	if u.Scheme == "http" || u.Scheme == "https" {
-		return newHTTP(addr)
+		return newHTTP(addr, p)
 	}
 
-	return newWS(addr)
+	return newWS(addr, p)
 }

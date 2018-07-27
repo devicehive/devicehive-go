@@ -54,10 +54,8 @@ func TestWSClientSubscriptions(t *testing.T) {
 
 	testResponse(t, nil)
 	testResponse(t, func(data []byte) {
-		res := make(map[string]json.RawMessage)
 		insertedComm := &devicehive_go.Command{}
-		json.Unmarshal(data, &res)
-		json.Unmarshal(res["command"], insertedComm)
+		json.Unmarshal(data, insertedComm)
 		is.Equal(insertedComm.Id, comm.Id)
 	})
 
@@ -81,10 +79,8 @@ func TestWSClientSubscriptions(t *testing.T) {
 
 	testResponse(t, nil)
 	testResponse(t, func(data []byte) {
-		res := make(map[string]json.RawMessage)
 		insertedNotif := &devicehive_go.Notification{}
-		json.Unmarshal(data, &res)
-		json.Unmarshal(res["notification"], insertedNotif)
+		json.Unmarshal(data, insertedNotif)
 		is.Equal(insertedNotif.Id, notif.Id)
 	})
 }

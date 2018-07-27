@@ -30,8 +30,7 @@ func TestMain(m *testing.M) {
 	}
 
 	var err *dh.Error
-	client, err = dh.ConnectWithToken(*serverAddr, *accessToken, *refreshToken)
-
+	client, err = dh.ConnectWithToken(*serverAddr, *accessToken, *refreshToken, nil)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)

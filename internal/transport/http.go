@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 )
 
@@ -22,46 +23,52 @@ const (
 	defaultHTTPMethod = "GET"
 )
 
-var pollingAccessTokenMutex sync.Mutex
-
-func newHTTP(addr string) (*HTTP, error) {
+func newHTTP(addr string, p *Params) (*HTTP, error) {
 	if addr[len(addr)-1:] != "/" {
 		addr += "/"
 	}
 
 	u, err := url.Parse(addr)
-
 	if err != nil {
 		return nil, err
 	}
 
-	return &HTTP{
-		url:           u,
-		subscriptions: apirequests.NewClientsMap(),
-	}, nil
+	t := &HTTP{
+		url:            u,
+		subscriptions:  apirequests.NewClientsMap(),
+		pollResources:  make(map[string]string),
+		defaultTimeout: DefaultTimeout,
+	}
+	t.setParams(p)
+
+	return t, nil
 }
 
 type HTTP struct {
-	url                *url.URL
-	subscriptions      *apirequests.PendingRequestsMap
-	pollingAccessToken string
-}
-
-func (t *HTTP) IsHTTP() bool {
-	return true
-}
-
-func (t *HTTP) IsWS() bool {
-	return false
+	url                     *url.URL
+	subscriptions           *apirequests.PendingRequestsMap
+	pollingAccessToken      string
+	pollingAccessTokenMutex sync.RWMutex
+	pollResourcesMutex      sync.RWMutex
+	pollResources           map[string]string
+	requestRetriesInterval  time.Duration
+	requestRetries          int
+	defaultTimeout          time.Duration
 }
 
 func (t *HTTP) SetPollingToken(accessToken string) {
-	pollingAccessTokenMutex.Lock()
+	t.pollingAccessTokenMutex.Lock()
 	t.pollingAccessToken = accessToken
-	pollingAccessTokenMutex.Unlock()
+	t.pollingAccessTokenMutex.Unlock()
 }
 
-func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *HTTP) SetPollingResource(subscriptionId, resource string) {
+	t.pollResourcesMutex.Lock()
+	t.pollResources[subscriptionId] = resource
+	t.pollResourcesMutex.Unlock()
+}
+
+func (t *HTTP) Request(resource string, params *requestparams.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	client := &http.Client{}
 	addr, err := t.createRequestAddr(resource)
 	if err != nil {
@@ -69,7 +76,7 @@ func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Dura
 	}
 
 	if timeout == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	}
 	client.Timeout = timeout
 
@@ -81,10 +88,10 @@ func (t *HTTP) Request(resource string, params *RequestParams, timeout time.Dura
 
 	t.addRequestHeaders(req, params)
 
-	return t.doRequest(client, req)
+	return t.request(client, req)
 }
 
-func (t *HTTP) getRequestMethod(params *RequestParams) string {
+func (t *HTTP) getRequestMethod(params *requestparams.RequestParams) string {
 	if params == nil || params.Method == "" {
 		return defaultHTTPMethod
 	}
@@ -92,7 +99,7 @@ func (t *HTTP) getRequestMethod(params *RequestParams) string {
 	return params.Method
 }
 
-func (t *HTTP) createRequest(method, addr string, params *RequestParams) (*http.Request, error) {
+func (t *HTTP) createRequest(method, addr string, params *requestparams.RequestParams) (*http.Request, error) {
 	if method == "GET" {
 		return http.NewRequest(method, addr, nil)
 	}
@@ -105,7 +112,7 @@ func (t *HTTP) createRequest(method, addr string, params *RequestParams) (*http.
 	return http.NewRequest(method, addr, reqDataReader)
 }
 
-func (t *HTTP) createRequestDataReader(params *RequestParams) (*bytes.Reader, error) {
+func (t *HTTP) createRequestDataReader(params *requestparams.RequestParams) (*bytes.Reader, error) {
 	var rawReqData []byte
 
 	if params != nil && params.Data != nil {
@@ -137,15 +144,14 @@ func (t *HTTP) createRequestAddr(resource string) (addr string, err *Error) {
 	return u.String(), nil
 }
 
-func (t *HTTP) addRequestHeaders(req *http.Request, params *RequestParams) {
+func (t *HTTP) addRequestHeaders(req *http.Request, params *requestparams.RequestParams) {
 	if params != nil && params.AccessToken != "" {
 		req.Header.Add("Authorization", "Bearer "+params.AccessToken)
 	}
 }
 
-func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error) {
-	res, resErr := client.Do(req)
-
+func (t *HTTP) request(client *http.Client, req *http.Request) ([]byte, *Error) {
+	res, resErr := t.doRequest(client, req)
 	if resErr != nil {
 		if isTimeoutErr(resErr) {
 			return nil, NewError(TimeoutErr, resErr.Error())
@@ -156,7 +162,6 @@ func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error
 	defer res.Body.Close()
 
 	rawRes, rErr := ioutil.ReadAll(res.Body)
-
 	if rErr != nil {
 		return nil, NewError(InvalidResponseErr, rErr.Error())
 	}
@@ -164,14 +169,64 @@ func (t *HTTP) doRequest(client *http.Client, req *http.Request) ([]byte, *Error
 	return rawRes, nil
 }
 
-func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *HTTP) doRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	res, err := client.Do(req)
+	if t.retryRequired(res, err) {
+		res, err = t.retryRequest(client, req)
+	}
+
+	return res, err
+}
+
+func (t *HTTP) retryRequest(client *http.Client, req *http.Request) (*http.Response, error) {
+	var reqErr error
+	for i := 0; i < t.requestRetries; i++ {
+		time.Sleep(t.requestRetriesInterval)
+		res, err := client.Do(req)
+		if t.retryRequired(res, err) {
+			continue
+		} else if err != nil {
+			reqErr = err
+			break
+		}
+
+		return res, nil
+	}
+
+	return nil, reqErr
+}
+
+func (t *HTTP) retryRequired(res *http.Response, err error) bool {
+	if res == nil && err == nil {
+		return false
+	} else if err == nil {
+		return res.StatusCode == 502
+	}
+
+	return t.requestRetryEnabled() && (isTimeoutErr(err) || isHostErr(err))
+}
+
+func (t *HTTP) requestRetryEnabled() bool {
+	return t.requestRetries != 0 && t.requestRetriesInterval != 0
+}
+
+func (t *HTTP) Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	subscriptionId = strconv.FormatInt(rand.Int63(), 10)
 
 	subs := t.subscriptions.CreateRequest(subscriptionId)
+	signalChan := make(chan struct{})
+	tspSubscription := &Subscription{
+		DataChan: subs.Data,
+		ErrChan:  subs.Err,
+		signal:   signalChan,
+	}
+
+	t.SetPollingResource(subscriptionId, resource)
 
 	go func() {
 		done := make(chan struct{})
-		resChan, errChan := t.poll(resource, params, done)
+		resChan, errChan, continueChan := t.poll(subscriptionId, params, done)
+		continueChan <- struct{}{}
 
 	loop:
 		for {
@@ -180,6 +235,8 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 				subs.Err <- err
 			case res := <-resChan:
 				subs.Data <- res
+			case <-signalChan:
+				continueChan <- struct{}{}
 			case <-subs.Signal:
 				close(subs.Data)
 				close(subs.Err)
@@ -189,31 +246,37 @@ func (t *HTTP) Subscribe(resource string, params *RequestParams) (subscription *
 		}
 	}()
 
-	subscription = &Subscription{
-		DataChan: subs.Data,
-		ErrChan:  subs.Err,
-	}
-
-	return subscription, subscriptionId, nil
+	return tspSubscription, subscriptionId, nil
 }
 
-func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) (chan []byte, chan error) {
+func (t *HTTP) poll(subsId string, params *requestparams.RequestParams, done chan struct{}) (chan []byte, chan error, chan struct{}) {
 	resChan := make(chan []byte)
 	errChan := make(chan error)
+	continueChan := make(chan struct{})
 
 	var timeout time.Duration
 	if params == nil || params.WaitTimeoutSeconds == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	} else {
 		timeout = time.Duration(params.WaitTimeoutSeconds) * time.Second * 2
+	}
+
+	if params == nil {
+		params = &requestparams.RequestParams{}
 	}
 
 	go func() {
 	loop:
 		for {
-			pollingAccessTokenMutex.Lock()
+			t.pollingAccessTokenMutex.RLock()
 			params.AccessToken = t.pollingAccessToken
-			pollingAccessTokenMutex.Unlock()
+			t.pollingAccessTokenMutex.RUnlock()
+
+			<-continueChan
+
+			t.pollResourcesMutex.RLock()
+			resource := t.pollResources[subsId]
+			t.pollResourcesMutex.RUnlock()
 
 			res, err := t.Request(resource, params, timeout)
 			if err != nil {
@@ -229,7 +292,7 @@ func (t *HTTP) poll(resource string, params *RequestParams, done chan struct{}) 
 		}
 	}()
 
-	return resChan, errChan
+	return resChan, errChan, continueChan
 }
 
 func (t *HTTP) Unsubscribe(subscriptionId string) {
@@ -238,5 +301,23 @@ func (t *HTTP) Unsubscribe(subscriptionId string) {
 	if ok {
 		subscriber.Close()
 		t.subscriptions.Delete(subscriptionId)
+	}
+}
+
+func (t *HTTP) setParams(p *Params) {
+	if p == nil {
+		return
+	}
+
+	if p.ReconnectionTries != 0 {
+		t.requestRetries = p.ReconnectionTries
+	}
+
+	if p.ReconnectionInterval != 0 {
+		t.requestRetriesInterval = p.ReconnectionInterval
+	}
+
+	if p.DefaultTimeout != 0 {
+		t.defaultTimeout = p.DefaultTimeout
 	}
 }

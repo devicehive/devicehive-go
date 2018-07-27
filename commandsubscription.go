@@ -11,30 +11,30 @@ import (
 	"github.com/devicehive/devicehive-go/internal/transport"
 )
 
-var commandSubsMutex sync.Mutex
+var commandSubsMutex sync.RWMutex
 var commandSubscriptions = make(map[*CommandSubscription]string)
 
 type CommandSubscription struct {
 	CommandsChan chan *Command
 	ErrorChan    chan *Error
+	done         chan struct{}
 	client       *Client
 }
 
-// Sends request to unsubscribe
+// Sends request to unsubscribe from current commands subscription
 func (cs *CommandSubscription) Remove() *Error {
-	commandSubsMutex.Lock()
-	defer commandSubsMutex.Unlock()
-
+	commandSubsMutex.RLock()
 	subsId := commandSubscriptions[cs]
+	commandSubsMutex.RUnlock()
+
 	err := cs.client.unsubscribe("command/unsubscribe", subsId)
 
-	if err != nil {
-		return err
-	}
-
+	commandSubsMutex.Lock()
+	close(cs.done)
 	delete(commandSubscriptions, cs)
+	commandSubsMutex.Unlock()
 
-	return nil
+	return err
 }
 
 func (cs *CommandSubscription) sendError(err *Error) {
@@ -45,6 +45,7 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 	subs := &CommandSubscription{
 		CommandsChan: make(chan *Command),
 		ErrorChan:    make(chan *Error),
+		done:         make(chan struct{}),
 		client:       client,
 	}
 	commandSubsMutex.Lock()
@@ -73,7 +74,9 @@ func newCommandSubscription(subsId string, tspSubs *transport.Subscription, clie
 					break loop
 				}
 
-				client.handleSubscriptionError(subs, err)
+				subs.sendError(newError(err))
+			case <-subs.done:
+				break loop
 			}
 		}
 
