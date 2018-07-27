@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style
 // license that can be found in the LICENSE file.
 
-package apirequests
+package requestparams
 
 import (
 	"github.com/devicehive/devicehive-go/internal/utils"

@@ -5,7 +5,7 @@
 package transport
 
 import (
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"net/url"
 	"time"
 )
@@ -15,8 +15,8 @@ const (
 )
 
 type Transporter interface {
-	Request(resource string, params *apirequests.RequestParams, timeout time.Duration) (res []byte, err *Error)
-	Subscribe(resource string, params *apirequests.RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
+	Request(resource string, params *requestparams.RequestParams, timeout time.Duration) (res []byte, err *Error)
+	Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error)
 	Unsubscribe(subscriptionId string)
 }
 

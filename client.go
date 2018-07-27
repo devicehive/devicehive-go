@@ -6,9 +6,9 @@ package devicehive_go
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
@@ -16,11 +16,9 @@ import (
 // Main struct which serves as entry point to DeviceHive API
 type Client struct {
 	transportAdapter          transportadapter.TransportAdapter
-	refreshToken              string
-	login                     string
-	password                  string
 	PollingWaitTimeoutSeconds int
 	subscriptionTimestamp     time.Time
+	defaultRequestTimeout     time.Duration
 }
 
 // Constructor, doesn't create device at DH
@@ -56,7 +54,7 @@ func (c *Client) NewNotification() *Notification {
 // Subscribes to notifications by custom filter
 // In case params is nil returns subscription for all notifications
 func (c *Client) SubscribeNotifications(params *SubscribeParams) (*NotificationSubscription, *Error) {
-	tspSubs, subsId, err := c.subscribe("subscribeNotifications", params)
+	tspSubs, subsId, err := c.subscribe(resourcenames.SubscribeNotifications, params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
@@ -69,7 +67,7 @@ func (c *Client) SubscribeNotifications(params *SubscribeParams) (*NotificationS
 // Subscribes to commands by custom filter
 // In case params is nil returns subscription for all commands
 func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscription, *Error) {
-	tspSubs, subsId, err := c.subscribe("subscribeCommands", params)
+	tspSubs, subsId, err := c.subscribe(resourcenames.SubscribeCommands, params)
 	if err != nil || tspSubs == nil {
 		return nil, err
 	}
@@ -80,47 +78,15 @@ func (c *Client) SubscribeCommands(params *SubscribeParams) (*CommandSubscriptio
 }
 
 func (c *Client) setCreds(login, password string) {
-	c.login = login
-	c.password = password
 	c.transportAdapter.SetCreds(login, password)
 }
 
 func (c *Client) setRefreshToken(refTok string) {
-	c.refreshToken = refTok
 	c.transportAdapter.SetRefreshToken(refTok)
 }
 
-func (c *Client) handleSubscriptionError(subs subscriber, err error) {
-	if err.Error() == TokenExpiredErr && subscriptionReauth.reauthNeeded() {
-		if res := c.reauthenticateSubscription(subs); res {
-			subscriptionReauth.reauthPoint()
-		}
-	} else {
-		subs.sendError(newError(err))
-	}
-}
-
-func (c *Client) reauthenticateSubscription(subs subscriber) bool {
-	accessToken, err := c.RefreshToken()
-	if err != nil {
-		removeSubscriptionWithError(subs, err)
-		return false
-	}
-
-	if success, err := c.authenticate(accessToken); err != nil {
-		removeSubscriptionWithError(subs, err)
-		return false
-	} else if !success {
-		removeSubscriptionWithError(subs, newError(errors.New("re-authentication failed")))
-		return false
-	}
-
-	return true
-}
-
 func (c *Client) authenticate(token string) (bool, *Error) {
-	result, rawErr := c.transportAdapter.Authenticate(token, Timeout)
-
+	result, rawErr := c.transportAdapter.Authenticate(token, c.defaultRequestTimeout)
 	if rawErr != nil {
 		return result, newError(rawErr)
 	}
@@ -153,7 +119,7 @@ func (c *Client) subscribe(resourceName string, params *SubscribeParams) (subscr
 }
 
 func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
-	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
+	err := c.transportAdapter.Unsubscribe(resourceName, subscriptionId, c.defaultRequestTimeout)
 	if err != nil {
 		return newError(err)
 	}
@@ -162,30 +128,7 @@ func (c *Client) unsubscribe(resourceName, subscriptionId string) *Error {
 }
 
 func (c *Client) request(resourceName string, data map[string]interface{}) ([]byte, *Error) {
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
-
-	if rawErr != nil && rawErr.Error() == TokenExpiredErr {
-		resBytes, err := c.refreshRetry(resourceName, data)
-		return resBytes, err
-	} else if rawErr != nil {
-		return nil, newError(rawErr)
-	}
-
-	return resBytes, nil
-}
-
-func (c *Client) refreshRetry(resourceName string, data map[string]interface{}) ([]byte, *Error) {
-	accessToken, err := c.RefreshToken()
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.authenticate(accessToken)
-	if !res || err != nil {
-		return nil, err
-	}
-
-	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, Timeout)
+	resBytes, rawErr := c.transportAdapter.Request(resourceName, data, c.defaultRequestTimeout)
 	if rawErr != nil {
 		return nil, newError(rawErr)
 	}
@@ -211,7 +154,7 @@ func (c *Client) getModel(resourceName string, model interface{}, data map[strin
 func (c *Client) GetDevice(deviceId string) (device *Device, err *Error) {
 	d := c.NewDevice()
 
-	err = c.getModel("getDevice", d, map[string]interface{}{
+	err = c.getModel(resourcenames.GetDevice, d, map[string]interface{}{
 		"deviceId": deviceId,
 	})
 	if err != nil {
@@ -235,7 +178,7 @@ func (c *Client) PutDevice(id, name string, data map[string]interface{}, network
 	device.DeviceTypeId = deviceTypeId
 	device.IsBlocked = blocked
 
-	_, err := c.request("putDevice", map[string]interface{}{
+	_, err := c.request(resourcenames.PutDevice, map[string]interface{}{
 		"deviceId": device.Id,
 		"device":   device,
 	})
@@ -258,7 +201,7 @@ func (c *Client) ListDevices(params *ListParams) (list []*Device, err *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listDevices", data)
+	rawRes, err := c.request(resourcenames.ListDevices, data)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +224,7 @@ func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error
 	devType.Name = name
 	devType.Description = description
 
-	res, err := c.request("insertDeviceType", map[string]interface{}{
+	res, err := c.request(resourcenames.InsertDeviceType, map[string]interface{}{
 		"deviceType": devType,
 	})
 	if err != nil {
@@ -299,7 +242,7 @@ func (c *Client) CreateDeviceType(name, description string) (*DeviceType, *Error
 func (c *Client) GetDeviceType(deviceTypeId int) (*DeviceType, *Error) {
 	devType := c.NewDeviceType()
 
-	err := c.getModel("getDeviceType", devType, map[string]interface{}{
+	err := c.getModel(resourcenames.GetDeviceType, devType, map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
 	})
 	if err != nil {
@@ -320,7 +263,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listDeviceTypes", data)
+	rawRes, err := c.request(resourcenames.ListDeviceTypes, data)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +284,7 @@ func (c *Client) ListDeviceTypes(params *ListParams) ([]*DeviceType, *Error) {
 func (c *Client) GetInfo() (*ServerInfo, *Error) {
 	info := &ServerInfo{}
 
-	err := c.getModel("apiInfo", info, nil)
+	err := c.getModel(resourcenames.ApiInfo, info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +295,7 @@ func (c *Client) GetInfo() (*ServerInfo, *Error) {
 func (c *Client) GetClusterInfo() (*ClusterInfo, *Error) {
 	info := &ClusterInfo{}
 
-	err := c.getModel("apiInfoCluster", info, nil)
+	err := c.getModel(resourcenames.ClusterInfo, info, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +309,7 @@ func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
 	ntwk.Name = name
 	ntwk.Description = description
 
-	res, err := c.request("insertNetwork", map[string]interface{}{
+	res, err := c.request(resourcenames.InsertNetwork, map[string]interface{}{
 		"network": ntwk,
 	})
 	if err != nil {
@@ -384,7 +327,7 @@ func (c *Client) CreateNetwork(name, description string) (*Network, *Error) {
 func (c *Client) GetNetwork(networkId int) (*Network, *Error) {
 	ntwk := c.NewNetwork()
 
-	err := c.getModel("getNetwork", ntwk, map[string]interface{}{
+	err := c.getModel(resourcenames.GetNetwork, ntwk, map[string]interface{}{
 		"networkId": networkId,
 	})
 	if err != nil {
@@ -405,7 +348,7 @@ func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listNetworks", data)
+	rawRes, err := c.request(resourcenames.ListNetworks, data)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +367,7 @@ func (c *Client) ListNetworks(params *ListParams) ([]*Network, *Error) {
 func (c *Client) GetProperty(name string) (*Configuration, *Error) {
 	conf := &Configuration{}
 
-	err := c.getModel("getConfig", conf, map[string]interface{}{
+	err := c.getModel(resourcenames.GetConfig, conf, map[string]interface{}{
 		"name": name,
 	})
 	if err != nil {
@@ -435,7 +378,7 @@ func (c *Client) GetProperty(name string) (*Configuration, *Error) {
 }
 
 func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error) {
-	rawRes, err := c.request("putConfig", map[string]interface{}{
+	rawRes, err := c.request(resourcenames.PutConfig, map[string]interface{}{
 		"name":  name,
 		"value": value,
 	})
@@ -454,7 +397,7 @@ func (c *Client) SetProperty(name, value string) (entityVersion int, err *Error)
 }
 
 func (c *Client) DeleteProperty(name string) *Error {
-	_, err := c.request("deleteConfig", map[string]interface{}{
+	_, err := c.request(resourcenames.DeleteConfig, map[string]interface{}{
 		"name": name,
 	})
 
@@ -482,48 +425,9 @@ func (c *Client) CreateToken(userId int, expiration, refreshExpiration time.Time
 		data["refreshExpiration"] = &ISO8601Time{refreshExpiration}
 	}
 
-	return c.tokenRequest("tokenCreate", map[string]interface{}{
+	rawRes, err := c.request(resourcenames.TokenCreate, map[string]interface{}{
 		"payload": data,
 	})
-}
-
-func (c *Client) RefreshToken() (accessToken string, err *Error) {
-	if c.refreshToken == "" {
-		accessToken, _, err = c.tokensByCreds(c.login, c.password)
-		return accessToken, err
-	}
-
-	return c.accessTokenByRefresh(c.refreshToken)
-}
-
-func (c *Client) accessTokenByRefresh(refreshToken string) (accessToken string, err *Error) {
-	rawRes, err := c.request("tokenRefresh", map[string]interface{}{
-		"refreshToken": refreshToken,
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	tok := &token{}
-	parseErr := json.Unmarshal(rawRes, tok)
-
-	if parseErr != nil {
-		return "", newJSONErr(parseErr)
-	}
-
-	return tok.Access, nil
-}
-
-func (c *Client) tokensByCreds(login, pass string) (accessToken, refreshToken string, err *Error) {
-	return c.tokenRequest("tokenByCreds", map[string]interface{}{
-		"login":    login,
-		"password": pass,
-	})
-}
-
-func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) (accessToken, refreshToken string, err *Error) {
-	rawRes, err := c.request(resourceName, data)
 
 	if err != nil {
 		return "", "", err
@@ -539,6 +443,15 @@ func (c *Client) tokenRequest(resourceName string, data map[string]interface{}) 
 	return tok.Access, tok.Refresh, nil
 }
 
+func (c *Client) RefreshToken() (accessToken string, err *Error) {
+	accessToken, rawErr := c.transportAdapter.RefreshToken()
+	if rawErr != nil {
+		err = newError(rawErr)
+	}
+
+	return accessToken, err
+}
+
 func (c *Client) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) (*User, *Error) {
 	usr := c.NewUser()
 	usr.Login = login
@@ -546,7 +459,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 	usr.Data = data
 	usr.AllDeviceTypesAvailable = allDevTypesAvail
 
-	res, err := c.request("createUser", map[string]interface{}{
+	res, err := c.request(resourcenames.CreateUser, map[string]interface{}{
 		"user": map[string]interface{}{
 			"login":    login,
 			"role":     role,
@@ -571,7 +484,7 @@ func (c *Client) CreateUser(login, password string, role int, data map[string]in
 func (c *Client) GetUser(userId int) (*User, *Error) {
 	usr := c.NewUser()
 
-	err := c.getModel("getUser", usr, map[string]interface{}{
+	err := c.getModel(resourcenames.GetUser, usr, map[string]interface{}{
 		"userId": userId,
 	})
 	if err != nil {
@@ -584,7 +497,7 @@ func (c *Client) GetUser(userId int) (*User, *Error) {
 func (c *Client) GetCurrentUser() (*User, *Error) {
 	usr := c.NewUser()
 
-	err := c.getModel("getCurrentUser", usr, nil)
+	err := c.getModel(resourcenames.GetCurrentUser, usr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -602,7 +515,7 @@ func (c *Client) ListUsers(params *ListParams) ([]*User, *Error) {
 		return nil, &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	rawRes, err := c.request("listUsers", data)
+	rawRes, err := c.request(resourcenames.ListUsers, data)
 	if err != nil {
 		return nil, err
 	}

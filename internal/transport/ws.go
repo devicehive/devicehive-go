@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 	"github.com/devicehive/devicehive-go/internal/utils"
 	"github.com/gorilla/websocket"
@@ -22,10 +23,11 @@ func newWS(addr string, params *Params) (tsp *WS, err error) {
 	}
 
 	tsp = &WS{
-		conn:          conn,
-		address:       addr,
-		requests:      apirequests.NewClientsMap(),
-		subscriptions: apirequests.NewWSSubscriptionsMap(),
+		conn:           conn,
+		address:        addr,
+		requests:       apirequests.NewClientsMap(),
+		subscriptions:  apirequests.NewWSSubscriptionsMap(),
+		defaultTimeout: DefaultTimeout,
 	}
 	tsp.setParams(params)
 
@@ -43,15 +45,16 @@ type WS struct {
 	reconnectionTries    int
 	reconnectionInterval time.Duration
 	afterReconn          func()
+	defaultTimeout       time.Duration
 }
 
-func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *WS) Request(resource string, params *requestparams.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
-		timeout = DefaultTimeout
+		timeout = t.defaultTimeout
 	}
 
 	if params == nil {
-		params = &apirequests.RequestParams{}
+		params = &requestparams.RequestParams{}
 	}
 
 	reqId := params.CreateRequestId()
@@ -80,7 +83,7 @@ func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout
 	}
 }
 
-func (t *WS) Subscribe(resource string, params *apirequests.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *WS) Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err
@@ -242,6 +245,10 @@ func (t *WS) setParams(p *Params) {
 
 	if p.ReconnectionInterval != 0 {
 		t.reconnectionInterval = p.ReconnectionInterval
+	}
+
+	if p.DefaultTimeout != 0 {
+		t.defaultTimeout = p.DefaultTimeout
 	}
 }
 

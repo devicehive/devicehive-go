@@ -14,7 +14,6 @@ import (
 // It will recreate access token on expiration by given refresh token
 func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams) (*Client, *Error) {
 	c, err := connect(url, p)
-
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +24,7 @@ func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams
 		return auth(accessToken, c)
 	}
 
-	accessToken, err = c.accessTokenByRefresh(refreshToken)
+	accessToken, err = c.RefreshToken()
 
 	if err != nil {
 		return nil, err
@@ -38,31 +37,24 @@ func ConnectWithToken(url, accessToken, refreshToken string, p *ConnectionParams
 // It will recreate access token on expiration by given credentials
 func ConnectWithCreds(url, login, password string, p *ConnectionParams) (*Client, *Error) {
 	c, err := connect(url, p)
-
 	if err != nil {
 		return nil, err
 	}
 
-	accTok, _, err := c.tokensByCreds(login, password)
+	c.setCreds(login, password)
+
+	accTok, err := c.RefreshToken()
 
 	if err != nil {
 		return nil, err
 	}
-
-	c.login = login
-	c.password = password
 
 	return auth(accTok, c)
 }
 
 func connect(url string, p *ConnectionParams) (*Client, *Error) {
-	var tspParams *transport.Params
-	if p != nil {
-		tspParams = &transport.Params{
-			ReconnectionTries:    p.ReconnectionTries,
-			ReconnectionInterval: p.ReconnectionInterval,
-		}
-	}
+	timeout := p.Timeout()
+	tspParams := createTransportParams(p)
 
 	tsp, tspErr := transport.Create(url, tspParams)
 
@@ -73,6 +65,7 @@ func connect(url string, p *ConnectionParams) (*Client, *Error) {
 	client := &Client{
 		transportAdapter:          transportadapter.New(tsp),
 		PollingWaitTimeoutSeconds: DefaultPollingWaitTimeoutSeconds,
+		defaultRequestTimeout:     timeout,
 	}
 
 	info, err := client.GetInfo()
@@ -95,4 +88,17 @@ func auth(accTok string, c *Client) (*Client, *Error) {
 	}
 
 	return nil, nil
+}
+
+func createTransportParams(p *ConnectionParams) *transport.Params {
+	var tspParams *transport.Params
+	if p != nil {
+		tspParams = &transport.Params{
+			ReconnectionTries:    p.ReconnectionTries,
+			ReconnectionInterval: p.ReconnectionInterval,
+			DefaultTimeout:       p.Timeout(),
+		}
+	}
+
+	return tspParams
 }

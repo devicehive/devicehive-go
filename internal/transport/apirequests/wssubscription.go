@@ -4,12 +4,15 @@
 
 package apirequests
 
-import "sync"
+import (
+	"github.com/devicehive/devicehive-go/internal/requestparams"
+	"sync"
+)
 
 type WSSubscription struct {
 	*PendingRequest
 	SubscriptionResource string
-	SubscriptionParams   *RequestParams
+	SubscriptionParams   *requestparams.RequestParams
 	SubscriptionId       string
-	ChansLocker 		 sync.RWMutex
+	ChansLocker          sync.RWMutex
 }

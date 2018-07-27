@@ -1,4 +1,4 @@
-package transportadapter
+package authmanager
 
 type token struct {
 	Access  string `json:"accessToken"`

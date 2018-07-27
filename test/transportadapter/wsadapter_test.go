@@ -2,6 +2,7 @@ package transportadapter
 
 import (
 	"fmt"
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/transport"
 	"github.com/devicehive/devicehive-go/internal/transportadapter"
 	"github.com/gorilla/websocket"
@@ -100,7 +101,7 @@ func TestWSResubscription(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, _, tspErr := adapter.Subscribe("subscribeCommands", 0, nil)
+	s, _, tspErr := adapter.Subscribe(resourcenames.SubscribeCommands, 0, nil)
 	if tspErr != nil {
 		t.Fatal(tspErr)
 	}

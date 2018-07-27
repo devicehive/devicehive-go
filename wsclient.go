@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/resourcenames"
 	"github.com/devicehive/devicehive-go/internal/transportadapter"
 )
 
@@ -16,12 +17,13 @@ type WSClient struct {
 	// Channel for receiving responses
 	DataChan chan []byte
 	// Channel for receiving errors
-	ErrorChan chan error
+	ErrorChan             chan error
+	defaultRequestTimeout time.Duration
 }
 
 func (wsc *WSClient) unsubscribe(resourceName, subscriptionId string) {
 	go func() {
-		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, Timeout)
+		err := wsc.transportAdapter.Unsubscribe(resourceName, subscriptionId, wsc.defaultRequestTimeout)
 		if err != nil {
 			wsc.ErrorChan <- newError(err)
 		}
@@ -66,7 +68,7 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 	}
 
 	go func() {
-		resBytes, err := wsc.transportAdapter.Request(resourceName, data, Timeout)
+		resBytes, err := wsc.transportAdapter.Request(resourceName, data, wsc.defaultRequestTimeout)
 		if err != nil {
 			wsc.ErrorChan <- newError(err)
 			return
@@ -81,7 +83,7 @@ func (wsc *WSClient) request(resourceName string, data map[string]interface{}) *
 // Subscribes for notifications with given params. If params is nil then default values take place.
 // After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeNotifications(params *SubscribeParams) *Error {
-	return wsc.subscribe("subscribeNotifications", params)
+	return wsc.subscribe(resourcenames.SubscribeNotifications, params)
 }
 
 func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
@@ -91,7 +93,7 @@ func (wsc *WSClient) UnsubscribeNotifications(subscriptionId string) {
 // Subscribes for commands with given params. If params is nil then default values take place.
 // After successful subscription JSON object with only property "subscriptionId" is sent to the main data channel.
 func (wsc *WSClient) SubscribeCommands(params *SubscribeParams) *Error {
-	return wsc.subscribe("subscribeCommands", params)
+	return wsc.subscribe(resourcenames.SubscribeCommands, params)
 }
 
 func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
@@ -99,7 +101,7 @@ func (wsc *WSClient) UnsubscribeCommands(subscriptionId string) {
 }
 
 func (wsc *WSClient) Authenticate(accessToken string) *Error {
-	return wsc.request("auth", map[string]interface{}{
+	return wsc.request(resourcenames.Auth, map[string]interface{}{
 		"token": accessToken,
 	})
 }
@@ -109,26 +111,26 @@ func (wsc *WSClient) PutDevice(device Device) *Error {
 		device.Name = device.Id
 	}
 
-	return wsc.request("putDevice", map[string]interface{}{
+	return wsc.request(resourcenames.PutDevice, map[string]interface{}{
 		"deviceId": device.Id,
 		"device":   device,
 	})
 }
 
 func (wsc *WSClient) GetDevice(deviceId string) *Error {
-	return wsc.request("getDevice", map[string]interface{}{
+	return wsc.request(resourcenames.GetDevice, map[string]interface{}{
 		"deviceId": deviceId,
 	})
 }
 
 func (wsc *WSClient) DeleteDevice(deviceId string) *Error {
-	return wsc.request("deleteDevice", map[string]interface{}{
+	return wsc.request(resourcenames.DeleteDevice, map[string]interface{}{
 		"deviceId": deviceId,
 	})
 }
 
 func (wsc *WSClient) UpdateDevice(deviceId string, device *Device) *Error {
-	return wsc.request("putDevice", map[string]interface{}{
+	return wsc.request(resourcenames.PutDevice, map[string]interface{}{
 		"deviceId": deviceId,
 		"device":   device,
 	})
@@ -145,7 +147,7 @@ func (wsc *WSClient) ListDevices(params *ListParams) *Error {
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	return wsc.request("listDevices", data)
+	return wsc.request(resourcenames.ListDevices, data)
 }
 
 func (wsc *WSClient) SendDeviceCommand(deviceId, name string, params map[string]interface{}, lifetime int, timestamp time.Time,
@@ -163,7 +165,7 @@ func (wsc *WSClient) SendDeviceCommand(deviceId, name string, params map[string]
 		comm.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	return wsc.request("insertCommand", map[string]interface{}{
+	return wsc.request(resourcenames.InsertCommand, map[string]interface{}{
 		"deviceId": deviceId,
 		"command":  comm,
 	})
@@ -182,7 +184,7 @@ func (wsc *WSClient) ListDeviceCommands(deviceId string, params *ListParams) *Er
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	return wsc.request("listCommands", data)
+	return wsc.request(resourcenames.ListCommands, data)
 }
 
 func (wsc *WSClient) SendDeviceNotification(deviceId, name string, params map[string]interface{}, timestamp time.Time) *Error {
@@ -195,7 +197,7 @@ func (wsc *WSClient) SendDeviceNotification(deviceId, name string, params map[st
 		notif.Timestamp = ISO8601Time{Time: timestamp}
 	}
 
-	return wsc.request("insertNotification", map[string]interface{}{
+	return wsc.request(resourcenames.InsertNotification, map[string]interface{}{
 		"deviceId":     deviceId,
 		"notification": notif,
 	})
@@ -214,32 +216,32 @@ func (wsc *WSClient) ListDeviceNotifications(deviceId string, params *ListParams
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	return wsc.request("listNotifications", data)
+	return wsc.request(resourcenames.ListNotifications, data)
 }
 
 func (wsc *WSClient) GetInfo() *Error {
-	return wsc.request("apiInfo", nil)
+	return wsc.request(resourcenames.ApiInfo, nil)
 }
 
 func (wsc *WSClient) GetClusterInfo() *Error {
-	return wsc.request("apiInfoCluster", nil)
+	return wsc.request(resourcenames.ClusterInfo, nil)
 }
 
 func (wsc *WSClient) SetProperty(name, value string) *Error {
-	return wsc.request("putConfig", map[string]interface{}{
+	return wsc.request(resourcenames.PutConfig, map[string]interface{}{
 		"name":  name,
 		"value": value,
 	})
 }
 
 func (wsc *WSClient) GetProperty(name string) *Error {
-	return wsc.request("getConfig", map[string]interface{}{
+	return wsc.request(resourcenames.GetConfig, map[string]interface{}{
 		"name": name,
 	})
 }
 
 func (wsc *WSClient) DeleteProperty(name string) *Error {
-	return wsc.request("deleteConfig", map[string]interface{}{
+	return wsc.request(resourcenames.DeleteConfig, map[string]interface{}{
 		"name": name,
 	})
 }
@@ -251,20 +253,20 @@ func (wsc *WSClient) CreateDeviceType(name, description string) *Error {
 		Description: description,
 	}
 
-	return wsc.request("insertDeviceType", map[string]interface{}{
+	return wsc.request(resourcenames.InsertDeviceType, map[string]interface{}{
 		"deviceType": devType,
 	})
 
 }
 
 func (wsc *WSClient) DeleteDeviceType(deviceTypeId int) *Error {
-	return wsc.request("deleteDeviceType", map[string]interface{}{
+	return wsc.request(resourcenames.DeleteDeviceType, map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
 	})
 }
 
 func (wsc *WSClient) GetDeviceType(deviceTypeId int) *Error {
-	return wsc.request("getDeviceType", map[string]interface{}{
+	return wsc.request(resourcenames.GetDeviceType, map[string]interface{}{
 		"deviceTypeId": deviceTypeId,
 	})
 
@@ -279,7 +281,7 @@ func (wsc *WSClient) ListDeviceTypes(params *ListParams) *Error {
 	if pErr != nil {
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
-	return wsc.request("listDeviceTypes", data)
+	return wsc.request(resourcenames.ListDeviceTypes, data)
 
 }
 
@@ -289,14 +291,14 @@ func (wsc *WSClient) CreateNetwork(name, description string) *Error {
 		Description: description,
 	}
 
-	return wsc.request("insertNetwork", map[string]interface{}{
+	return wsc.request(resourcenames.InsertNetwork, map[string]interface{}{
 		"network": network,
 	})
 }
 
 func (wsc *WSClient) GetNetwork(networkId int) *Error {
 
-	return wsc.request("getNetwork", map[string]interface{}{
+	return wsc.request(resourcenames.GetNetwork, map[string]interface{}{
 		"networkId": networkId,
 	})
 
@@ -313,12 +315,12 @@ func (wsc *WSClient) ListNetworks(params *ListParams) *Error {
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	return wsc.request("listNetworks", data)
+	return wsc.request(resourcenames.ListNetworks, data)
 
 }
 
 func (wsc *WSClient) DeleteNetwork(networkId int) *Error {
-	return wsc.request("deleteNetwork", map[string]interface{}{
+	return wsc.request(resourcenames.DeleteNetwork, map[string]interface{}{
 		"networkId": networkId,
 	})
 }
@@ -341,26 +343,26 @@ func (wsc *WSClient) CreateToken(userId int, expiration time.Time, actions, netw
 		data["expiration"] = (&ISO8601Time{expiration}).String()
 	}
 
-	return wsc.request("tokenCreate", map[string]interface{}{
+	return wsc.request(resourcenames.TokenCreate, map[string]interface{}{
 		"payload": data,
 	})
 }
 
 func (wsc *WSClient) AccessTokenByRefresh(refreshToken string) *Error {
-	return wsc.request("tokenRefresh", map[string]interface{}{
+	return wsc.request(resourcenames.TokenRefresh, map[string]interface{}{
 		"refreshToken": refreshToken,
 	})
 }
 
 func (wsc *WSClient) AccessTokenByCreds(login, password string) *Error {
-	return wsc.request("tokenByCreds", map[string]interface{}{
+	return wsc.request(resourcenames.TokenByCreds, map[string]interface{}{
 		"login":    login,
 		"password": password,
 	})
 }
 
 func (wsc *WSClient) CreateUser(login, password string, role int, data map[string]interface{}, allDevTypesAvail bool) *Error {
-	return wsc.request("createUser", map[string]interface{}{
+	return wsc.request(resourcenames.CreateUser, map[string]interface{}{
 		"user": map[string]interface{}{
 			"login":    login,
 			"role":     role,
@@ -373,26 +375,26 @@ func (wsc *WSClient) CreateUser(login, password string, role int, data map[strin
 }
 
 func (wsc *WSClient) GetUser(userId int) *Error {
-	return wsc.request("getUser", map[string]interface{}{
+	return wsc.request(resourcenames.GetUser, map[string]interface{}{
 		"userId": userId,
 	})
 }
 
 func (wsc *WSClient) UpdateUser(userId int, user User) *Error {
-	return wsc.request("updateUser", map[string]interface{}{
+	return wsc.request(resourcenames.UpdateUser, map[string]interface{}{
 		"userId": userId,
 		"user":   user,
 	})
 }
 
 func (wsc *WSClient) DeleteUser(userId int) *Error {
-	return wsc.request("deleteUser", map[string]interface{}{
+	return wsc.request(resourcenames.DeleteUser, map[string]interface{}{
 		"userId": userId,
 	})
 }
 
 func (wsc *WSClient) GetCurrentUser() *Error {
-	return wsc.request("getCurrentUser", nil)
+	return wsc.request(resourcenames.GetCurrentUser, nil)
 }
 
 // In case params is nil default values defined at DeviceHive take place
@@ -406,51 +408,51 @@ func (wsc *WSClient) ListUsers(params *ListParams) *Error {
 		return &Error{name: InvalidRequestErr, reason: pErr.Error()}
 	}
 
-	return wsc.request("listUsers", data)
+	return wsc.request(resourcenames.ListUsers, data)
 }
 
 func (wsc *WSClient) UserAssignNetwork(userId, networkId int) *Error {
-	return wsc.request("assignNetwork", map[string]interface{}{
+	return wsc.request(resourcenames.AssignNetwork, map[string]interface{}{
 		"userId":    userId,
 		"networkId": networkId,
 	})
 }
 
 func (wsc *WSClient) UserUnassignNetwork(userId, networkId int) *Error {
-	return wsc.request("unassignNetwork", map[string]interface{}{
+	return wsc.request(resourcenames.UnassignNetwork, map[string]interface{}{
 		"userId":    userId,
 		"networkId": networkId,
 	})
 }
 
 func (wsc *WSClient) UserAssignDeviceType(userId, deviceTypeId int) *Error {
-	return wsc.request("assignDeviceType", map[string]interface{}{
+	return wsc.request(resourcenames.AssignDeviceType, map[string]interface{}{
 		"userId":       userId,
 		"deviceTypeId": deviceTypeId,
 	})
 }
 
 func (wsc *WSClient) UserUnassignDeviceType(userId, deviceTypeId int) *Error {
-	return wsc.request("unassignDeviceType", map[string]interface{}{
+	return wsc.request(resourcenames.UnassignDeviceType, map[string]interface{}{
 		"userId":       userId,
 		"deviceTypeId": deviceTypeId,
 	})
 }
 
 func (wsc *WSClient) AllowAllDeviceTypes(userId int) *Error {
-	return wsc.request("allowAllDeviceTypes", map[string]interface{}{
+	return wsc.request(resourcenames.AllowAllDeviceTypes, map[string]interface{}{
 		"userId": userId,
 	})
 }
 
 func (wsc *WSClient) DisallowAllDeviceTypes(userId int) *Error {
-	return wsc.request("disallowAllDeviceTypes", map[string]interface{}{
+	return wsc.request(resourcenames.DisallowAllDeviceTypes, map[string]interface{}{
 		"userId": userId,
 	})
 }
 
 func (wsc *WSClient) ListUserDeviceTypes(userId int) *Error {
-	return wsc.request("getUserDeviceTypes", map[string]interface{}{
+	return wsc.request(resourcenames.GetUserDeviceTypes, map[string]interface{}{
 		"userId": userId,
 	})
 }

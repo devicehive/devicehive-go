@@ -16,26 +16,24 @@ var notificationSubscriptions = make(map[*NotificationSubscription]string)
 type NotificationSubscription struct {
 	NotificationChan chan *Notification
 	ErrorChan        chan *Error
-	done			 chan struct{}
+	done             chan struct{}
 	client           *Client
 }
 
+// Sends request to unsubscribe from current notifications subscription
 func (ns *NotificationSubscription) Remove() *Error {
 	notifSubsMutex.RLock()
 	subsId := notificationSubscriptions[ns]
 	notifSubsMutex.RUnlock()
 
 	err := ns.client.unsubscribe("notification/unsubscribe", subsId)
-	if err != nil {
-		return err
-	}
 
 	notifSubsMutex.Lock()
 	close(ns.done)
 	delete(notificationSubscriptions, ns)
 	notifSubsMutex.Unlock()
 
-	return nil
+	return err
 }
 
 func (ns *NotificationSubscription) sendError(err *Error) {
@@ -46,7 +44,7 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 	subs := &NotificationSubscription{
 		NotificationChan: make(chan *Notification),
 		ErrorChan:        make(chan *Error),
-		done:		  	  make(chan struct{}),
+		done:             make(chan struct{}),
 		client:           client,
 	}
 
@@ -76,8 +74,8 @@ func newNotificationSubscription(subsId string, tspSubs *transport.Subscription,
 					break loop
 				}
 
-				client.handleSubscriptionError(subs, err)
-			case <- subs.done:
+				subs.sendError(newError(err))
+			case <-subs.done:
 				break loop
 			}
 		}

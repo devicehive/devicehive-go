@@ -16,10 +16,7 @@ func New(tsp transport.Transporter) TransportAdapter {
 		return ws
 	}
 
-	http := &HTTPAdapter{
-		transport: tsp.(*transport.HTTP),
-	}
-	return http
+	return newHTTPAdapter(tsp.(*transport.HTTP))
 }
 
 type TransportAdapter interface {
@@ -29,4 +26,5 @@ type TransportAdapter interface {
 	Authenticate(token string, timeout time.Duration) (result bool, err error)
 	SetCreds(login, password string)
 	SetRefreshToken(refTok string)
+	RefreshToken() (accessToken string, err error)
 }

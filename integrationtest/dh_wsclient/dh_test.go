@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	}
 
 	var err *devicehive_go.Error
-	wsclient, err = devicehive_go.WSConnect(*serverAddr)
+	wsclient, err = devicehive_go.WSConnect(*serverAddr, nil)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
