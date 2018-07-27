@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
 	"github.com/devicehive/devicehive-go/internal/utils"
 	"github.com/gorilla/websocket"
@@ -47,13 +48,13 @@ type WS struct {
 	defaultTimeout       time.Duration
 }
 
-func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout time.Duration) ([]byte, *Error) {
+func (t *WS) Request(resource string, params *requestparams.RequestParams, timeout time.Duration) ([]byte, *Error) {
 	if timeout == 0 {
 		timeout = t.defaultTimeout
 	}
 
 	if params == nil {
-		params = &apirequests.RequestParams{}
+		params = &requestparams.RequestParams{}
 	}
 
 	reqId := params.CreateRequestId()
@@ -82,7 +83,7 @@ func (t *WS) Request(resource string, params *apirequests.RequestParams, timeout
 	}
 }
 
-func (t *WS) Subscribe(resource string, params *apirequests.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
+func (t *WS) Subscribe(resource string, params *requestparams.RequestParams) (subscription *Subscription, subscriptionId string, err *Error) {
 	res, err := t.Request(resource, params, 0)
 	if err != nil {
 		return nil, "", err

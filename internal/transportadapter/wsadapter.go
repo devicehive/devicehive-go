@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/devicehive/devicehive-go/internal/authmanager"
-	"github.com/devicehive/devicehive-go/internal/requester"
 	"github.com/devicehive/devicehive-go/internal/resourcenames"
-	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/requester"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 )
 
 func newWSAdapter(tsp *transport.WS) *WSAdapter {

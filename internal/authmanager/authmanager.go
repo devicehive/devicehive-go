@@ -2,8 +2,8 @@ package authmanager
 
 import (
 	"encoding/json"
-	"github.com/devicehive/devicehive-go/internal/requester"
 	"github.com/devicehive/devicehive-go/internal/resourcenames"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/requester"
 )
 
 func New(reqstr requester.Requester) *AuthManager {

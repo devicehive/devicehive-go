@@ -1,11 +1,11 @@
 package requester
 
 import (
-	"github.com/devicehive/devicehive-go/internal/requester/httputils"
+	"github.com/devicehive/devicehive-go/internal/requestparams"
 	"github.com/devicehive/devicehive-go/internal/resourcenames"
-	"github.com/devicehive/devicehive-go/internal/responsehandler"
 	"github.com/devicehive/devicehive-go/internal/transport"
-	"github.com/devicehive/devicehive-go/internal/transport/apirequests"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/requester/httputils"
+	"github.com/devicehive/devicehive-go/internal/transportadapter/responsehandler"
 	"time"
 )
 
@@ -35,10 +35,10 @@ func (r *HTTPRequester) Request(resourceName string, data map[string]interface{}
 	return resBytes, nil
 }
 
-func (r *HTTPRequester) PrepareRequestData(resourceName string, data map[string]interface{}, accessToken string) (resource string, reqParams *apirequests.RequestParams) {
+func (r *HTTPRequester) PrepareRequestData(resourceName string, data map[string]interface{}, accessToken string) (resource string, reqParams *requestparams.RequestParams) {
 	resource, method := r.ResolveResource(resourceName, data)
 	reqData := r.buildRequestData(resourceName, data)
-	reqParams = &apirequests.RequestParams{
+	reqParams = &requestparams.RequestParams{
 		Data:   reqData,
 		Method: method,
 	}
