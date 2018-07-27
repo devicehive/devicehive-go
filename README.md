@@ -110,7 +110,8 @@ There are three layers under the hood of DeviceHive Go SDK: Client layer, Transp
 - *AuthManager*: responsible for token creation; holds credentials, used for tracking last token refresh and authentication
 - *Requester*: responsible for composing request data, URLs for HTTP and actions for WS, handles responses using *responsehandler* package
 - *responsehandler*: parses responses and returns payload in common format
-Transport adapter has two implementations so far: WSAdapter and HTTPAdapter.
+
+Transport adapter has two implementations so far: WSAdapter and HTTPAdapter. <br>
 **Transport** layer is responsible for doing basic requests and subscriptions. Has two implementations: WS and HTTP.
 ### Resolving request resources
 Since DeviceHive Go SDK supports HTTP and WS through single interface there is the mapping between custom resource names and URL pattern (for HTTP) or action (for WS). Similar mapping is present for response parsing.
