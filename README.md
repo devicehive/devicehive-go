@@ -103,9 +103,10 @@ Unit tests:
 ### Overview
 There are three layers under the hood of DeviceHive Go SDK: Client layer, Transport adapter layer and Transport layer.
 ![Overall architecture of DeviceHive Go SDK](go_sdk_structure.jpg)
+<br>
 **Client** layer is responsible for all high level business logic (request parameters, models etc.). It knows nothing about protocol in use. <br>
 **Transport adapter** layer orchestrates a few components:
-- *Transport*: low level component, responsible for doing requests and subscriptions
+- *Transport* (Transporter interface on diagram): low level component, responsible for doing requests and subscriptions
 - *AuthManager*: responsible for token creation; holds credentials, used for tracking last token refresh and authentication
 - *Requester*: responsible for composing request data, URLs for HTTP and actions for WS, handles responses using *responsehandler* package
 - *responsehandler*: parses responses and returns payload in common format
